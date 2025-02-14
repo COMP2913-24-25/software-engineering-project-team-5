@@ -33,7 +33,6 @@ source flask/Scripts/activate
 ```
 To deactivate the environment:
 ```bash
-python3 -m venv flask
 source flask/Scripts/deactivate
 ```
 To run the flask application:
