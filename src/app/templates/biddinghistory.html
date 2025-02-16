@@ -1,0 +1,140 @@
+<!-- Inherits base.html -->
+{% extends "base.html" %}
+<!-- If you want to include html from another file, do -->
+{# {% include '<file_name>.html' %} #}
+
+{% block content %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bidding History</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h2 {
+            font-size: 24px;
+        }
+        .filter-box {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .filter-box select, .filter-box input {
+            margin-bottom: 10px;
+        }
+        .product {
+            display: flex;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+        .product img {
+            width: 100px;
+            height: 100px;
+            background: #ccc;
+            margin-right: 15px;
+        }
+        .product-info {
+            flex: 1;
+        }
+        .product-title {
+            font-weight: bold;
+        }
+        .status {
+            text-align: right;
+        }
+        .status button {
+            display: block;
+            margin-bottom: 5px;
+            padding: 5px 10px;
+            border: none;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        .cancelled { background: #ffcccc; }
+        .won { background: #ccffcc; }
+        .outbid { background: #ffebcc; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Bidding History</h2>
+
+    <div class="filter-box">
+        <select>
+            <option>Filter</option>
+        </select>
+        <br>
+        <input type="checkbox"> Bid Won
+        <input type="checkbox"> Out Bid
+        <input type="checkbox"> Auction Cancelled
+        <br>
+        <strong>Sort By</strong><br>
+        <input type="checkbox"> Price: Low to High
+        <input type="checkbox"> Price: High to Low
+        <input type="checkbox"> Newest Listings
+    </div>
+
+    <div class="product">
+        <div class="product-image"><img src="#" alt="Product Image"></div>
+        <div class="product-info">
+            <div class="product-title">Product Title</div>
+            <div>Seller Name</div>
+            <div>Product Description......</div>
+            <div>Date Finished: 01/01/2025</div>
+        </div>
+        <div class="status">
+            <button class="cancelled">Auction Cancelled</button>
+        </div>
+    </div>
+
+    <div class="product">
+        <div class="product-image"><img src="#" alt="Product Image"></div>
+        <div class="product-info">
+            <div class="product-title">Product Title</div>
+            <div>Seller Name</div>
+            <div>Product Description......</div>
+            <div>Date Finished: 01/01/2025</div>
+        </div>
+        <div class="status">
+            <button class="won">Bid Won</button>
+            <button class="won">Paid: £150</button>
+            <button class="won">View Receipt</button>
+        </div>
+    </div>
+
+    <div class="product">
+        <div class="product-image"><img src="#" alt="Product Image"></div>
+        <div class="product-info">
+            <div class="product-title">Product Title</div>
+            <div>Seller Name</div>
+            <div>Product Description......</div>
+            <div>Date Finished: 01/01/2025</div>
+        </div>
+        <div class="status">
+            <button class="outbid">Out Bid</button>
+            <button class="outbid">Sold At: £250</button>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>
+
+
+{% endblock %}
