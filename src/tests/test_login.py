@@ -11,13 +11,18 @@ from app.models import User
 
 @pytest.fixture
 def client():
+    """
+    Creates flask client which can be used by the tests
+    """
     app.config["TESTING"] = True
     app.config["WTF_CSRF_ENABLED"] = False
     
     with app.test_client() as client:
         with app.app_context():
+            # Initializes database
             db.create_all()
             
+            # Populates the database with a test User
             test_user = User(
                 Username="testuser",
                 Password=generate_password_hash("PASSword123@"),
@@ -31,17 +36,22 @@ def client():
             db.session.add(test_user)
             db.session.commit()
             
+            # Runs all the tests defined below
             yield client
             
+            # Cleans up the database - removes all data, drops all tables
             db.session.remove()
             db.drop_all()
 
+# Define all tests as: def test_<test_name>(client):
 def test_login_page_loads(client):
     """
     Test that the login page loads correctly
     """
     
     response = client.get("/login")
+    
+    #Correctly loaded response code
     assert response.status_code == 200
 
 def test_login_valid_email(client):
@@ -83,6 +93,7 @@ def test_login_invalid_password(client):
     
     assert response.status_code == 200
     assert b"Invalid email or password" in response.data
+    assert not current_user.is_authenticated
 
 def test_login_invalid_user(client):
     """
@@ -96,4 +107,5 @@ def test_login_invalid_user(client):
     
     assert response.status_code == 200
     assert b"Invalid email or password" in response.data
+    assert not current_user.is_authenticated
     
