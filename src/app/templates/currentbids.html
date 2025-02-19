@@ -5,141 +5,64 @@
 
 {% block content %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Current Bids</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            padding: 0;
-        }
-        h1 {
-            font-size: 24px;
-        }
-        .filter-container {
-            border: 1px solid #ccc;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-        .filter-container select {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-        }
-        .filter-options {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-        }
-        .filter-options label, .sort-options label {
-            margin-right: 10px;
-        }
-        .bid-list {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        .bid-item {
-            display: flex;
-            align-items: center;
-            border: 1px solid #ccc;
-            padding: 15px;
-            border-radius: 8px;
-        }
-        .bid-item img {
-            width: 150px;
-            height: 150px;
-            object-fit: cover;
-            margin-right: 20px;
-            border: 1px solid #ccc;
-        }
-        .bid-details {
-            flex-grow: 1;
-        }
-        .bid-details h2 {
-            font-size: 18px;
-            margin: 0;
-        }
-        .bid-details p {
-            margin: 5px 0;
-        }
-        .bid-actions {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-        }
-        .bid-actions button {
-            padding: 8px 16px;
-            border: 1px solid #000;
-            background-color: #fff;
-            cursor: pointer;
-            border-radius: 5px;
-            font-size: 14px;
-            margin-bottom: 5px;
-        }
-        .bid-actions button:hover {
-            background-color: #f0f0f0;
-        }
-    </style>
-</head>
-<body>
-
-<h1><b>Current Bids</b></h1>
-
-<div class="filter-container">
-    <select>
-        <option>Filter</option>
-    </select>
-    <div class="filter-options">
-        <label><input type="checkbox"> Highest Bidder</label>
-        <label><input type="checkbox"> Out Bid</label>
+<div class="container mt-5">
+    <h2 class="fw-bold">Current Bids</h2>
+    
+    <div class="card p-3 mb-4">
+        <select class="form-select mb-3">
+            <option>Filter</option>
+        </select>
+        <div class="row">
+            <div class="col-md-3">
+                <input type="checkbox"> Highest Bidder
+            </div>
+            <div class="col-md-3">
+                <input type="checkbox"> Out Bid
+            </div>
+        </div>
+        <hr>
+        <div class="row">
+            <div class="col-md-3">
+                <input type="checkbox"> Price: Low to High
+            </div>
+            <div class="col-md-3">
+                <input type="checkbox"> Price: High to Low
+            </div>
+        </div>
     </div>
-    <strong>Sort By</strong>
-    <div class="sort-options">
-        <label><input type="checkbox"> Price: Low to High</label>
-        <label><input type="checkbox"> Price: High to Low</label>
-    </div>
-</div>
-
-<div class="bid-list">
-
-    <div class="bid-item">
-        <img src="placeholder.jpg" alt="Product Image">
-        <div class="bid-details">
-            <h2>Product Title</h2>
-            <p><strong>Seller Name</strong></p>
-            <p>Product Description...</p>
+    
+    <div class="row mb-4 border p-3 rounded shadow-sm">
+        <div class="col-md-3">
+            <div class="bg-secondary" style="width: 100%; height: 150px;"></div>
+        </div>
+        <div class="col-md-6">
+            <h5>Product Title</h5>
+            <p>Seller Name</p>
+            <p>Product Description......</p>
             <p><strong>Time Left:</strong> 12:23:60</p>
         </div>
-        <div class="bid-actions">
-            <button>Highest Bidder</button>
-            <button>Your Bid: £70</button>
+        <div class="col-md-3 text-end">
+            <button class="btn btn-outline-success">Highest Bidder</button>
+            <p class="mb-1">Your Bid: &pound;70</p>
         </div>
     </div>
-
-    <div class="bid-item">
-        <img src="placeholder.jpg" alt="Product Image">
-        <div class="bid-details">
-            <h2>Product Title</h2>
-            <p><strong>Seller Name</strong></p>
-            <p>Product Description...</p>
+    
+    <div class="row mb-4 border p-3 rounded shadow-sm">
+        <div class="col-md-3">
+            <div class="bg-secondary" style="width: 100%; height: 150px;"></div>
+        </div>
+        <div class="col-md-6">
+            <h5>Product Title</h5>
+            <p>Seller Name</p>
+            <p>Product Description......</p>
             <p><strong>Time Left:</strong> 12:23:60</p>
         </div>
-        <div class="bid-actions">
-            <button>Out Bid</button>
-            <button>Your Bid: £70</button>
-            <button>Highest Bid: £100</button>
+        <div class="col-md-3 text-end">
+            <button class="btn btn-outline-danger">Out Bid</button>
+            <p class="mb-1">Your Bid: &pound;70</p>
+            <p class="mb-1">Highest Bid: &pound;100</p>
         </div>
     </div>
-
 </div>
-
-</body>
-</html>
-
+    
 {% endblock %}
