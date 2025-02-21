@@ -120,7 +120,7 @@ You may get warnings when doing these installs. If there is a critial warning, t
 ```bash
 npm audit fix --force
 ```
-If you get warning that aren't critical, its fine to ignore them, and you can start the client with npm start as before.
+If you get warning that aren't critical, its fine to ignore them, and you can start the client with npm start as before. You can delete the nodes_module folder if you are getting issues and redo the install.
 
 ## Additional Comments - IMPORTANT
 
