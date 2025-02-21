@@ -81,6 +81,8 @@ flask/Scripts/pip
 
 Need to install Node.js: https://nodejs.org/en
 
+Also need to re install requirements.txt.
+
 To run the React application we first need to have the flask server up and running. On a Git Bash terminal, (assuming current dir is top level dir) do:
 
 ```bash
@@ -101,6 +103,24 @@ npm start
 Note: Below is a picture showing how to change terminal types in VSCode.
 
 ![alt text](image.png)
+
+If it doesn't work with jus doing npm start, then do the following. If you don't have a node_modules directory in the client, then do:
+```bash
+current dir: src/client
+npm install
+```
+
+Then install the following dependencies:
+```bash
+npm i react-router-dom
+npm i bootstrap-css
+```
+
+You may get warnings when doing these installs. If there is a critial warning, then do:
+```bash
+npm audit fix --force
+```
+If you get warning that aren't critical, its fine to ignore them, and you can start the client with npm start as before.
 
 ## Additional Comments - IMPORTANT
 
