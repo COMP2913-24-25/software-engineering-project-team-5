@@ -1,0 +1,38 @@
+<!-- Inherits base.html -->
+{% extends "base.html" %}
+<!-- If you want to include html from another file, do -->
+{# {% include '<file_name>.html' %} #}
+
+{% block content %}
+
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <div class= "container">
+        <div>
+            <form id = "login_form"  action="" method="post">
+                {{ form.csrf_token }}
+                {{ form.hidden_tag() }}
+                
+                <div class="form-group">
+                    <h2><label for="email">Email address</label></h2>
+                    <input type="email" class="form-control" id="email" name="email" placeholder="name@example.com">
+                </div>
+
+                <div class="form-group">
+                    <h2><label for="password">Password</label></h2>
+                    <input type="password" class="form-control" id="password" name="password" placeholder="Password">
+                </div>
+
+                {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for message in messages%}
+                        <p class="error-message">{{ message }}</p>
+                    {% endfor %}
+                {% endif %}
+                {% endwith %}
+
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </form>
+        </div>
+    </div>
+
+{% endblock %}

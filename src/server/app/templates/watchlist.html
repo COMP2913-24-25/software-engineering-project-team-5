@@ -1,0 +1,54 @@
+<!-- Inherits base.html -->
+{% extends "base.html" %}
+<!-- If you want to include html from another file, do -->
+{# {% include '<file_name>.html' %} #}
+
+{% block content %}
+
+<div class="container mt-5">
+    <h2 class="fw-bold">Watch List</h2>
+    
+    <div class="row my-4 border p-3 rounded shadow-sm">
+        <div class="col-md-3">
+            <div class="bg-secondary" style="width: 100%; height: 150px;"></div>
+        </div>
+        <div class="col-md-9">
+            <h5>Product Title</h5>
+            <p>Seller Name</p>
+            <p>Product Description......</p>
+            <p><strong>Current Highest Bid:</strong> &pound;150</p>
+            <p><strong>Time Remaining:</strong> 1hr</p>
+            <button class="btn btn-outline-danger">Remove Item From Watch List</button>
+        </div>
+    </div>
+    
+    <div class="row my-4 border p-3 rounded shadow-sm">
+        <div class="col-md-3">
+            <div class="bg-secondary" style="width: 100%; height: 150px;"></div>
+        </div>
+        <div class="col-md-9">
+            <h5>Product Title</h5>
+            <p>Seller Name</p>
+            <p>Product Description......</p>
+            <p><strong>Minimum Start Bid:</strong> &pound;50</p>
+            <p><strong>Time Remaining:</strong> 48hrs</p>
+            <button class="btn btn-outline-danger">Remove Item From Watch List</button>
+        </div>
+    </div>
+
+    <div class="row my-4 border p-3 rounded shadow-sm">
+        <div class="col-md-3">
+            <div class="bg-secondary" style="width: 100%; height: 150px;"></div>
+        </div>
+        <div class="col-md-9">
+            <h5>Product Title</h5>
+            <p>Seller Name</p>
+            <p>Product Description......</p>
+            <p><strong>Current Highest Bid:</strong> &pound;2,000</p>
+            <p><strong>Time Remaining:</strong> 72hr</p>
+            <button class="btn btn-outline-danger">Remove Item From Watch List</button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
