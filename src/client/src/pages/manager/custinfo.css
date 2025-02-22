@@ -1,0 +1,29 @@
+.customer-table {
+    text-align: center;
+    font-family: Arial, sans-serif;
+    margin: 20px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+th, td {
+    border: 1px solid black;
+    padding: 8px;
+    text-align: center;
+}
+
+th {
+    background: #f4f4f4;
+    cursor: pointer;
+}
+
+th:hover {
+    background: #ddd;
+}
+
+
+
