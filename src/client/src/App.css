@@ -1,3 +1,150 @@
+body {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  background-color: #f8f8f8;
+}
+
+h1 {
+  font-size: 24px;
+}
+
+.filter-section {
+  background: #e0e0e0;
+  padding: 10px;
+  border-radius: 5px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.filter-section select {
+  padding: 5px;
+}
+
+label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 14px;
+}
+
+.bid-item {
+  display: flex;
+  align-items: center;
+  background: white;
+  padding: 15px;
+  margin-top: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.image-placeholder {
+  width: 100px;
+  height: 100px;
+  background: #ddd;
+  margin-right: 15px;
+}
+
+.bid-info h2 {
+  margin: 0;
+}
+
+.bid-status {
+  margin-left: auto;
+  text-align: right;
+}
+
+button {
+  background: white;
+  border: 1px solid black;
+  padding: 5px 10px;
+  cursor: pointer;
+  margin-top: 5px;
+  border-radius: 5px;
+}
+
+button.cancelled {
+  border-color: red;
+  color: red;
+}
+
+button.won {
+  border-color: green;
+  color: green;
+}
+
+button.outbid {
+  border-color: orange;
+  color: orange;
+}
+
+button.highest-bidder {
+  border-color: blue;
+  color: blue;
+}
+
+button.remove-btn {
+  background: white;
+  border: 1px solid red;
+  color: red;
+  padding: 5px 10px;
+  cursor: pointer;
+  margin-top: 5px;
+  border-radius: 5px;
+}
+
+button.remove-btn:hover {
+  background: red;
+  color: white;
+}
+
+.intro-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.intro-text {
+  flex: 1;
+}
+
+.intro-image {
+  flex: 1;
+  height: 150px;
+  background-color: #ccc;
+}
+
+.product-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+}
+
+.product-item {
+  width: calc(33.333% - 20px);
+  background: white;
+  padding: 15px;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  min-width: 200px;
+}
+
+@media (max-width: 768px) {
+  .product-item {
+    width: calc(50% - 20px);
+  }
+}
+
+@media (max-width: 480px) {
+  .product-item {
+    width: 100%;
+  }
+}
+
 .App {
   text-align: center;
 }
