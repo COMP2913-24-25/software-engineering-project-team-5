@@ -1,5 +1,5 @@
-import React from "react";
-import { BrowserRouter as Router, Routes, Route, Link} from "react-router-dom";
+import React, { useState } from "react";
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 
 // Import your pages here
 import Login from "./pages/login";
@@ -9,38 +9,74 @@ import SellerDashboard from "./pages/sellerdashboard";
 import WatchList from "./pages/watchlist";
 import BiddingHistory from "./pages/biddinghistory";
 import CurrentBids from "./pages/currentbids";
-
+import WeeklyProfits from "./pages/manager/profits";
+import CustomerTable from "./pages/manager/custinfo";
+import AuthenticationRequests from "./pages/manager/authreq";
+import SearchExperts from "./pages/manager/searchexp";
 
 function App() {
-    // add the route to all pages
+    const [activeSubMenu, setActiveSubMenu] = useState(null); // Tracks which submenu is active
+
+    // Function to handle submenu toggle
+    const toggleSubMenu = (menu) => {
+        setActiveSubMenu(activeSubMenu === menu ? null : menu); // Toggle menu visibility
+    };
+
     return (
-
         <Router>
-        <div className="navbar">
-          <Link to="/">login</Link>
-          <Link to="/signup">signup</Link>
-          <Link to="/home-page">homepage</Link>
-          <Link to="/seller-dash">sellerdashboard</Link>
-          <Link to="/watchlist">watchlist</Link>
-          <Link to="/bidding-history">biddinghistory</Link>
-          <Link to="/current-bids">currentbids</Link>
-        </div>
-  
-        <Routes>
-          <Route path="/" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/home-page" element={<HomePage />} />
-          <Route path="/seller-dash" element={<SellerDashboard />} />
-          <Route path="/watchlist" element={<WatchList />} />
-          <Route path="/bidding-history" element={<BiddingHistory />} />
-          <Route path="/current-bids" element={<CurrentBids />} />
-        </Routes>
-      </Router>
+            <div className="navbar">
+                <Link to="/" onClick={() => setActiveSubMenu(null)}>Login</Link>
+                <Link to="/signup" onClick={() => setActiveSubMenu(null)}>Signup</Link>
+                <Link to="/home-page" onClick={() => setActiveSubMenu(null)}>Homepage</Link>
+                <Link to="/seller-dash" onClick={() => setActiveSubMenu(null)}>Seller Dashboard</Link>
+                <Link to="/watchlist" onClick={() => setActiveSubMenu(null)}>Watchlist</Link>
+                <Link to="/bidding-history" onClick={() => setActiveSubMenu(null)}>Bidding History</Link>
+                <Link to="/current-bids" onClick={() => setActiveSubMenu(null)}>Current Bids</Link>
+
+                {/* Expert View Dropdown */}
+                <button className="nav-button" onClick={() => toggleSubMenu("expert")}>Expert View</button>
+
+                {/* Manager View Dropdown */}
+                <button className="nav-button" onClick={() => toggleSubMenu("manager")}>Manager View</button>
+            </div>
+
+            {/* Expert View Sub Navbar */}
+            {activeSubMenu === "expert" && (
+                <div className="sub-navbar">
+                    <Link to="/expert/auth" onClick={() => setActiveSubMenu(null)}>AuthReq</Link>
+                    <Link to="/expert/profile" onClick={() => setActiveSubMenu(null)}>Profile</Link>
+                </div>
+            )}
+
+            {/* Manager View Sub Navbar */}
+            {activeSubMenu === "manager" && (
+                <div className="sub-navbar">
+                    <Link to="/manager/profits" onClick={() => setActiveSubMenu(null)}>Weekly Profits</Link>
+                    <Link to="/manager/customer" onClick={() => setActiveSubMenu(null)}>CustomerInfo</Link>
+                    <Link to="/manager/auth" onClick={() => setActiveSubMenu(null)}>AuthReq</Link>
+                    <Link to="/manager/expertSearch" onClick={() => setActiveSubMenu(null)}>SearchExperts</Link>
 
 
+                </div>
+            )}
+
+            <Routes>
+                <Route path="/" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
+                <Route path="/home-page" element={<HomePage />} />
+                <Route path="/seller-dash" element={<SellerDashboard />} />
+                <Route path="/watchlist" element={<WatchList />} />
+                <Route path="/bidding-history" element={<BiddingHistory />} />
+                <Route path="/current-bids" element={<CurrentBids />} />
+                <Route path="/manager/profits" element={<WeeklyProfits />} />
+                <Route path="/manager/customer" element={<CustomerTable />} />
+                <Route path="/manager/auth" element={<AuthenticationRequests />} />
+                <Route path="/manager/expertSearch" element={<SearchExperts />} />
+
+
+            </Routes>
+        </Router>
     );
 }
 
 export default App;
-
-

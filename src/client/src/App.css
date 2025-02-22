@@ -183,3 +183,52 @@ button.remove-btn:hover {
     transform: rotate(360deg);
   }
 }
+
+/* Navbar Styles */
+.navbar {
+  background: #333;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.navbar a, .nav-button {
+  color: white;
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  transition: background 0.3s;
+  background: #444;
+}
+
+.navbar a:hover, .nav-button:hover {
+  background: #555;
+}
+
+.nav-button {
+  border: none;
+  cursor: pointer;
+}
+
+/* Sub-navbar Styles */
+.sub-navbar {
+  background: #444;
+  padding: 5px;
+  display: flex;
+  gap: 10px;
+  padding-left: 20px;
+}
+
+.sub-navbar a {
+  color: white;
+  text-decoration: none;
+  padding: 5px 10px;
+  border-radius: 3px;
+  transition: background 0.3s;
+  background: #555;
+}
+
+.sub-navbar a:hover {
+  background: #666;
+}
