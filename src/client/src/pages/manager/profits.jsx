@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import "./profits.css"; // For styling
+import "./profits.css"; // Initial imports needed
 
-const initialData = [
-    { week: "10/02/25", totalSold: 1000, siteProfit: 10, expertProfit: 40 },
-    { week: "17/02/25", totalSold: 1200, siteProfit: 15, expertProfit: 50 },
-    { week: "24/02/25", totalSold: 900, siteProfit: 8, expertProfit: 35 },
-    { week: "03/03/25", totalSold: 700, siteProfit: 7, expertProfit: 30 },
-    { week: "10/03/25", totalSold: 1100, siteProfit: 11, expertProfit: 40 },
+const initialData = [ // Test data
+    { week: "10/02/25", sold: 1000, sProfit: 100, eProfit: 400 },
+    { week: "17/02/25", sold: 1200, sProfit: 150, eProfit: 500 },
+    { week: "24/02/25", sold: 900, sProfit: 80, eProfit: 350 },
+    { week: "03/03/25", sold: 700, sProfit: 70, eProfit: 300 },
+    { week: "10/03/25", sold: 1100, sProfit: 110, eProfit: 400 },
 ];
 
 export default function WeeklyProfits() {
@@ -17,7 +17,6 @@ export default function WeeklyProfits() {
         <div className="weekly-profits">
             <h2>Weekly Profits</h2>
 
-            {/* Chart */}
             <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={data}>
                     <CartesianGrid strokeDasharray="3 3" />
@@ -25,13 +24,13 @@ export default function WeeklyProfits() {
                     <YAxis />
                     <Tooltip />
                     <Legend />
-                    <Line type="monotone" dataKey="totalSold" stroke="#8884d8" name="Total Sold (£)" />
-                    <Line type="monotone" dataKey="siteProfit" stroke="#82ca9d" name="Profit for Site (£)" />
-                    <Line type="monotone" dataKey="expertProfit" stroke="#ffc658" name="Profit for Experts (£)" />
+                    <Line type="monotone" dataKey="sold" stroke="red" name="Total Sold (£)" />
+                    <Line type="monotone" dataKey="sProfit" stroke="blue" name="Profit for Site (£)" />
+                    <Line type="monotone" dataKey="eProfit" stroke="green" name="Profit for Experts (£)" />
                 </LineChart>
             </ResponsiveContainer>
 
-            {/* Table */}
+
             <table>
                 <thead>
                     <tr>
@@ -45,9 +44,9 @@ export default function WeeklyProfits() {
                     {data.map((row, index) => (
                         <tr key={index}>
                             <td>{row.week}</td>
-                            <td>£{row.totalSold}</td>
-                            <td>£{row.siteProfit}</td>
-                            <td>£{row.expertProfit}</td>
+                            <td>£{row.sold}</td>
+                            <td>£{row.sProfit}</td>
+                            <td>£{row.eProfit}</td>
                         </tr>
                     ))}
                 </tbody>

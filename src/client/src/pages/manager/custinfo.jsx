@@ -1,11 +1,13 @@
 import React, { useState } from "react";
-import "./custinfo.css";
+import "./custinfo.css"; // Initial imports needed
 
-const initialData = [
-    { id: 1, name: "Alice", email: "alice@example.com", level: "User" },
-    { id: 2, name: "Bob", email: "bob@example.com", level: "Expert" },
-    { id: 3, name: "Charlie", email: "charlie@example.com", level: "Manager" },
-    { id: 4, name: "David", email: "david@example.com", level: "User" },
+const initialData = [ // Test data for customers
+    { id: 1, name: "Adam", email: "adam@example.com", level: "Manager" },
+    { id: 2, name: "Ali", email: "ali@example.com", level: "Expert" },
+    { id: 3, name: "Mila", email: "mile@example.com", level: "User" },
+    { id: 4, name: "Kavisha", email: "kav@example.com", level: "User" },
+    { id: 5, name: "Tahmid", email: "tahmid@example.com", level: "User" },
+    { id: 6, name: "Hassan", email: "hassan@example.com", level: "Expert" }
 ];
 
 export default function CustomerTable() {
@@ -54,9 +56,9 @@ export default function CustomerTable() {
                 <thead>
                     <tr>
                         <th>Select</th>
-                        <th onClick={() => handleSort("name")}>Name ▼</th>
-                        <th onClick={() => handleSort("email")}>Email ▼</th>
-                        <th onClick={() => handleSort("level")}>Level ▼</th>
+                        <th onClick={() => handleSort("name")}>Name </th>
+                        <th onClick={() => handleSort("email")}>Email</th>
+                        <th onClick={() => handleSort("level")}>Level</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -77,8 +79,7 @@ export default function CustomerTable() {
                 </tbody>
             </table>
 
-            {/* Level Selection & Save Button */}
-            <div className="level-update">
+            <div>
                 <label>
                     Level:
                     <select value={newLevel} onChange={(e) => setNewLevel(e.target.value)}>

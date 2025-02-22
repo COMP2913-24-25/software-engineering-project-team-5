@@ -9,10 +9,14 @@ import SellerDashboard from "./pages/sellerdashboard";
 import WatchList from "./pages/watchlist";
 import BiddingHistory from "./pages/biddinghistory";
 import CurrentBids from "./pages/currentbids";
+
 import WeeklyProfits from "./pages/manager/profits";
 import CustomerTable from "./pages/manager/custinfo";
-import AuthenticationRequests from "./pages/manager/authreq";
+import MAuthReq from "./pages/manager/authreq";
 import SearchExperts from "./pages/manager/searchexp";
+
+import EAuthRequests from "./pages/expert/authreq";
+import Profile from "./pages/expert/profile";
 
 function App() {
     const [activeSubMenu, setActiveSubMenu] = useState(null); // Tracks which submenu is active
@@ -55,8 +59,6 @@ function App() {
                     <Link to="/manager/customer" onClick={() => setActiveSubMenu(null)}>CustomerInfo</Link>
                     <Link to="/manager/auth" onClick={() => setActiveSubMenu(null)}>AuthReq</Link>
                     <Link to="/manager/expertSearch" onClick={() => setActiveSubMenu(null)}>SearchExperts</Link>
-
-
                 </div>
             )}
 
@@ -68,10 +70,14 @@ function App() {
                 <Route path="/watchlist" element={<WatchList />} />
                 <Route path="/bidding-history" element={<BiddingHistory />} />
                 <Route path="/current-bids" element={<CurrentBids />} />
+
                 <Route path="/manager/profits" element={<WeeklyProfits />} />
                 <Route path="/manager/customer" element={<CustomerTable />} />
-                <Route path="/manager/auth" element={<AuthenticationRequests />} />
+                <Route path="/manager/auth" element={<MAuthReq />} />
                 <Route path="/manager/expertSearch" element={<SearchExperts />} />
+
+                <Route path="/expert/auth" element={<EAuthRequests />} />
+                <Route path="/expert/profile" element={<Profile />}/>
 
 
             </Routes>

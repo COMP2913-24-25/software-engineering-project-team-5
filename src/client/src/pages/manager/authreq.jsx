@@ -1,18 +1,18 @@
 import React, { useState } from "react";
-import "./authreq.css";
+import "./authreq.css"; // Initial imports needed
 
-const initialRequests = [
+const initialRequests = [ // Test data for request table
     { id: 1, title: "2nd Opinion", status: "Pending" },
     { id: 2, title: "New Request", status: "Pending" },
     { id: 3, title: "Under Review", status: "Assigned" },
 ];
 
-export default function AuthenticationRequests() {
-    const [requests, setRequests] = useState(initialRequests);
+export default function MAuthReq() {
+    const [requests, setReq] = useState(initialRequests);
     const [filter, setFilter] = useState("");
 
     // Handle filtering by title
-    const filteredRequests = requests.filter((req) =>
+    const filterReq = requests.filter((req) => // Filtering function -> filters by title
         req.title.toLowerCase().includes(filter.toLowerCase())
     );
 
@@ -20,7 +20,6 @@ export default function AuthenticationRequests() {
         <div className="auth-requests">
             <h2>Authentication Requests</h2>
 
-            {/* Filter Input */}
             <input
                 type="text"
                 placeholder="Filter..."
@@ -28,14 +27,13 @@ export default function AuthenticationRequests() {
                 onChange={(e) => setFilter(e.target.value)}
             />
 
-            {/* Requests List */}
-            {filteredRequests.map((req) => (
-                <div key={req.id} className="request-card">
-                    <div className="request-info">
+            {filterReq.map((req) => (
+                <div key={req.id} className="container">
+                    <div>
                         <h3>Title</h3>
                         <p>{req.title}</p>
                     </div>
-                    <div className="request-actions">
+                    <div>
                         {req.status === "Pending" ? (
                             <button>Assign Expert</button>
                         ) : (
