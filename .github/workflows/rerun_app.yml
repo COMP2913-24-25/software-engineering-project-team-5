@@ -1,0 +1,53 @@
+name: Rerun App
+
+on:
+  workflow_dispatch:  
+
+jobs:
+  restart-servers:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Setup Python & Install Flask Dependencies
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Flask dependencies
+        run: |
+          python -m venv flask
+          source flask/bin/activate
+          pip install -r src/requirements.txt
+
+      # # Run Database Migrations
+      # - name: Run DB Migrations
+      #   run: |
+      #     source flask/bin/activate
+      #     flask db upgrade
+
+      # Setup Node.js & Install React Dependencies
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install frontend dependencies
+        run: |
+          cd src/client
+          npm install
+
+      # Start Flask Backend
+      - name: Start Flask Backend
+        run: |
+          source flask/bin/activate
+          nohup flask run --host=0.0.0.0 --port=5000 &
+
+      # Start React Frontend
+      - name: Start React Frontend
+        run: |
+          cd src/client
+          nohup npm start &
