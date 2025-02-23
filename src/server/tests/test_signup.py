@@ -40,7 +40,7 @@ def test_signup_valid(client):
             "middle_name": "Joe",
             "surname": "Doe",
             "DOB": "2000-01-01",
-            "passwordConfirmation": "PASSword123@"
+            "password_confirmation": "PASSword123@"
         },
         content_type='application/json'
     )
@@ -93,7 +93,7 @@ def test_signup_existing_email(client):
             "middle_name": "Juniper",
             "surname": "Joe",
             "DOB": "2000-01-01",
-            "passwordConfirmation": "PASSword123@"
+            "password_confirmation": "PASSword123@"
         },
         content_type='application/json'
     )
@@ -139,7 +139,7 @@ def test_signup_existing_username(client):
             "middle_name": "Joe",
             "surname": "Doe",
             "DOB": "2000-01-01",
-            "passwordConfirmation": "PASSword123@"
+            "password_confirmation": "PASSword123@"
         },
         content_type='application/json'
     )
@@ -170,7 +170,7 @@ def test_signup_password_mismatch(client):
             "middle_name": "Joe",
             "surname": "Doe",
             "DOB": "2000-01-01",
-            "passwordConfirmation": "DifferentPassword123@"
+            "password_confirmation": "DifferentPassword123@"
         },
         content_type='application/json'
     )
@@ -181,9 +181,9 @@ def test_signup_password_mismatch(client):
     # Checks if correct response code is returned
     assert response.status_code == 400
     
-    # Checks if there is a passwordConfirmation error, and that the correct error
+    # Checks if there is a password_confirmation error, and that the correct error
     # message has been returned
-    assert "passwordConfirmation" in server_response["errors"]
-    assert "Passwords do not match" in server_response["errors"]["passwordConfirmation"]
+    assert "password_confirmation" in server_response["errors"]
+    assert "Passwords do not match" in server_response["errors"]["password_confirmation"]
 
 
