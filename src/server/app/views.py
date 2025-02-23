@@ -7,7 +7,7 @@ from flask_wtf.csrf import generate_csrf
 from flask_cors import CORS
 
 from .models import User, Address, Payment, Items, Images, Middle_type, Types, Watchlist, Bidding_history
-from .forms import LoginForm, SignUpForm
+from .forms import login_form, sign_up_form
 
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
@@ -53,7 +53,7 @@ def login():
     data = request.json
     
     # Create a form from the received data and validate it.
-    form = LoginForm(data=data) 
+    form = login_form(data=data) 
     
     errors = {}
     # Validate the form and collect any errors
@@ -86,7 +86,7 @@ def login():
 @app.route("/api/signup", methods=["POST"])
 def signup():
     data = request.json
-    form = SignUpForm(data=data)
+    form = sign_up_form(data=data)
     errors = {}
     
     if User.query.filter_by(Email=data["email"]).first():
@@ -95,8 +95,8 @@ def signup():
     if User.query.filter_by(Username=data["username"]).first():
         errors["username"] = ["Username already exists"]
 
-    if data["password"] != data["passwordConfirmation"]:
-        errors["passwordConfirmation"] = ["Passwords do not match"]
+    if data["password"] != data["password_confirmation"]:
+        errors["password_confirmation"] = ["Passwords do not match"]
 
     if not form.validate():
         for field, messages in form.errors.items():
