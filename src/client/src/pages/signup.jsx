@@ -5,7 +5,7 @@ const Signup = () => {
     const navigate = useNavigate();
 
     // Set up form data
-    const [formData, setFormData] = useState({
+    const [form_data, set_form_data] = useState({
         first_name: "",
         middle_name: "",
         surname: "",
@@ -13,75 +13,75 @@ const Signup = () => {
         username: "",
         email: "",
         password: "",
-        passwordConfirmation: "",
+        password_confirmation: "",
     });
 
-    const [errors, setErrors] = useState({});
+    const [errors, set_errors] = useState({});
 
     // Function to update the fromData as the user types in the input field
-    const handleChange = (event) => {
+    const handle_change = (event) => {
         // Stores the name and value of the input field that is being edited 
-        const fieldName = event.target.name;
-        const fieldValue = event.target.value;
+        const field_name = event.target.name;
+        const field_value = event.target.value;
     
-        // Updates the formData to reflect the new changes
+        // Updates the form_data to reflect the new changes
         // Similar to string concatenation
-        setFormData((previousData) => ({
-            ...previousData,            // Keep existing form data
-            [fieldName]: fieldValue     // Adds on the new fieldValue to the end
+        set_form_data((previous_data) => ({
+            ...previous_data,            // Keep existing form data
+            [field_name]: field_value     // Adds on the new field_value to the end
         }));
     
     };
 
     // Client Side Validation
-    const validateForm = () => {
-        const newErrors = {};
+    const validate_form = () => {
+        const new_errors = {};
 
-        if (!formData.first_name.trim()) {
-            newErrors.first_name = ["First name is required"];
+        if (!form_data.first_name.trim()) {
+            new_errors.first_name = ["First name is required"];
         }
 
-        if (!formData.surname.trim()) {
-            newErrors.surname = ["Surname is required"];
+        if (!form_data.surname.trim()) {
+            new_errors.surname = ["Surname is required"];
         }
 
-        if (!formData.username.trim()) {
-            newErrors.username = ["Username is required"];
+        if (!form_data.username.trim()) {
+            new_errors.username = ["Username is required"];
         }
 
-        if (!formData.email.trim()) {
-            newErrors.email = ["Email is required"];
-        } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-            newErrors.email = ["Please enter a valid email address"];
+        if (!form_data.email.trim()) {
+            new_errors.email = ["Email is required"];
+        } else if (!/\S+@\S+\.\S+/.test(form_data.email)) {
+            new_errors.email = ["Please enter a valid email address"];
         }
 
-        if (!formData.password) {
-            newErrors.password = ["Password is required"];
+        if (!form_data.password) {
+            new_errors.password = ["Password is required"];
         }
 
-        if (formData.password !== formData.passwordConfirmation) {
-            newErrors.passwordConfirmation = ["Passwords do not match"];
+        if (form_data.password !== form_data.password_confirmation) {
+            new_errors.password_confirmation = ["Passwords do not match"];
         }
 
-        if (!formData.DOB) {
-            newErrors.DOB = ["Date of birth is required"];
+        if (!form_data.DOB) {
+            new_errors.DOB = ["Date of birth is required"];
         }
 
-        return newErrors;
+        return new_errors;
     };
 
     // Handle form submission - asynchronous function, as the function needs to wait
     // for the servers response before continuing
-    const handleSubmit = async (event) => {
+    const handle_submit = async (event) => {
         event.preventDefault();
-        setErrors({});
+        set_errors({});
 
         // Client-side validation
-        const validationErrors = validateForm();
+        const validation_errors = validate_form();
 
         // Error retrieval from validation
-        if (Object.keys(validationErrors).length > 0) {
-            setErrors(validationErrors);
+        if (Object.keys(validation_errors).length > 0) {
+            set_errors(validation_errors);
             return;
         }
 
@@ -92,17 +92,17 @@ const Signup = () => {
         const response = await fetch('http://localhost:5000/api/signup', {
             method: 'POST',
             headers: {'Content-Type': 'application/json',},
-            body: JSON.stringify(formData),
+            body: JSON.stringify(form_data),
         });
 
         const data = await response.json();
 
         if (!response.ok) {
             if (data.errors) {
-                setErrors(data.errors);
+                set_errors(data.errors);
             } 
             else {
-                setErrors({ general: ["Signup failed. Please try again."] });
+                set_errors({ general: ["Signup failed. Please try again."] });
             }
         } else {
             alert("Signup successful!");
@@ -114,70 +114,70 @@ const Signup = () => {
     return (
         <div className="container">
             <h2>Sign Up</h2>
-            {errors.general && errors.general.map((error, index) => (
+            {errors.general && errors.general.map((error) => (
                 <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
                     {error}
                 </div>
             ))}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handle_submit} className="space-y-4">
                 <div>
-                    <input className="form-control" type="text" name="first_name" placeholder="First Name" value={formData.first_name} onChange={handleChange} required/>
-                    {errors.first_name && errors.first_name.map((error, index) => (
+                    <input className="form-control" type="text" name="first_name" placeholder="First Name" value={form_data.first_name} onChange={handle_change} required/>
+                    {errors.first_name && errors.first_name.map((error) => (
                         <p className="text-red-500 text-sm mt-1">{error}</p>
                     ))}
                 </div>
 
                 <div>
-                    <input className="form-control" type="text" name="middle_name" placeholder="Middle Name" value={formData.middle_name} onChange={handleChange}/>
-                    {errors.middle_name && errors.middle_name.map((error, index) => (
+                    <input className="form-control" type="text" name="middle_name" placeholder="Middle Name" value={form_data.middle_name} onChange={handle_change}/>
+                    {errors.middle_name && errors.middle_name.map((error) => (
                         <p className="text-red-500 text-sm mt-1">{error}</p>
                     ))}
                 </div>
 
                 <div>
-                    <input className="form-control" type="text" name="surname" placeholder="Surname" value={formData.surname} onChange={handleChange} required/>
-                    {errors.surname && errors.surname.map((error, index) => (
+                    <input className="form-control" type="text" name="surname" placeholder="Surname" value={form_data.surname} onChange={handle_change} required/>
+                    {errors.surname && errors.surname.map((error) => (
                         <p className="text-red-500 text-sm mt-1">{error}</p>
                     ))}
                 </div>
 
                 <div>
-                    <input className="form-control" type="date" name="DOB" value={formData.DOB} onChange={handleChange} required/>
-                    {errors.DOB && errors.DOB.map((error, index) => (
+                    <input className="form-control" type="date" name="DOB" value={form_data.DOB} onChange={handle_change} required/>
+                    {errors.DOB && errors.DOB.map((error) => (
                         <p className="text-red-500 text-sm mt-1">{error}</p>
                     ))}
                 </div>
 
                 <div>
-                    <input className="form-control" type="text" name="username" placeholder="Username" value={formData.username} onChange={handleChange} required/>
-                    {errors.username && errors.username.map((error, index) => (
+                    <input className="form-control" type="text" name="username" placeholder="Username" value={form_data.username} onChange={handle_change} required/>
+                    {errors.username && errors.username.map((error) => (
                         <p className="text-red-500 text-sm mt-1">{error}</p>
                     ))}
                 </div>
 
                 <div>
-                    <input type="email" name="email" placeholder="Email" value={formData.email} onChange={handleChange} className="form-control" required/>
-                    {errors.email && errors.email.map((error, index) => (
+                    <input type="email" name="email" placeholder="Email" value={form_data.email} onChange={handle_change} className="form-control" required/>
+                    {errors.email && errors.email.map((error) => (
                         <p className="text-red-500 text-sm mt-1">{error}</p>
                     ))}
                 </div>
 
                 <div>
-                    <input type="password" name="password" placeholder="Password" value={formData.password} onChange={handleChange} className="form-control" required/>
-                    {errors.password && errors.password.map((error, index) => (
+                    <input type="password" name="password" placeholder="Password" value={form_data.password} onChange={handle_change} className="form-control" required/>
+                    {errors.password && errors.password.map((error) => (
                         <p className="text-red-500 text-sm mt-1">{error}</p>
                     ))}
                 </div>
 
                 <div>
-                    <input type="password" name="passwordConfirmation" placeholder="Confirm Password" value={formData.passwordConfirmation} onChange={handleChange} className="form-control" required/>
-                    {errors.passwordConfirmation && errors.passwordConfirmation.map((error, index) => (
+                    <input type="password" name="password_confirmation" placeholder="Confirm Password" value={form_data.password_confirmation} onChange={handle_change} className="form-control" required/>
+                    {errors.password_confirmation && errors.password_confirmation.map((error) => (
                         <p className="text-red-500 text-sm mt-1">{error}</p>
                     ))}
                 </div>
 
-                <button type="submit"  className="btn btn-primary">"Sign Up"</button>
+                <button type="submit" className="btn btn-primary">Sign Up</button>
             </form>
         </div>
     );
