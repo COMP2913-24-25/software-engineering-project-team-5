@@ -1,0 +1,63 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - Ali
+  pull_request:
+    branches:
+      - main
+      - Ali
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Cache node_modules
+        uses: actions/cache@v2
+        with:
+          path: src/client/node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('src/client/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-modules-
+        
+      # Setup Python and install Flask dependencies
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Flask dependencies
+        run: |
+          python -m venv flask
+          source flask/bin/activate
+          pip install -r src/requirements.txt
+
+      - name: Run Flask tests
+        run: |
+          source flask/bin/activate
+          pytest src/server/tests
+
+      # Setup Node.js and install React dependencies
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install frontend dependencies
+        run: |
+          cd src/client
+          npm install
+          npm install react-router-dom
+          npm install bootstrap-css
+          npm test -- --watchAll=false
+
+      - name: Run React tests
+        run: |
+          cd src/client
+          npm test -- --watchAll=false
