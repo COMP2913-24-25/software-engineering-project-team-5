@@ -4,11 +4,9 @@ on:
   push:
     branches:
       - main
-      - Ali
   pull_request:
     branches:
       - main
-      - Ali
 
 jobs:
   build-and-test:
@@ -19,7 +17,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Cache node_modules
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: src/client/node_modules
           key: ${{ runner.os }}-node-modules-${{ hashFiles('src/client/package-lock.json') }}
@@ -38,6 +36,9 @@ jobs:
           source flask/bin/activate
           pip install -r src/requirements.txt
 
+      # db flask migrartion can be added  
+      
+        
       - name: Run Flask tests
         run: |
           source flask/bin/activate
@@ -53,11 +54,9 @@ jobs:
         run: |
           cd src/client
           npm install
-          npm install react-router-dom
-          npm install bootstrap-css
           npm test -- --watchAll=false
 
       - name: Run React tests
         run: |
           cd src/client
-          npm test -- --watchAll=false
+          npm test -- --watchAll=false      
