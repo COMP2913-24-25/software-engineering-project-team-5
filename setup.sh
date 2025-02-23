@@ -37,6 +37,7 @@ cd src/client
 
 echo "Installing React dependencies..."
 npm install
+npm i recharts
 
 # Go back to root directory
 cd ../..
