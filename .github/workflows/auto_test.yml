@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - main
+      - vite-tailwind
   pull_request:
     branches:
       - main
+      - vite-tailwind
 
 jobs:
   build-and-test:
