@@ -30,7 +30,7 @@ admin.add_view(ModelView(Bidding_history, db.session))
 CORS(app, 
      resources={
          r"/api/*": {
-             "origins": "http://localhost:3000",
+             "origins": "http://localhost:5173",
              "supports_credentials": True,
              "allow_headers": ["Content-Type"],
              "expose_headers": ["Content-Type"],
