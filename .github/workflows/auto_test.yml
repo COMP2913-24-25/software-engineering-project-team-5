@@ -8,7 +8,6 @@ on:
   pull_request:
     branches:
       - main
-      - vite-tailwind
 
 jobs:
   build-and-test:
@@ -56,8 +55,9 @@ jobs:
         run: |
           cd src/client
           npm install
+          npm run test -- --watchAll=false
 
       - name: Run React tests
         run: |
           cd src/client
-          npm run test -- --watchAll=false      
+          npm test -- --watchAll=false      
