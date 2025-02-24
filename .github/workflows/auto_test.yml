@@ -54,9 +54,8 @@ jobs:
         run: |
           cd src/client
           npm install
-          npm test -- --watchAll=false
 
       - name: Run React tests
         run: |
           cd src/client
-          npm test -- --watchAll=false      
+          npm run test -- --watchAll=false      
