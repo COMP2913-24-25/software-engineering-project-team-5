@@ -4,7 +4,6 @@ import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 // Import your pages here
 import Login from "./pages/login";
 import Signup from "./pages/signup";
-import AccountSummary from "./pages/accountsummary";
 import HomePage from "./pages/homepage";
 import SellerDashboard from "./pages/sellerdashboard";
 import WatchList from "./pages/watchlist";
@@ -35,12 +34,6 @@ function App() {
                 </Link>
                 <Link to="/signup" onClick={() => setActiveSubMenu(null)}>
                     Signup
-                </Link>
-                <Link
-                    to="/accountsummary"
-                    onClick={() => setActiveSubMenu(null)}
-                >
-                    Account Summary
                 </Link>
                 <Link to="/home-page" onClick={() => setActiveSubMenu(null)}>
                     Homepage
@@ -129,7 +122,6 @@ function App() {
             <Routes>
                 <Route path="/" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
-                <Route path="/accountsummary" element={<AccountSummary />} />
                 <Route path="/home-page" element={<HomePage />} />
                 <Route path="/seller-dash" element={<SellerDashboard />} />
                 <Route path="/watchlist" element={<WatchList />} />
