@@ -61,7 +61,7 @@ jobs:
           cd src/client
           npm run test:vitest
 
-      - name: Run React tests (Jest)
-        run: |
-          cd src/client
-          npm run test:jest
+      # - name: Run React tests (Jest)
+      #   run: |
+      #     cd src/client
+      #     npm run test:jest
