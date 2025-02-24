@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "test": "vitest",
+    "test:jest": "jest --ci",
+    "test:vitest": "vitest --run",
+    "test": "npm run test:vitest",
     "lint": "eslint .",
     "preview": "vite preview"
   },
