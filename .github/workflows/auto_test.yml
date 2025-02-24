@@ -60,4 +60,4 @@ jobs:
       - name: Run React tests
         run: |
           cd src/client
-          npm run test -- --watchAll=false      
+          npm run test -- --run    
