@@ -22,9 +22,9 @@ const CreateListing = () => {
     // Set up the data that is in the form - should match the variable names used in forms.py
     const [formData, setFormData] = useState({
         seller_id: "",
-        listing_name: "Car",
-        listing_description: "This is a very nice car",
-        minimum_price: 3.14,
+        listing_name: "",
+        listing_description: "",
+        minimum_price: 0,
         days_available: 0,
         images: [],
     });
