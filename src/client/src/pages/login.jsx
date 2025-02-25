@@ -85,7 +85,7 @@ const Login = () => {
             method: 'POST',
             headers: {'Content-Type': 'application/json',},
             // Sends the form data to the server - can refer to views.py to see what server does
-            body: JSON.stringify(formData), 
+            body: JSON.stringify(form_data), 
             credentials: "include" // Remembers if the user is logged in
         });
 
