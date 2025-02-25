@@ -31,8 +31,8 @@ class User(UserMixin, db.Model):
 
 class Address(db.Model):
     #Columns
-    Address_id = db.Column(db.BigInteger, primary_key=True)
-    User_id = db.Column(db.BigInteger, db.ForeignKey('user.User_id'), nullable=False)
+    Address_id = db.Column(db.Integer, primary_key=True)
+    User_id = db.Column(db.Integer, db.ForeignKey('user.User_id'), nullable=False)
     Line_1 = db.Column(db.String(50), nullable=False)
     Line_2 = db.Column(db.String(50), nullable=False)
     Country = db.Column(db.String(50), nullable=False)
@@ -43,20 +43,21 @@ class Address(db.Model):
 
 class Payment(db.Model):
     #Columns
-    Payment_id = db.Column(db.BigInteger, primary_key=True)
-    User_id = db.Column(db.BigInteger, db.ForeignKey('user.User_id'), nullable=False)
-    Card_Number = db.Column(db.BigInteger, nullable=False)
+    Payment_id = db.Column(db.Integer, primary_key=True)
+    User_id = db.Column(db.Integer, db.ForeignKey('user.User_id'), nullable=False)
+    Card_Number = db.Column(db.Integer, nullable=False)
     CVV = db.Column(db.Integer, nullable=False)
     Expiry = db.Column(db.Date, nullable=False)
 
 class Items(db.Model):
     #Columns
-    Item_id = db.Column(db.BigInteger, primary_key=True)
+    Item_id = db.Column(db.Integer, primary_key=True)
     Listing_name = db.Column(db.String(50), nullable=False)
-    Seller_id = db.Column(db.BigInteger, db.ForeignKey('user.User_id'), nullable=False)
-    Expert_id = db.Column(db.BigInteger, db.ForeignKey('user.User_id'), nullable=True)
+    Seller_id = db.Column(db.Integer, db.ForeignKey('user.User_id'), nullable=False)
+    Expert_id = db.Column(db.Integer, db.ForeignKey('user.User_id'), nullable=True)
     Verified = db.Column(db.Boolean, nullable=False)
     Upload_datetime = db.Column(db.DateTime, default=datetime.datetime.now(datetime.UTC))
+    Available_until = db.Column(db.DateTime, nullable=False)
     Min_price = db.Column(db.Float, nullable=False)
     Current_bid = db.Column(db.Float, nullable=False)
     Description = db.Column(db.String(500), nullable=False)
@@ -69,33 +70,33 @@ class Items(db.Model):
 
 class Images(db.Model):
     #Columns
-    Image_id = db.Column(db.BigInteger, primary_key=True)
-    Item_id = db.Column(db.BigInteger, db.ForeignKey('items.Item_id'), nullable=False)
+    Image_id = db.Column(db.Integer, primary_key=True)
+    Item_id = db.Column(db.Integer, db.ForeignKey('items.Item_id'), nullable=False)
     Image = db.Column(db.LargeBinary, nullable=False)
     Image_description = db.Column(db.String(100), nullable=False)
 
 class Middle_type(db.Model):
     #Columns
-    Middle_type_id = db.Column(db.BigInteger, primary_key=True)
-    Item_id = db.Column(db.BigInteger, db.ForeignKey('items.Item_id'), nullable=False)
-    Type_id = db.Column(db.BigInteger, db.ForeignKey('types.Type_id'), nullable=False)
+    Middle_type_id = db.Column(db.Integer, primary_key=True)
+    Item_id = db.Column(db.Integer, db.ForeignKey('items.Item_id'), nullable=False)
+    Type_id = db.Column(db.Integer, db.ForeignKey('types.Type_id'), nullable=False)
 
 class Types(db.Model):
     #Columns
-    Type_id = db.Column(db.BigInteger, primary_key=True)
+    Type_id = db.Column(db.Integer, primary_key=True)
     Type_name = db.Column(db.String(50), nullable=False)
 
 class Watchlist(db.Model):
     #Columns
-    Watchlist_id = db.Column(db.BigInteger, primary_key=True)
-    User_id = db.Column(db.BigInteger, db.ForeignKey('user.User_id'), nullable=False)
-    Item_id = db.Column(db.BigInteger, db.ForeignKey('items.Item_id'), nullable=False)
+    Watchlist_id = db.Column(db.Integer, primary_key=True)
+    User_id = db.Column(db.Integer, db.ForeignKey('user.User_id'), nullable=False)
+    Item_id = db.Column(db.Integer, db.ForeignKey('items.Item_id'), nullable=False)
 
 class Bidding_history(db.Model):
     #Columns
-    Bid_id = db.Column(db.BigInteger, primary_key=True)
-    Item_id = db.Column(db.BigInteger, db.ForeignKey('items.Item_id'), nullable=False)
-    Bidder_id = db.Column(db.BigInteger, db.ForeignKey('user.User_id'), nullable=False)
+    Bid_id = db.Column(db.Integer, primary_key=True)
+    Item_id = db.Column(db.Integer, db.ForeignKey('items.Item_id'), nullable=False)
+    Bidder_id = db.Column(db.Integer, db.ForeignKey('user.User_id'), nullable=False)
     Successful_bid = db.Column(db.Boolean, nullable=False)
     Bid_datetime = db.Column(db.DateTime, default=datetime.datetime.now(datetime.UTC))
     Bid_price = db.Column(db.Float, nullable=False)

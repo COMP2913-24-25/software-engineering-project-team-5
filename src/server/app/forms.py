@@ -59,6 +59,15 @@ def ValidateDateOfBirth():
         
     return _ValidateDateOfBirth
 
+def validate_description():
+    message = "Invalid description."
+
+    def _validate_description(form, field):
+        if len(field.data) < 2:
+            raise ValidationError(message)
+    
+    return _validate_description
+
 
 def ValidatePassword():
     message = "Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, one number, and one special character."
@@ -76,6 +85,19 @@ def ValidatePassword():
         
     return _ValidatePassword
 
+def validate_price():
+    message = "This is not a valid price."
+
+
+    def _validate_price(form, field):
+        # Validates if the price is greater than 0 and is to 2dp.
+        price = float(field.data)
+        if price < 0 or (not re.match(r"^\d+(\.\d{0,2})?$", str(field.data))):
+            raise ValidationError(message)
+        
+    return _validate_price
+
+
     
 class SignUpForm(FlaskForm):
     first_name = wtforms.StringField(validators=[DataRequired(), ValidateName()])
@@ -90,3 +112,11 @@ class SignUpForm(FlaskForm):
 class LoginForm(FlaskForm):
     email_or_username = wtforms.StringField(validators=[DataRequired(), ValidateEmailOrUsername()])
     password = wtforms.StringField(validators=[DataRequired()])
+
+class Create_listing_form(FlaskForm):
+    seller_id = wtforms.DecimalField(validators=[DataRequired()])
+    listing_name = wtforms.StringField(validators=[DataRequired(), ValidateEmailOrUsername()])
+    listing_description = wtforms.StringField(validators=[DataRequired(), validate_description()])
+    minimum_price = wtforms.DecimalField(validators=[DataRequired(), validate_price()])
+    images = FileField(validators=[DataRequired(), FileAllowed(['jpg', 'jpeg', 'png'], "Only images are allowed")])
+    days_available = wtforms.DecimalField(validators=[DataRequired()])
