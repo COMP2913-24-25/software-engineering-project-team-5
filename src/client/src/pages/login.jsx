@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, createContext, UserContext } from "react";
+import { useUser } from "../App"; // Calls the user
 import { useNavigate } from "react-router-dom";
 
 const Login = () => {
@@ -20,6 +21,9 @@ const Login = () => {
 
     // Error dictionary to display errors when doing client side validation
     const [errors, set_errors] = useState({});
+
+    // Access setUser
+    const { setUser } = useUser();
 
     // Function to update the fromData as the user types in the input field
     const handle_change = (event) => {
@@ -82,6 +86,7 @@ const Login = () => {
             headers: {'Content-Type': 'application/json',},
             // Sends the form data to the server - can refer to views.py to see what server does
             body: JSON.stringify(form_data), 
+            credentials: "include" // Remembers if the user is logged in
         });
 
         // Waits for a response 
@@ -102,6 +107,7 @@ const Login = () => {
         // If response is ok (err code 200)
         else {
             alert("Login successful!");
+            setUser(data.user)
             navigate('/signup'); 
         }
     };

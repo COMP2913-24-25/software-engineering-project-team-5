@@ -59,6 +59,15 @@ def validate_date_of_birth():
         
     return _validate_date_of_birth
 
+def validate_description():
+    message = "Invalid description."
+
+    def _validate_description(form, field):
+        if len(field.data) < 2:
+            raise ValidationError(message)
+    
+    return _validate_description
+
 
 def validate_password():
     message = "Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, one number, and one special character."
@@ -76,6 +85,19 @@ def validate_password():
         
     return _validate_password
 
+def validate_price():
+    message = "This is not a valid price."
+
+
+    def _validate_price(form, field):
+        # Validates if the price is greater than 0 and is to 2dp.
+        price = float(field.data)
+        if price < 0 or (not re.match(r"^\d+(\.\d{0,2})?$", str(field.data))):
+            raise ValidationError(message)
+        
+    return _validate_price
+
+
     
 class sign_up_form(FlaskForm):
     first_name = wtforms.StringField(validators=[DataRequired(), validate_name()])
@@ -85,8 +107,16 @@ class sign_up_form(FlaskForm):
     username = wtforms.StringField(validators=[DataRequired()])
     email = wtforms.StringField(validators=[DataRequired()])
     password = wtforms.StringField(validators=[DataRequired(), validate_password()])
-    
-    
+
+
+class Create_listing_form(FlaskForm):
+    seller_id = wtforms.DecimalField(validators=[DataRequired()])
+    listing_name = wtforms.StringField(validators=[DataRequired(), validate_email_or_username()])
+    listing_description = wtforms.StringField(validators=[DataRequired(), validate_description()])
+    minimum_price = wtforms.DecimalField(validators=[DataRequired(), validate_price()])
+    images = FileField(validators=[DataRequired(), FileAllowed(['jpg', 'jpeg', 'png'], "Only images are allowed")])
+    days_available = wtforms.DecimalField(validators=[DataRequired()])
+
 class login_form(FlaskForm):
     email_or_username = wtforms.StringField(validators=[DataRequired(), validate_email_or_username()])
     password = wtforms.StringField(validators=[DataRequired()])

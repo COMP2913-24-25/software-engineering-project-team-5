@@ -150,14 +150,14 @@ source flask/Scripts/deactivate
 To run the flask application:
 
 ```bash
-cd src
+cd src/server
 flask run
 ```
 
 To create database (will create migrations folder and app.db file, which is where the database can be viewed):
 
 ```bash
-cd src
+cd src/server
 flask db init
 flask db migrate -m "<comment>"
 flask db upgrade

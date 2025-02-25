@@ -1,13 +1,13 @@
 from app import app, db, admin
 
-from flask import render_template, flash, request, redirect, url_for, send_file, Flask, jsonify
+from flask import render_template, flash, request, redirect, url_for, send_file, Flask, jsonify, session
 from flask_admin.contrib.sqla import ModelView
 from flask_login import login_user, login_required, logout_user, current_user
 from flask_wtf.csrf import generate_csrf
 from flask_cors import CORS
 
 from .models import User, Address, Payment, Items, Images, Middle_type, Types, Watchlist, Bidding_history
-from .forms import login_form, sign_up_form
+from .forms import login_form, sign_up_form, Create_listing_form
 
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
@@ -38,12 +38,12 @@ CORS(app,
      })
 
 
-# Not react compatible yet
-@app.route("/logout")
+@app.route("/logout", methods=["POST"])
 @login_required
 def logout():
+    session.clear()
     logout_user()
-    return redirect(url_for("home"))
+    return jsonify({"message": "Logged out successfully"}), 200
 
 
 # React compatible 
@@ -78,10 +78,31 @@ def login():
 
     # Log the user in if everything is correct
     login_user(user_exists, remember=True)
+
+    session["user_id"] = user_exists.User_id
+    session["first_name"] = user_exists.First_name
+    session["level_of_access"] = user_exists.Level_of_access
+    session["is_expert"] = user_exists.Is_expert
     
     # Return a success message and a status code of 200 (ok)
-    return jsonify({"message": "Login successful"}), 200
+    return jsonify({"message": "Login successful", "user": {
+        "user_id": user_exists.User_id,
+        "first_name": user_exists.First_name,
+        "level_of_access": user_exists.Level_of_access,
+        "is_expert": user_exists.Is_expert
+    }}), 200
+
+@app.route("/api/user", methods=["GET"])
+def get_user():
+    if "user_id" in session:
+        return jsonify({
+            "user_id": session["user_id"],
+            "first_name": session["first_name"],
+            "level_of_access": session["level_of_access"],
+            "is_expert": session["is_expert"]
+        }), 200  
     
+    return jsonify({"message": "No user logged in"}), 401
     
 @app.route("/api/signup", methods=["POST"])
 def signup():
@@ -130,4 +151,63 @@ def signup():
     
     # Returns a success message and a status code of 200 (ok)
     return jsonify({"message": "User created successfully"}), 200
+
+
+@app.route("/api/create-listing", methods=["POST"])
+def Create_listing():
+    form = Create_listing_form()
+
+    # Validates form and collects any errors
+    if not form.validate_on_submit():
+        return jsonify({"errors": form.errors}), 400
+
+    try:
+        
+        time_now = datetime.datetime.now(datetime.UTC)
+        time_after_days_available = datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=int(request.form["days_available"]))
+        # Creates a new listing with given data
+        listing = Items(
+            Listing_name=request.form["listing_name"],
+            Seller_id=float(request.form["seller_id"]),
+            Verified=False,
+            Upload_datetime=time_now,
+            Available_until=time_after_days_available,
+            Min_price=float(request.form["minimum_price"]),
+            Current_bid=0,
+            Description=request.form["listing_description"]
+        )
+
+        # Adds the item to the database and then flushes so that we can get listing.Item_id **IMPORTANT**
+        db.session.add(listing)
+        db.session.flush()
+
+
+        # Goes through the images passed through and saves the necessary information to the saved_images list as Images objects.
+        saved_images = []
+        if 'images' in request.files:
+            images = request.files.getlist("images")
+            for image in images:
+                image_record = Images(
+                    Item_id = listing.Item_id,
+                    Image = image.read(),
+                    Image_description = "This is an image"
+                )
+                saved_images.append(image_record)
+        
+        #Bulk saves all the images in saved_images
+        if saved_images:
+            db.session.bulk_save_objects(saved_images)
+
+        #Commits to complete the transaction
+        db.session.commit()
+
+    
+        # Returns a success message and a status code of 200 (ok)
+        return jsonify({"message": "Listing created successfully"}), 200
+    
+    except Exception as e:
+        # If there are any errors, then we need to rollback to ensure the integrity of our database.
+        db.session.rollback()
+        print(f"Error: {e}")
+        return jsonify({"error": "Failed to create listing in the backend"}), 500
 
