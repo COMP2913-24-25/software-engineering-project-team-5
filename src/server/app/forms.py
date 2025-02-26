@@ -92,7 +92,6 @@ def validate_password():
 def validate_price():
     message = "This is not a valid price."
 
-
     def _validate_price(form, field):
         # Validates if the price is greater than 0 and is to 2dp.
         price = float(field.data)
@@ -131,4 +130,4 @@ class update_user_form(FlaskForm):
     First_name = wtforms.StringField("First Name", validators=[DataRequired()])
     Middle_name = wtforms.StringField("Middle Name")
     Surname = wtforms.StringField("Surname", validators=[DataRequired()])
-    DOB = wtforms.DateField("Date of Birth", format="%Y-%m-%d", validators=[DataRequired()])
+    DOB = wtforms.DateField("Date of Birth", format="%Y-%m-%d", validators=[DataRequired(), validate_date_of_birth()])
