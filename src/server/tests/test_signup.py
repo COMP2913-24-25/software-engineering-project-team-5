@@ -63,7 +63,43 @@ def test_signup_valid(client):
     assert user.Middle_name == "Joe"
     assert user.Surname == "Doe"
     assert user.DOB == datetime.date(2000, 1, 1)
+    
+    
+def test_signup_invalid(client):
+    """
+    Test signup with invalid password and DOB details 
+    """
 
+    # User signups up with valid details
+    response = client.post("/api/signup", 
+        json={
+            "username": "testuser",
+            "password": "hellohellohello",
+            "email": "test@gmail.com",
+            "first_name": "John",
+            "middle_name": "Joe",
+            "surname": "Doe",
+            "DOB": "4000-01-01",
+            "password_confirmation": "hellohellohello"
+        },
+        content_type='application/json'
+    )
+    
+    server_response = json.loads(response.data)
+    # Checks that the correct reponse code is returned
+    assert response.status_code == 400
+    
+    # Checks if errors in password and DOB
+    assert "password" in server_response["errors"]
+    assert "DOB" in server_response["errors"]
+    
+    # Check if the error messages match the expected messages
+    assert "Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, one number, and one special character." in server_response["errors"]["password"]
+    assert "Invalid Date of Birth." in server_response["errors"]["DOB"]
+    
+    # Check if the user is not authenticated
+    assert not current_user.is_authenticated
+    
 
 def test_signup_existing_email(client):
     """
