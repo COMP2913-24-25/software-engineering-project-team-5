@@ -38,14 +38,18 @@ def validate_name():
 
 
 def validate_email_or_username():
-    message = "Invalid Login Information."
+    message = "Invalid username or email."
 
     def _validate_email_or_username(form, field):
-        if field.data:
-            # Allow both email and username formats
-            if not re.match(r"^[A-Za-z0-9@.+_-]+$", field.data):
-                raise ValidationError(message)
-        
+        if not field.data:
+            raise ValidationError(message)
+
+        username_pattern = r"^[A-Za-z0-9]+$"  #
+        email_pattern = r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]+$"
+
+        if not (re.match(username_pattern, field.data) or re.match(email_pattern, field.data)):
+            raise ValidationError(message)
+
     return _validate_email_or_username
 
 
@@ -88,7 +92,6 @@ def validate_password():
 def validate_price():
     message = "This is not a valid price."
 
-
     def _validate_price(form, field):
         # Validates if the price is greater than 0 and is to 2dp.
         price = float(field.data)
@@ -111,12 +114,20 @@ class sign_up_form(FlaskForm):
 
 class Create_listing_form(FlaskForm):
     seller_id = wtforms.DecimalField(validators=[DataRequired()])
-    listing_name = wtforms.StringField(validators=[DataRequired(), validate_email_or_username()])
+    listing_name = wtforms.StringField(validators=[DataRequired()])
     listing_description = wtforms.StringField(validators=[DataRequired(), validate_description()])
     minimum_price = wtforms.DecimalField(validators=[DataRequired(), validate_price()])
     images = FileField(validators=[DataRequired(), FileAllowed(['jpg', 'jpeg', 'png'], "Only images are allowed")])
     days_available = wtforms.DecimalField(validators=[DataRequired()])
 
+
 class login_form(FlaskForm):
     email_or_username = wtforms.StringField(validators=[DataRequired(), validate_email_or_username()])
     password = wtforms.StringField(validators=[DataRequired()])
+
+
+class update_user_form(FlaskForm):
+    First_name = wtforms.StringField("First Name", validators=[DataRequired()])
+    Middle_name = wtforms.StringField("Middle Name")
+    Surname = wtforms.StringField("Surname", validators=[DataRequired()])
+    DOB = wtforms.DateField("Date of Birth", format="%Y-%m-%d", validators=[DataRequired(), validate_date_of_birth()])

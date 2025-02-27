@@ -7,7 +7,7 @@ from flask_wtf.csrf import generate_csrf
 from flask_cors import CORS
 
 from .models import User, Address, Payment, Items, Images, Middle_type, Types, Watchlist, Bidding_history
-from .forms import login_form, sign_up_form, Create_listing_form
+from .forms import login_form, sign_up_form, Create_listing_form, update_user_form
 
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
@@ -37,18 +37,18 @@ CORS(app,
          }
      })
 
-
-@app.route("/logout", methods=["POST"])
-@login_required
-def logout():
-    session.clear()
-    logout_user()
-    return jsonify({"message": "Logged out successfully"}), 200
-
-
-# React compatible 
 @app.route("/api/login", methods=["POST"])
 def login():
+    """
+    Retrieves the users login information, and checks it against
+    the database to log the user in. Stores logged in state as session
+    data.
+
+    Returns:
+        json_object: successful login message, and user information
+        status_code: HTTP status code (200 for success,
+                                       400 for validation error).
+    """
     # Requests the data from the front end as a JSON string.
     data = request.json
     
@@ -92,20 +92,18 @@ def login():
         "is_expert": user_exists.Is_expert
     }}), 200
 
-@app.route("/api/user", methods=["GET"])
-def get_user():
-    if "user_id" in session:
-        return jsonify({
-            "user_id": session["user_id"],
-            "first_name": session["first_name"],
-            "level_of_access": session["level_of_access"],
-            "is_expert": session["is_expert"]
-        }), 200  
-    
-    return jsonify({"message": "No user logged in"}), 401
-    
+
 @app.route("/api/signup", methods=["POST"])
 def signup():
+    """
+    Creates a new user in the database using the provided data,
+    and logs the user in.
+
+    Returns:
+        json_object: message to the user saying success
+        status_code: HTTP status code (200 for success,
+                                       400 for validation errors)
+    """
     data = request.json
     form = sign_up_form(data=data)
     errors = {}
@@ -153,6 +151,248 @@ def signup():
     return jsonify({"message": "User created successfully"}), 200
 
 
+@app.route("/logout", methods=["POST"])
+@login_required
+def logout():
+    session.clear()
+    logout_user()
+    return jsonify({"message": "Logged out successfully"}), 200
+
+
+@app.route("/api/user", methods=["POST"])
+def get_user():
+    if "user_id" in session:
+        return jsonify({
+            "user_id": session["user_id"],
+            "first_name": session["first_name"],
+            "level_of_access": session["level_of_access"],
+            "is_expert": session["is_expert"]
+        }), 200  
+    
+    return jsonify({"message": "No user logged in"}), 401
+
+
+@app.route("/api/get-user-details", methods=["POST"])
+def get_user_details():
+    """
+    Retrieves the user's details from the database, if they 
+    are currently logged in.
+
+    Returns:
+        json_object: dictionary containing the user's details
+        status_code: HTTP status code (200 for success, 
+                                       401 for unauthorized access)
+    """
+    
+    if "user_id" in session:
+        user_id = session["user_id"]
+        user_details = User.query.filter_by(User_id = user_id).first()
+        
+        user_details_dict = {
+            "First_name": user_details.First_name,
+            "Middle_name": user_details.Middle_name,
+            "Surname": user_details.Surname,
+            "DOB": user_details.DOB.strftime("%Y-%m-%d"),
+            "Email": user_details.Email,
+            "Username": user_details.Username,
+            "is_expert": user_details.Is_expert,
+        }
+    
+        return jsonify(user_details_dict), 200
+
+    else:
+        return jsonify({"message": "No user logged in"}), 401
+   
+   
+@app.route("/api/get-address-details", methods=["POST"])
+def get_address_details():
+    """
+    Retrieves the user's addresses from the database, if they 
+    are currently logged in.
+
+    Returns:
+        json_object: dictionary containing the user's addresses
+        status_code: HTTP status code (200 for success, 
+                                       401 for unauthorized access,
+                                       400 for no address information)
+    """
+    
+    # Checks if user is logged in
+    if "user_id" in session:
+        user_id = session["user_id"]
+        addresses = Address.query.filter_by(User_id=user_id).all()
+        
+        if addresses:
+            addresses_list = []
+            
+            # Gets all the addresses related to the user
+            for address in addresses:
+                addresses_list.append({
+                    "Address_id": address.Address_id,
+                    "Line_1": address.Line_1,
+                    "Line_2": address.Line_2,
+                    "City": address.City,
+                    "Country": address.Country,
+                    "Postcode": address.Postcode,
+                    "Region": address.Region,
+                    "Is_billing": address.Is_billing
+                })
+
+            return jsonify({"addresses": addresses_list}), 200 
+
+        return jsonify({"message": "No addresses found"}), 400
+
+    return jsonify({"message": "No user logged in"}), 401
+
+
+@app.route("/api/update-user-details", methods=["POST"])
+def update_user_details():
+    """
+    Updates the user's details in the database, if they 
+    are currently logged in. Validates user input through form.
+
+    Returns:
+        json_object: message to the user saying success
+        status_code: HTTP status code (200 for success,
+                                       400 for validation errors,
+                                       401 for unauthorized access)
+    """
+    
+    # Checks if the user is logged in
+    if "user_id" in session:
+        data = request.json
+        form = update_user_form(data=data)
+        errors = {}
+
+        if not form.validate():
+            for field, messages in form.errors.items():
+                errors[field] = messages
+
+        if errors:
+            return jsonify({"errors": errors}), 400
+        
+        # Converts DOB to date object
+        DOB = datetime.datetime.strptime(data["DOB"], "%Y-%m-%d").date()
+        
+        # Updates user's details in the database
+        user_id = session["user_id"]
+        user = User.query.get(user_id)
+        user.First_name = data["First_name"].capitalize()
+        user.Middle_name = data["Middle_name"].capitalize()
+        user.Surname = data["Surname"].capitalize()
+        user.DOB = DOB       
+            
+        db.session.commit()
+        
+        return jsonify({"message": "Details Updated Successfully"}), 200
+        
+    return jsonify({"message": "No user logged in"}), 401 
+   
+
+@app.route("/api/update-address", methods=["POST"])
+def update_address():
+    """
+    Updates the user's address in the database, if they are currently logged in.
+    Validates user input through form.
+
+    Returns:
+        json_object: message to the user saying success
+        status_code: HTTP status code (200 for success,
+                     400 for validation errors,
+                     401 for unauthorized access)
+    """
+    # Checks if user is logged in
+    if "user_id" in session:
+        data = request.json
+        user_id = session["user_id"]
+        
+        # Updates the parameter to be Boolean value
+        if data["Is_billing"] == "":
+            data["Is_billing"] = False
+        else:
+            data["Is_billing"] = True
+
+        # If the User is creating a new address...
+        if data["Address_id"] == "":
+            new_address = Address(
+                User_id=user_id,
+                Line_1=data["Line_1"],
+                Line_2=data["Line_2"],
+                City=data["City"],
+                Country=data["Country"],
+                Postcode=data["Postcode"],
+                Region=data["Region"],
+                Is_billing=data["Is_billing"]
+            )
+            
+            if data["Is_billing"]:
+                addresses = Address.query.filter_by(User_id = user_id).all()
+                
+                if addresses is not None:
+                    Address.query.filter_by(User_id=user_id).update({"Is_billing": False})
+                    db.session.flush()
+            
+            db.session.add(new_address)
+            db.session.commit()
+    
+            return jsonify({"message": "Address updated successfully"}), 200
+        
+        # If the User is updating an existing address...
+        # Gets updated address
+        address = Address.query.filter_by(User_id=user_id, Address_id=data["Address_id"]).first()
+
+        # Updates information
+        address.Line_1 = data["Line_1"]
+        address.Line_2 = data["Line_2"] 
+        address.City = data["City"]
+        address.Country = data["Country"]
+        address.Postcode = data["Postcode"]
+        address.Region = data["Region"]
+        address.Is_billing = data["Is_billing"]
+        
+        # flush() is like a soft commit - allows us to make changes to the database without 
+        # having to commit the changes to the database right away.
+        db.session.flush()
+        
+        # Only one address is allowed to be the billing address
+        if data["Is_billing"]:
+            # Makes all the addresses Is_billing = False
+            Address.query.filter_by(User_id=user_id).update({"Is_billing": False})
+            db.session.flush()
+            
+            # Makes only the updated addresses the billing address
+            address = Address.query.filter_by(Address_id = data["Address_id"]).first()
+            address.Is_billing = True
+                    
+        db.session.commit()
+
+        return jsonify({"message": "Address updated successfully"}), 200
+
+    return jsonify({"message": "No user logged in"}), 401
+
+@app.route("/api/delete-address", methods=["POST"])
+def delete_address():
+    """
+    Deletes the user's address from the database, if they are currently logged in.
+
+    Returns:
+        json_object: message about success or failure
+        status_code: HTTP status code (200 for success,
+                                       401 for unauthorized access)
+    """
+    
+    if "user_id" in session:
+        data = request.json
+        user_id = session["user_id"]
+        Address.query.filter_by(Address_id=data["Address_id"], User_id=user_id).delete()
+        
+        db.session.commit()
+        
+        return jsonify({"message": "Address deleted successfully"}), 200
+    
+    return jsonify({"message": "No user logged in"}), 401
+
+   
 @app.route("/api/create-listing", methods=["POST"])
 def Create_listing():
     form = Create_listing_form()
