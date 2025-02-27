@@ -29,7 +29,12 @@ export const useUser = () => useContext(UserContext);
 // ORDER MATTERS. DO NOT MOVE THIS BELOW THE function App(){...}
 // DO NOT MOVE THIS CODE PLEASE OR ALTER IT PLEASE
 export const UserProvider = ({ children }) => {
-    const [user, setUser] = useState(null); // This is the initial state when no one is logged in, so it is null
+    const [user, setUser] = useState(() => {
+        
+        const stored_user = localStorage.getItem("user");
+        return stored_user ? JSON.parse(stored_user) : null;
+
+    }); // This is the initial state when no one is logged in, so it is null
 
     useEffect(() => {
         // Check if the user is already logged in
@@ -37,10 +42,21 @@ export const UserProvider = ({ children }) => {
         fetch("http://localhost:5000/api/user", { credentials: "include" })
             .then((response) => response.json())
             .then((data) => {
-                if (data.user_id) setUser(data);
+                if (data.user_id) {
+                    setUser(data);
+                    localStorage.setItem("user", JSON.stringify(data));
+                };
             })
             .catch((error) => console.error("Failed to fetch user", error));
     }, []);
+
+    useEffect(() => {
+        if (user) {
+            localStorage.setItem("user", JSON.stringify(user));
+        }else {
+            localStorage.removeItem("user");
+        }
+    }, [user]);
 
     return (
         // Provides the data to the components
