@@ -1,10 +1,12 @@
 from app import app, db, admin
+import base64
 
 from flask import render_template, flash, request, redirect, url_for, send_file, Flask, jsonify, session
 from flask_admin.contrib.sqla import ModelView
 from flask_login import login_user, login_required, logout_user, current_user
 from flask_wtf.csrf import generate_csrf
 from flask_cors import CORS
+from sqlalchemy.orm import sessionmaker
 
 from .models import User, Address, Payment, Items, Images, Middle_type, Types, Watchlist, Bidding_history
 from .forms import login_form, sign_up_form, Create_listing_form, update_user_form
@@ -451,3 +453,44 @@ def Create_listing():
         print(f"Error: {e}")
         return jsonify({"error": "Failed to create listing in the backend"}), 500
 
+@app.route("/api/get-items", methods=["GET"])
+def get_listings():
+    """
+    Retrieves the item details from the database that are still available.
+
+    Returns:
+        json_object:  containing the items details
+        status_code: HTTP status code (200 for success, 
+                                       401 for unauthorized access)
+    """
+
+    try:
+        available_items = db.session.query(Items, User.Username).join(User, Items.Seller_id == User.User_id).filter(Items.Available_until > datetime.datetime.now()).all()
+        
+        items_list = []
+        for item, username in available_items:
+
+            image = Images.query.filter(Images.Item_id == item.Item_id).first()
+            # image_list = []
+            # for image in images:
+            #     image_list.append({
+            #         "image": base64.b64encode(image.Image).decode("utf-8")
+            #     })
+
+            item_details_dict = {
+                "Item_id": item.Item_id,
+                "Listing_name": item.Listing_name,
+                "Seller_id": item.Seller_id,
+                "Seller_username": username,
+                "Verified": item.Verified,
+                "Min_price": item.Min_price,
+                "Current_bid": item.Current_bid,
+                "Image": base64.b64encode(image.Image).decode("utf-8")
+            }
+            items_list.append(item_details_dict)
+            
+        return jsonify(items_list), 200
+    
+    except Exception as e:
+        print("Error: ", e)
+        return jsonify({"Error": "Failed to retrieve items"}), 401
