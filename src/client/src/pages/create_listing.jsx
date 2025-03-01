@@ -205,7 +205,8 @@ const CreateListing = () => {
                   ))}
                 </div>
                 <div>
-                  <label>Authentication Request</label>
+                  <label>Authentication Request(fee is 5% of the winning bid if
+authentication request is approved)</label>
                     <label className="flex items-center space-x-2">
                       <input 
                           type="checkbox" 
