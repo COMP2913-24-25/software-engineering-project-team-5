@@ -14,6 +14,7 @@ const CreateListing = () => {
     */
 
     const navigate = useNavigate();
+    
 
     
     // Creates the user object to be accessible
@@ -26,8 +27,14 @@ const CreateListing = () => {
         listing_description: "",
         minimum_price: 0,
         days_available: 0,
-        images: [],
+        authentication_request: false,
+        images: []
     });
+
+     const [showForm, setShowForm] = useState(true);
+    // Error dictionary to display errors when doing client side validation
+    const [errors, setErrors] = useState({});
+
 
     useEffect(() => {
         if (user) {
@@ -36,7 +43,7 @@ const CreateListing = () => {
                 seller_id: user.user_id
             }))
         }
-    }, [user, formData.seller_id]);
+    }, [user]);
 
     const handle_file_change = (event) => {
         const files = event.target.files;
@@ -46,22 +53,19 @@ const CreateListing = () => {
         })))
     };
 
-    // Error dictionary to display errors when doing client side validation
-    const [errors, setErrors] = useState({});
+    
 
     // Function to update the formData as the user types in the input field
     const handleChange = (event) => {
         // Stores the name and value of the input field that is being edited 
-        const fieldName = event.target.name;
-        const fieldValue = event.target.value;
+        const { name, value, type, checked } = event.target;
     
         // Updates the formData to reflect the new changes
         // Similar to string concatenation
-        setFormData((previousData) => ({
-            ...previousData,            // Keep existing form data
-            [fieldName]: fieldValue     // Adds on the new fieldValue to the end
-        }));
-    
+        setFormData((prevData) => ({
+          ...prevData,  // Keep existing form data
+          [name]: type === "checkbox" ? checked : value  // Adds on the new fieldValue to the end
+      }));
     };
 
     // Client side validation 
@@ -117,15 +121,13 @@ const CreateListing = () => {
         // Need to append the data again because FormData doesn't automatically include the existing formData.
         // This handles both text fields and files unlike FormData
         const form_data_to_send = new FormData();
-        form_data_to_send.append("seller_id", formData.seller_id);
-        form_data_to_send.append("listing_name", formData.listing_name);
-        form_data_to_send.append("listing_description", formData.listing_description);
-        form_data_to_send.append("minimum_price", formData.minimum_price);
-        form_data_to_send.append("days_available", formData.days_available);
-        
-        formData.images.forEach((image, index) => {
-            form_data_to_send.append('images', image);
-        });
+        Object.entries(formData).forEach(([key, value]) => {
+          if (key === "images") {
+              value.forEach((image) => form_data_to_send.append("images", image));
+          } else {
+              form_data_to_send.append(key, value);
+          }
+      });
 
         // After client-side validation has been passed, makes a HTTP POST request to the 
         // server to authenticate the user. The route/url passed has to be the same as the route 
@@ -170,48 +172,58 @@ const CreateListing = () => {
     // Where the actual html for the web page is described.
     return (
         <div className="container">
-            <h2>Create Listing</h2>
-            {errors.general && errors.general.map((error, index) => (
-                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                    {error}
+          {showForm && (
+            <>
+              {errors.general && errors.general.map((error, index) => (
+                <div key={index} className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                  {error}
                 </div>
-            ))}
-
-            <form onSubmit={handle_submit} className="space-y-4">
+              ))}
+              <form onSubmit={handle_submit} className="space-y-4">
                 <div>
-                    <input className="form-control" type="text" name="listing_name" placeholder="Listing Name" value={formData.listing_name} onChange={handleChange} required/>
-                    {errors.listing_name && errors.listing_name.map((error, index) => (
-                        <p className="text-red-500 text-sm mt-1">{error}</p>
-                    ))}
+                  <input className="form-control" type="text" name="listing_name" placeholder="Listing Name" value={formData.listing_name} onChange={handleChange} required />
+                  {errors.listing_name && errors.listing_name.map((error, index) => (
+                    <p key={index} className="text-red-500 text-sm mt-1">{error}</p>
+                  ))}
                 </div>
-
                 <div>
-                    <textarea className="form-control" type="text" rows="4" cols="50" name="listing_description" placeholder="Description" value={formData.listing_description} onChange={handleChange}></textarea>                    
-                    {errors.listing_description && errors.listing_description.map((error, index) => (
-                        <p className="text-red-500 text-sm mt-1">{error}</p>
-                    ))}
+                  <textarea className="form-control" type="text" rows="4" cols="50" name="listing_description" placeholder="Description" value={formData.listing_description} onChange={handleChange}></textarea>
+                  {errors.listing_description && errors.listing_description.map((error, index) => (
+                    <p key={index} className="text-red-500 text-sm mt-1">{error}</p>
+                  ))}
                 </div>
-                
                 <div>
-                    <input className="form-control" type="number" name="minimum_price" min="0" step="0.01" placeholder="Price" value={formData.minimum_price} onChange={handleChange} required/>
-                    {errors.minimum_price && errors.minimum_price.map((error, index) => (
-                        <p className="text-red-500 text-sm mt-1">{error}</p>
-                    ))}
+                  <input className="form-control" type="number" name="minimum_price" min="0" step="0.01" placeholder="Price" value={formData.minimum_price} onChange={handleChange} required />
+                  {errors.minimum_price && errors.minimum_price.map((error, index) => (
+                    <p key={index} className="text-red-500 text-sm mt-1">{error}</p>
+                  ))}
                 </div>
-
                 <div>
-                    <input className="form-control" type="number" name="days_available" placeholder="How long do you want to list?" min="1" max="5" step="1" value={formData.days_available} onChange={handleChange} required/>
-                    {errors.days_available && errors.days_available.map((error, index) => (
-                        <p className="text-red-500 text-sm mt-1">{error}</p>
-                    ))}
+                  <input className="form-control" type="number" name="days_available" placeholder="How long do you want to list?" min="1" max="5" step="1" value={formData.days_available} onChange={handleChange} required />
+                  {errors.days_available && errors.days_available.map((error, index) => (
+                    <p key={index} className="text-red-500 text-sm mt-1">{error}</p>
+                  ))}
                 </div>
-
-                <input className="form-control" type="file" name="images" accept="image/*" multiple onChange={handle_file_change} required/>
-
+                <div>
+                  <label>Authentication Request</label>
+                    <label className="flex items-center space-x-2">
+                      <input 
+                          type="checkbox" 
+                          name="authentication_request" 
+                          checked={formData.authentication_request} 
+                          onChange={handleChange} 
+                        />
+                    </label>
+                </div>
+                <input className="form-control" type="file" name="images" accept="image/*" multiple onChange={handle_file_change} required />
                 <button type="submit" className="btn btn-primary">Create Listing</button>
-            </form>
+              </form>
+            </>
+          )}
         </div>
-    );
+      );
+      
+      
 };
 
 export default CreateListing;

@@ -61,6 +61,7 @@ class Items(db.Model):
     Min_price = db.Column(db.Float, nullable=False)
     Current_bid = db.Column(db.Float, nullable=False)
     Description = db.Column(db.String(500), nullable=False)
+    Authentication_request = db.Column(db.Boolean, nullable=False)
 
     #Relationships
     Images = db.relationship('Images', backref='item', lazy=True)

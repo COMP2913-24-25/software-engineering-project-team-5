@@ -119,7 +119,7 @@ class Create_listing_form(FlaskForm):
     minimum_price = wtforms.DecimalField(validators=[DataRequired(), validate_price()])
     images = FileField(validators=[DataRequired(), FileAllowed(['jpg', 'jpeg', 'png'], "Only images are allowed")])
     days_available = wtforms.DecimalField(validators=[DataRequired()])
-
+    authentication_request = wtforms.BooleanField(validators=[DataRequired()])
 
 class login_form(FlaskForm):
     email_or_username = wtforms.StringField(validators=[DataRequired(), validate_email_or_username()])
