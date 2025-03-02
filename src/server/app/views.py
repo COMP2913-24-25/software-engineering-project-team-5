@@ -471,17 +471,13 @@ def get_listings():
         for item, username in available_items:
 
             image = Images.query.filter(Images.Item_id == item.Item_id).first()
-            # image_list = []
-            # for image in images:
-            #     image_list.append({
-            #         "image": base64.b64encode(image.Image).decode("utf-8")
-            #     })
 
             item_details_dict = {
                 "Item_id": item.Item_id,
                 "Listing_name": item.Listing_name,
                 "Seller_id": item.Seller_id,
                 "Seller_username": username,
+                "Available_until": item.Available_until,
                 "Verified": item.Verified,
                 "Min_price": item.Min_price,
                 "Current_bid": item.Current_bid,
