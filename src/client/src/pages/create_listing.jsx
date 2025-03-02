@@ -2,8 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useUser } from "../App"; // Access the user
 import { useNavigate } from "react-router-dom";
 
-//export const useUser = () => useContext(UserContext);
-
 const CreateListing = () => {
     /*
     Allows a logged in user to create a listing- front end only handles simple form 
