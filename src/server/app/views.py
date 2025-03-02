@@ -414,7 +414,8 @@ def Create_listing():
             Available_until=time_after_days_available,
             Min_price=float(request.form["minimum_price"]),
             Current_bid=0,
-            Description=request.form["listing_description"]
+            Description=request.form["listing_description"],
+            Authentication_request=bool(request.form["authentication_request"])
         )
 
         # Adds the item to the database and then flushes so that we can get listing.Item_id **IMPORTANT**
