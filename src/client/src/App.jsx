@@ -19,6 +19,7 @@ import SearchExperts from "./pages/manager/searchexp";
 
 import EAuthRequests from "./pages/expert/authreq";
 import Profile from "./pages/expert/profile";
+import Navbar from "./components/navbar";
 
 // Creates a global state to store user information - Makes it available to ANY component in the app
 export const UserContext = createContext();
@@ -78,66 +79,8 @@ function App() {
         //Wraps the app in UserProvider
         <UserProvider>
             <Router>
-                <div className="navbar">
-                    <Link to="/" onClick={() => setActiveSubMenu(null)}>
-                        Login
-                    </Link>
-                    <Link to="/signup" onClick={() => setActiveSubMenu(null)}>
-                        Signup
-                    </Link>
-                    <Link
-                        to="/accountsummary"
-                        onClick={() => setActiveSubMenu(null)}
-                    >
-                        Account Summary
-                    </Link>
-                    <Link
-                        to="/home-page"
-                        onClick={() => setActiveSubMenu(null)}
-                    >
-                        Homepage
-                    </Link>
-                    <Link
-                        to="/seller-dash"
-                        onClick={() => setActiveSubMenu(null)}
-                    >
-                        Seller Dashboard
-                    </Link>
-                    <Link
-                        to="/watchlist"
-                        onClick={() => setActiveSubMenu(null)}
-                    >
-                        Watchlist
-                    </Link>
-                    <Link
-                        to="/bidding-history"
-                        onClick={() => setActiveSubMenu(null)}
-                    >
-                        Bidding History
-                    </Link>
-                    <Link
-                        to="/current-bids"
-                        onClick={() => setActiveSubMenu(null)}
-                    >
-                        Current Bids
-                    </Link>
 
-                    {/* Expert View Dropdown */}
-                    <button
-                        className="nav-button"
-                        onClick={() => toggleSubMenu("expert")}
-                    >
-                        Expert View
-                    </button>
-
-                    {/* Manager View Dropdown */}
-                    <button
-                        className="nav-button"
-                        onClick={() => toggleSubMenu("manager")}
-                    >
-                        Manager View
-                    </button>
-                </div>
+                <Navbar />
 
                 {/* Expert View Sub Navbar */}
                 {activeSubMenu === "expert" && (
