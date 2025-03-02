@@ -12,6 +12,12 @@ const UserDetailsForm = () => {
     const navigate = useNavigate();
     const { user } = useUser();
 
+    useEffect(() => {
+        if (!user) {
+            navigate("/signup");
+        }
+    }, [user, navigate]);
+
     // State variables for user details and form data
     const [user_details, set_user_details] = useState(null);
     const [form_data, set_form_data] = useState({
@@ -25,13 +31,6 @@ const UserDetailsForm = () => {
     const [errors, set_errors] = useState({});
     const [error_message, set_error_message] = useState("");
     const [success_message, set_success_message] = useState("");
-
-    // Check if user is logged in and redirect if not
-    useEffect(() => {
-        if (!user) {
-            navigate("/signup");
-        }
-    }, [user, navigate]);
 
     // Gets user details when the component is first loaded
     useEffect(() => {
@@ -156,11 +155,6 @@ const UserDetailsForm = () => {
             });
         }
     };
-
-    // If not authenticated, return null (early return)
-    if (!user) {
-        return null;
-    }
 
     return (
         <div className="mx-auto bg-white shadow rounded-lg">

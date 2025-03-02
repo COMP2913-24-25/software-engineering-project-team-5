@@ -247,6 +247,57 @@ def get_address_details():
     return jsonify({"message": "No user logged in"}), 401
 
 
+@app.route("/api/get-experts-authentication-requests", methods=["POST"])
+def get_experts_authentication_requests():
+    """
+    Retrieves all pending authentication requests assigned to a specific expert.
+    Only experts can access this endpoint.
+
+    Returns:
+        json_object: list of pending authentication requests
+        status_code: HTTP status code (200 for success,
+                                       400 for unauthorized access)
+    """
+    
+    # Checks if an expert user is logged in
+    if "user_id" in session:
+        if session["is_expert"] == True:
+            user_id = session["user_id"]
+            
+            # Seperates Listings into pending and past authentication requests
+            pending_auth_requests_list = []
+            past_auth_requests_list = []
+            
+            # Retrieves all authentication requests related to the expert
+            auth_requests = Items.query.filter_by(Expert_id=user_id).all()
+            
+            for req in auth_requests:
+                seller = User.query.filter_by(User_id = req.Seller_id).first()
+                temp = {
+                        "Item_id": req.Item_id,
+                        "Listing_name": req.Listing_name,
+                        "Seller_id": seller.User_id,
+                        "Seller_name": seller.First_name + " " + seller.Surname,
+                        "Upload_datetime": req.Upload_datetime.strftime("%Y-%m-%d %H:%M:%S"),
+                        "Min_price": req.Min_price,
+                        "Description": req.Description,
+                        "Verified": req.Verified
+                    }
+                
+                # Adds the request to the appropriate list based on whether it's a pending or past request
+                if req.Authentication_request:
+                    pending_auth_requests_list.append(temp)
+                else:
+                    past_auth_requests_list.append(temp)
+                
+            return jsonify({"pending_auth_requests": pending_auth_requests_list,
+                           "past_auth_requests": past_auth_requests_list}), 200
+        
+        return jsonify({"message": "User has invalid access level"}), 401
+    
+    return jsonify({"message": "No user logged in"}), 401
+    
+
 @app.route("/api/update-user-details", methods=["POST"])
 def update_user_details():
     """
@@ -372,6 +423,45 @@ def update_address():
 
     return jsonify({"message": "No user logged in"}), 401
 
+
+@app.route("/api/update_auth_request", methods=["POST"])
+def update_auth_request():
+    """
+    Updates the status of an authentication request in the database.
+    If the user is an expert, they can accept or reject the request.
+
+    Returns:
+        json_object: message about success or failure
+        status_code: HTTP status code (200 for success,
+                                       401 for unauthorized access)
+    """
+    
+    # Checks if an expert user is logged in
+    if "user_id" in session:
+        if session["is_expert"] == True:
+            data = request.json
+            user_id = session["user_id"]
+            
+            # Retrieves the request to be updated
+            request_to_update = Items.query.filter_by(Item_id=data["request_id"]).first()
+            
+            # Updates information according to if the request was accepted or declined
+            if data["action"] == "accept":
+                request_to_update.Available_until += datetime.datetime.now() - request_to_update.Upload_datetime
+                request_to_update.Verified = True
+                request_to_update.Authentication_request = False
+            else:
+                request_to_update.Verified = False
+                request_to_update.Authentication_request = False
+            
+            db.session.commit()
+                
+            return jsonify({"message": "Successfully updated information"}), 200
+            
+        return jsonify({"message": "User has invalid access level"}), 401
+    
+    return jsonify({"message": "No user logged in"}), 401
+    
 @app.route("/api/delete-address", methods=["POST"])
 def delete_address():
     """

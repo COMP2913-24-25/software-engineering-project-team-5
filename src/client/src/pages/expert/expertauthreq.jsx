@@ -1,0 +1,87 @@
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useUser } from "../../App"; // Access the user
+import AuthRequestsTable from "../../components/auth_req_table";
+
+const EAuthReq = () => {
+    const navigate = useNavigate();
+    const { user } = useUser();
+
+    // Check if expert user is logged in and redirect if not
+    useEffect(() => {
+        if (!user) {
+            navigate("/");
+        }
+
+        if (!user.is_expert) {
+            navigate("/");
+        }
+    }, [user, navigate]);
+
+    // Variables to store pending and past authentication requests
+    const [pending_auth_requests, set_pending_auth_requests] = useState([]);
+    const [past_auth_requests, set_past_auth_requests] = useState([]);
+
+    // Gets all the authentication requests assigned to the expert
+    const get_auth_requests = async () => {
+        try {
+            const response = await fetch(
+                "http://localhost:5000/api/get-experts-authentication-requests",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    credentials: "include",
+                }
+            );
+
+            // Waits for server response
+            const data = await response.json();
+
+            if (response.ok) {
+                // If response is ok, set variables to server data
+                set_pending_auth_requests(data.pending_auth_requests);
+                set_past_auth_requests(data.past_auth_requests);
+            }
+        } catch (error) {
+            console.error("Error fetching authentication requests:", error);
+        }
+    };
+
+    // When expert Accepts or Declines an authentication request, it re-gets the request data
+    // so that the pending and past requests lists are up to date with most recent change.
+    const handle_request_update = () => {
+        get_auth_requests();
+    };
+
+    // Gets authentication requests on first time load of the page
+    useEffect(() => {
+        if (user) {
+            get_auth_requests();
+        }
+    }, [user]);
+
+    return (
+        <div className="pl-[10%] pr-[10%]">
+            <h1 className="text-2xl font-display font-semibold text-left px-[0.5em] pt-[1em]">
+                Pending Authentication Requests
+            </h1>
+            <AuthRequestsTable
+                auth_requests={pending_auth_requests}
+                handle_request_update={handle_request_update}
+                pending={true}
+            />
+            <h1 className="text-2xl font-display font-semibold text-left px-[0.5em] pt-[1em]">
+                Past Authentication Requests
+            </h1>
+            <AuthRequestsTable
+                auth_requests={past_auth_requests}
+                handle_request_update={handle_request_update}
+                pending={false}
+            />
+        </div>
+    );
+};
+
+export default EAuthReq;

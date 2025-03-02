@@ -14,8 +14,15 @@ const AccountSummary = () => {
     const navigate = useNavigate();
     const { user } = useUser();
 
+    // Check if user is logged in and redirect if not
+    useEffect(() => {
+        if (!user) {
+            navigate("/signup");
+        }
+    }, [user, navigate]);
+
     // Variable to store address information
-    const [addresses, setAddresses] = useState([]);
+    const [addresses, set_addresses] = useState([]);
 
     // Empty address to pass into address_form component for Create New
     // Address functionality
@@ -31,7 +38,7 @@ const AccountSummary = () => {
     };
 
     // Gets all the users addresses
-    const getAddresses = async () => {
+    const get_addresses = async () => {
         try {
             const response = await fetch(
                 "http://localhost:5000/api/get-address-details",
@@ -49,7 +56,7 @@ const AccountSummary = () => {
 
             if (response.ok) {
                 // If response is ok, set addresses state with server data
-                setAddresses(data.addresses);
+                set_addresses(data.addresses);
             }
         } catch (error) {
             console.error("Error fetching addresses:", error);
@@ -57,22 +64,22 @@ const AccountSummary = () => {
     };
 
     // Updates the addresses list to remove the deleted address
-    const handleAddressDelete = async (addressId) => {
-        setAddresses((prevAddresses) =>
-            prevAddresses.filter((addr) => addr.Address_id !== addressId)
+    const handle_address_delete = async (addressId) => {
+        set_addresses((prevAddresses) =>
+            prevAddresses.filter((address) => address.Address_id !== addressId)
         );
     };
 
     // Gets addresses on first time load of the page
     useEffect(() => {
         if (user) {
-            getAddresses();
+            get_addresses();
         }
     }, [user]);
 
     // Gets addresses after an update to the Address table
-    const handleAddressUpdate = () => {
-        getAddresses();
+    const handle_address_update = () => {
+        get_addresses();
     };
 
     return (
@@ -102,8 +109,8 @@ const AccountSummary = () => {
 
             <AddressForm
                 address={empty_address}
-                onUpdate={handleAddressUpdate}
-                onDelete={handleAddressDelete}
+                onUpdate={handle_address_update}
+                onDelete={handle_address_delete}
                 title_text="Create New Address"
                 create_address={true}
                 button_text={"Create Address"}
@@ -113,8 +120,8 @@ const AccountSummary = () => {
                 <AddressForm
                     key={index}
                     address={address}
-                    onUpdate={handleAddressUpdate}
-                    onDelete={handleAddressDelete}
+                    onUpdate={handle_address_update}
+                    onDelete={handle_address_delete}
                     title_text={"Address " + (index + 1)}
                     create_address={false}
                     button_text={"Update Address"}
