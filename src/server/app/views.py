@@ -494,6 +494,12 @@ def Create_listing():
         return jsonify({"errors": form.errors}), 400
 
     try:
+
+        if request.form["authentication_request"] == "false":
+            authentication_request = False
+        else:
+            authentication_request = True
+
         
         time_now = datetime.datetime.now(datetime.UTC)
         time_after_days_available = datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=int(request.form["days_available"]))
@@ -507,7 +513,7 @@ def Create_listing():
             Min_price=float(request.form["minimum_price"]),
             Current_bid=0,
             Description=request.form["listing_description"],
-            Authentication_request=bool(request.form["authentication_request"])
+            Authentication_request=authentication_request
         )
 
         # Adds the item to the database and then flushes so that we can get listing.Item_id **IMPORTANT**
