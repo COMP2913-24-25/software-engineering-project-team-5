@@ -17,7 +17,7 @@ import CustomerTable from "./pages/manager/custinfo";
 import MAuthReq from "./pages/manager/authreq";
 import SearchExperts from "./pages/manager/searchexp";
 
-import EAuthRequests from "./pages/expert/authreq";
+import EAuthRequests from "./pages/expert/expertauthreq";
 import Profile from "./pages/expert/profile";
 
 // Creates a global state to store user information - Makes it available to ANY component in the app
@@ -30,10 +30,8 @@ export const useUser = () => useContext(UserContext);
 // DO NOT MOVE THIS CODE PLEASE OR ALTER IT PLEASE
 export const UserProvider = ({ children }) => {
     const [user, setUser] = useState(() => {
-        
         const stored_user = localStorage.getItem("user");
         return stored_user ? JSON.parse(stored_user) : null;
-
     }); // This is the initial state when no one is logged in, so it is null
 
     useEffect(() => {
@@ -45,7 +43,7 @@ export const UserProvider = ({ children }) => {
                 if (data.user_id) {
                     setUser(data);
                     localStorage.setItem("user", JSON.stringify(data));
-                };
+                }
             })
             .catch((error) => console.error("Failed to fetch user", error));
     }, []);
@@ -53,7 +51,7 @@ export const UserProvider = ({ children }) => {
     useEffect(() => {
         if (user) {
             localStorage.setItem("user", JSON.stringify(user));
-        }else {
+        } else {
             localStorage.removeItem("user");
         }
     }, [user]);

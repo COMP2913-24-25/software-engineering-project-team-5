@@ -1,10 +1,12 @@
 from app import app, db, admin
+import base64
 
 from flask import render_template, flash, request, redirect, url_for, send_file, Flask, jsonify, session
 from flask_admin.contrib.sqla import ModelView
 from flask_login import login_user, login_required, logout_user, current_user
 from flask_wtf.csrf import generate_csrf
 from flask_cors import CORS
+from sqlalchemy.orm import sessionmaker
 
 from .models import User, Address, Payment, Items, Images, Middle_type, Types, Watchlist, Bidding_history
 from .forms import login_form, sign_up_form, Create_listing_form, update_user_form
@@ -245,6 +247,57 @@ def get_address_details():
     return jsonify({"message": "No user logged in"}), 401
 
 
+@app.route("/api/get-experts-authentication-requests", methods=["POST"])
+def get_experts_authentication_requests():
+    """
+    Retrieves all pending authentication requests assigned to a specific expert.
+    Only experts can access this endpoint.
+
+    Returns:
+        json_object: list of pending authentication requests
+        status_code: HTTP status code (200 for success,
+                                       400 for unauthorized access)
+    """
+    
+    # Checks if an expert user is logged in
+    if "user_id" in session:
+        if session["is_expert"] == True:
+            user_id = session["user_id"]
+            
+            # Seperates Listings into pending and past authentication requests
+            pending_auth_requests_list = []
+            past_auth_requests_list = []
+            
+            # Retrieves all authentication requests related to the expert
+            auth_requests = Items.query.filter_by(Expert_id=user_id).all()
+            
+            for req in auth_requests:
+                seller = User.query.filter_by(User_id = req.Seller_id).first()
+                temp = {
+                        "Item_id": req.Item_id,
+                        "Listing_name": req.Listing_name,
+                        "Seller_id": seller.User_id,
+                        "Seller_name": seller.First_name + " " + seller.Surname,
+                        "Upload_datetime": req.Upload_datetime.strftime("%Y-%m-%d %H:%M:%S"),
+                        "Min_price": req.Min_price,
+                        "Description": req.Description,
+                        "Verified": req.Verified
+                    }
+                
+                # Adds the request to the appropriate list based on whether it's a pending or past request
+                if req.Authentication_request:
+                    pending_auth_requests_list.append(temp)
+                else:
+                    past_auth_requests_list.append(temp)
+                
+            return jsonify({"pending_auth_requests": pending_auth_requests_list,
+                           "past_auth_requests": past_auth_requests_list}), 200
+        
+        return jsonify({"message": "User has invalid access level"}), 401
+    
+    return jsonify({"message": "No user logged in"}), 401
+    
+
 @app.route("/api/update-user-details", methods=["POST"])
 def update_user_details():
     """
@@ -370,6 +423,45 @@ def update_address():
 
     return jsonify({"message": "No user logged in"}), 401
 
+
+@app.route("/api/update_auth_request", methods=["POST"])
+def update_auth_request():
+    """
+    Updates the status of an authentication request in the database.
+    If the user is an expert, they can accept or reject the request.
+
+    Returns:
+        json_object: message about success or failure
+        status_code: HTTP status code (200 for success,
+                                       401 for unauthorized access)
+    """
+    
+    # Checks if an expert user is logged in
+    if "user_id" in session:
+        if session["is_expert"] == True:
+            data = request.json
+            user_id = session["user_id"]
+            
+            # Retrieves the request to be updated
+            request_to_update = Items.query.filter_by(Item_id=data["request_id"]).first()
+            
+            # Updates information according to if the request was accepted or declined
+            if data["action"] == "accept":
+                request_to_update.Available_until += datetime.datetime.now() - request_to_update.Upload_datetime
+                request_to_update.Verified = True
+                request_to_update.Authentication_request = False
+            else:
+                request_to_update.Verified = False
+                request_to_update.Authentication_request = False
+            
+            db.session.commit()
+                
+            return jsonify({"message": "Successfully updated information"}), 200
+            
+        return jsonify({"message": "User has invalid access level"}), 401
+    
+    return jsonify({"message": "No user logged in"}), 401
+    
 @app.route("/api/delete-address", methods=["POST"])
 def delete_address():
     """
@@ -402,6 +494,12 @@ def Create_listing():
         return jsonify({"errors": form.errors}), 400
 
     try:
+
+        if request.form["authentication_request"] == "false":
+            authentication_request = False
+        else:
+            authentication_request = True
+
         
         time_now = datetime.datetime.now(datetime.UTC)
         time_after_days_available = datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=int(request.form["days_available"]))
@@ -415,8 +513,7 @@ def Create_listing():
             Min_price=float(request.form["minimum_price"]),
             Current_bid=0,
             Description=request.form["listing_description"],
-            Authentication_request = bool(request.form.get("authentication_request", False))
-
+            Authentication_request=authentication_request
         )
         print("Authentication Request:", request.form.get("authentication_request", False))
 
@@ -454,3 +551,40 @@ def Create_listing():
         print(f"Error: {e}")
         return jsonify({"error": "Failed to create listing in the backend"}), 500
 
+@app.route("/api/get-items", methods=["GET"])
+def get_listings():
+    """
+    Retrieves the item details from the database that are still available.
+
+    Returns:
+        json_object:  containing the items details
+        status_code: HTTP status code (200 for success, 
+                                       401 for unauthorized access)
+    """
+
+    try:
+        available_items = db.session.query(Items, User.Username).join(User, Items.Seller_id == User.User_id).filter(Items.Available_until > datetime.datetime.now()).all()
+        
+        items_list = []
+        for item, username in available_items:
+
+            image = Images.query.filter(Images.Item_id == item.Item_id).first()
+
+            item_details_dict = {
+                "Item_id": item.Item_id,
+                "Listing_name": item.Listing_name,
+                "Seller_id": item.Seller_id,
+                "Seller_username": username,
+                "Available_until": item.Available_until,
+                "Verified": item.Verified,
+                "Min_price": item.Min_price,
+                "Current_bid": item.Current_bid,
+                "Image": base64.b64encode(image.Image).decode("utf-8")
+            }
+            items_list.append(item_details_dict)
+            
+        return jsonify(items_list), 200
+    
+    except Exception as e:
+        print("Error: ", e)
+        return jsonify({"Error": "Failed to retrieve items"}), 401

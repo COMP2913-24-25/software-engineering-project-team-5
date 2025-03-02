@@ -4,8 +4,8 @@ import { useUser } from "../App";
 
 const AddressForm = ({
     address,
-    onUpdate,
-    onDelete,
+    on_update,
+    on_delete,
     title_text,
     create_address,
     button_text,
@@ -18,6 +18,11 @@ const AddressForm = ({
 
     const navigate = useNavigate();
     const { user } = useUser();
+
+    // If not authenticated, return null (early return)
+    if (!user) {
+        return null;
+    }
 
     // Sets form data - Address_id is blank ("") when new address is being created
     const [form_data, set_form_data] = useState({
@@ -122,10 +127,9 @@ const AddressForm = ({
                 }
             } else {
                 set_success_message("Successfully updated address.");
-                onUpdate();
+                on_update();
             }
         } catch (error) {
-            console.error("Error updating address:", error);
             set_errors({
                 general: [
                     "Network error. Please check your connection and try again.",
@@ -154,7 +158,7 @@ const AddressForm = ({
 
             if (response.ok) {
                 // Function call to removes the form showing the deleted address
-                onDelete(address.Address_id);
+                on_delete(address.Address_id);
             } else {
                 set_errors({
                     general: ["Unexpected Error. Please Try Again."],
@@ -165,11 +169,6 @@ const AddressForm = ({
             set_errors({ general: ["Network error. Please try again."] });
         }
     };
-
-    // If not authenticated, return null (early return)
-    if (!user) {
-        return null;
-    }
 
     // Component HTML
     return (
@@ -321,7 +320,9 @@ const AddressForm = ({
                     <button
                         type="submit"
                         className={`${
-                            create_address ? "w-full" : "col-span-7"
+                            create_address
+                                ? "w-full"
+                                : "lg:col-span-7 md:col-span-6 col-span-5"
                         } bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition duration-300`}
                     >
                         {button_text}
@@ -330,7 +331,7 @@ const AddressForm = ({
                     {!create_address && (
                         <button
                             type="button"
-                            className="col-span-2 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition duration-300"
+                            className="lg:col-span-2 md:col-span-3 col-span-4 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition duration-300"
                             onClick={handle_delete}
                         >
                             Delete Address
