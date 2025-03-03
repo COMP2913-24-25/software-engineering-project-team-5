@@ -1,26 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./authreq.css";
-
-const ItemListing = ({ title, seller, description, image }) => {
-  const imageUrl = image ? `data:image/png;base64,${image}` : null;
-
-  return (
-    <div className="flex border rounded-lg p-4 shadow-md bg-white w-full max-w-3xl items-center">
-      <div className="w-32 h-32 bg-gray-200 flex-shrink-0 rounded-lg overflow-hidden flex items-center justify-center">
-        {imageUrl ? (
-          <img src={imageUrl} alt={title} className="w-full h-full object-cover" />
-        ) : (
-          <span className="text-gray-500">No Image</span>
-        )}
-      </div>
-      <div className="flex flex-col flex-grow ml-4">
-        <h2 className="text-lg font-semibold">{title}</h2>
-        <p className="text-sm text-gray-600">{seller}</p>
-        <p className="text-sm text-gray-700 mt-1">{description}</p>
-      </div>
-    </div>
-  );
-};
+import ItemListing from "../../components/itemlisting";
 
 export default function MAuthReq() {
   const [pendingauth, setPendingAuth] = useState([]);
