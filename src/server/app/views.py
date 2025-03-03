@@ -587,3 +587,158 @@ def get_listings():
     except Exception as e:
         print("Error: ", e)
         return jsonify({"Error": "Failed to retrieve items"}), 401
+
+@app.route("/api/get-bids", methods=["POST"])
+def get_history():
+    """
+    Retrieves the user's bidding history from the database, if they 
+    are currently logged in.
+
+    Returns:
+        json_object: dictionary containing the user's bidding history
+        status_code: HTTP status code (200 for success, 
+                                       401 for unauthorized access,
+                                       400 for no bidding information)
+    """
+
+    # Checks if user is logged in
+    if "user_id" in session:
+        user_id = session["user_id"]
+
+        bid_data = (
+            Bidding_history.query
+            .join(Items, Bidding_history.Item_id == Items.Item_id)  # Join Items table
+            .join(User, Items.Seller_id == User.User_id)  # Join User table to get seller info
+            .outerjoin(Images, Items.Item_id == Images.Item_id)  # Outer join Images table to get item image
+            .filter(
+                Bidding_history.Bidder_id == user_id,
+                Items.Available_until < datetime.datetime.now()  # Only expired bids
+            )
+            .with_entities(
+                Bidding_history.Bid_id,
+                Bidding_history.Bid_price,
+                Bidding_history.Bid_datetime,
+                Bidding_history.Successful_bid,
+                Items.Item_id,
+                Items.Listing_name,
+                Items.Description,
+                Items.Current_bid,
+                Items.Available_until,
+                User.Username,
+                Images.Image,
+                Images.Image_description,
+                Items.Min_price
+            )
+            .all()
+        )
+
+        if bid_data:
+            result = []
+            for bid in bid_data:
+
+                image_data = bid.Image
+                image_base64 = None
+                if image_data:
+                    # Base64 encode the image if it exists
+                    image_base64 = base64.b64encode(image_data).decode('utf-8')
+                bid_data = {
+                    "Bid_id": bid.Bid_id,
+                    "Bid_price": bid.Bid_price,
+                    "Bid_datetime": bid.Bid_datetime,
+                    "Successful_bid": bid.Successful_bid,
+                    "Item_id": bid.Item_id,
+                    "Listing_name": bid.Listing_name,
+                    "Description": bid.Description,
+                    "Current_bid": bid.Current_bid,
+                    "Available_until": bid.Available_until,
+                    "Seller_name": bid.Username,
+                    "Image": image_base64,
+                    "Image_description": bid.Image_description or "No Image",
+                    "Min_price": bid.Min_price
+                }
+                result.append(bid_data)
+
+            return jsonify(result), 200  # Return all the bid details
+
+        else:
+            return jsonify({"message": "No bidding information available"}), 400
+
+    else:
+        return jsonify({"message": "No user logged in"}), 401
+
+@app.route("/api/get-bids", methods=["POST"])
+def get_bids():
+    """
+    Retrieves the user's current bids from the database, if they 
+    are currently logged in.
+
+    Returns:
+        json_object: dictionary containing the user's bidding history
+        status_code: HTTP status code (200 for success, 
+                                       401 for unauthorized access,
+                                       400 for no bidding information)
+    """
+
+    # Checks if user is logged in
+    if "user_id" in session:
+        user_id = session["user_id"]
+
+        bid_data = (
+            Bidding_history.query
+            .join(Items, Bidding_history.Item_id == Items.Item_id)  # Join Items table
+            .join(User, Items.Seller_id == User.User_id)  # Join User table to get seller info
+            .outerjoin(Images, Items.Item_id == Images.Item_id)  # Outer join Images table to get item image
+            .filter(
+                Bidding_history.Bidder_id == user_id,
+                Items.Available_until > datetime.datetime.now()  # Only valid bids
+            )
+            .with_entities(
+                Bidding_history.Bid_id,
+                Bidding_history.Bid_price,
+                Bidding_history.Bid_datetime,
+                Bidding_history.Successful_bid,
+                Items.Item_id,
+                Items.Listing_name,
+                Items.Description,
+                Items.Current_bid,
+                Items.Available_until,
+                User.Username,
+                Images.Image,
+                Images.Image_description,
+                Items.Min_price
+            )
+            .all()
+        )
+
+        if bid_data:
+            result = []
+            for bid in bid_data:
+                image_data = bid.Image
+                image_base64 = None
+                if image_data:
+                    # Base64 encode the image if it exists
+                    image_base64 = base64.b64encode(image_data).decode('utf-8')
+                bid_data = {
+                    "Bid_id": bid.Bid_id,
+                    "Bid_price": bid.Bid_price,
+                    "Bid_datetime": bid.Bid_datetime,
+                    "Successful_bid": bid.Successful_bid,
+                    "Item_id": bid.Item_id,
+                    "Listing_name": bid.Listing_name,
+                    "Description": bid.Description,
+                    "Current_bid": bid.Current_bid,
+                    "Available_until": bid.Available_until,
+                    "Seller_name": bid.Username,
+                    "Image": image_base64,
+                    "Image_description": bid.Image_description or "No Image",
+                    "Min_price": bid.Min_price
+                }
+                result.append(bid_data)
+
+            return jsonify(result), 200  # Return all the bid details
+
+        else:
+            return jsonify({"message": "No bidding information available"}), 400
+
+    else:
+        return jsonify({"message": "No user logged in"}), 401
