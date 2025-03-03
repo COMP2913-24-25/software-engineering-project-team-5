@@ -598,10 +598,11 @@ def get_pending_auth():
         json_object: dictionary containing the items pending authentication
         status_code: HTTP status code (200 for success, 401 for unauthorized access)
     """
-    if "user_id" in session:
-        user_id = session["user_id"]
-        
-        # Retrieves all items that are pending authentication
+    if "user_id" not in session:
+        return jsonify({"message": "No user logged in"}), 401
+
+    try:
+        # Fetch all pending authentication items in one query
         unassigned_items = (
             Items.query
             .join(User, Items.Seller_id == User.User_id)  # Join Users table to get seller info
@@ -610,31 +611,35 @@ def get_pending_auth():
             .with_entities(
                 Items.Item_id, Items.Listing_name, Items.Description, 
                 Items.Current_bid, Items.Available_until, 
-                User.Username.label("Seller_name"), Images.Image, Images.Image_description
+                User.Username, Images.Image, Images.Image_description
             )
             .all()
         )
-        
 
         if not unassigned_items:
             return jsonify({"message": "No items require authentication"}), 200
 
         # Convert query results to JSON
-        unassigned_data = [
-            {
+        unassigned_data = []
+        for item in unassigned_items:
+            image_base64 = None
+            if item.Image:
+                # Base64 encode the image if it exists
+                image_base64 = base64.b64encode(item.Image).decode('utf-8')
+
+            unassigned_data.append({
                 "Item_id": item.Item_id,
                 "Listing_name": item.Listing_name,
                 "Description": item.Description,
                 "Current_bid": item.Current_bid,
                 "Available_until": item.Available_until,
-                "Seller_name": item.Seller_name,
-                "Image": item.Image if item.Image else "default_image_url",  # Handle missing images
+                "Username": item.Username,  # Fixed naming
+                "Image": image_base64,
                 "Image_description": item.Image_description if item.Image_description else "No description available"
-            }
-            for item in unassigned_items
-        ]
+            })
 
-        return jsonify({"Authentication required": unassigned_data}), 200        
+        return jsonify({"Authentication required": unassigned_data}), 200  # Moved return outside loop
 
-    else:
-        return jsonify({"message": "No user logged in"}), 401    
+    except Exception as e:
+        print("Error:", e)
+        return jsonify({"Error": "Failed to retrieve items"}), 500  # Use 500 for internal server errors
