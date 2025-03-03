@@ -687,7 +687,7 @@ def add_watchlist():
 
     Returns:
         json_object: success message or error message
-        status_code: HTTP status code (200 for success, 400 for bad request, 401 for unauthorized access, 409 for conflict)
+        status_code: HTTP status code (200 for success, 400 for bad request, 401 for unauthorized access, 405 for conflict)
     """
     if "user_id" not in session:
         return jsonify({"message": "No user logged in"}), 401
@@ -703,7 +703,7 @@ def add_watchlist():
     # Check if item already exists in the watchlist
     existing_entry = Watchlist.query.filter_by(User_id=user_id, Item_id=item_id).first()
     if existing_entry:
-        return jsonify({"message": "Item already in watchlist"}), 409  # Conflict status
+        return jsonify({"message": "Item already in watchlist"}), 405
 
     # Add new watchlist entry
     new_watchlist_entry = Watchlist(User_id=user_id, Item_id=item_id)
