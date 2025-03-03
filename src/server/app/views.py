@@ -612,7 +612,7 @@ def get_watchlist():
             .with_entities(
                 Items.Item_id, Items.Listing_name, Items.Description, Items.Current_bid, 
                 Items.Available_until, User.Username.label("Seller_name"), 
-                Images.Image, Images.Image_description
+                Images.Image, Images.Image_description, Items.Min_price
             )
             .all()
         )
@@ -634,9 +634,10 @@ def get_watchlist():
                 "Listing_name": item.Listing_name,
                 "Description": item.Description,
                 "Current_bid": item.Current_bid,
+                "Min_price": item.Min_price if item.Min_price is not None else 0,
                 "Available_until": item.Available_until,
                 "Seller_name": item.Seller_name,
-                "Image": image_base64,  # Default image URL if no image exists
+                "Image": image_base64,
                 "Image_description": item.Image_description if item.Image_description else "No description available"
             })
 
@@ -645,7 +646,7 @@ def get_watchlist():
     else:
         return jsonify({"message": "No user logged in"}), 401
 
-     
+
 @app.route("/api/remove-watchlist", methods=["POST"])
 def remove_watchlist():
     """
@@ -659,7 +660,7 @@ def remove_watchlist():
         return jsonify({"message": "No user logged in"}), 401
 
     data = request.get_json()
-    item_id = data.get("Item_id")
+    item_id = data.get("itemId")
 
     if not item_id:
         return jsonify({"message": "Missing item ID"}), 400
@@ -676,8 +677,8 @@ def remove_watchlist():
     db.session.delete(watchlist_entry)
     db.session.commit()
 
-    return jsonify({"message": "Item removed from watchlist"}), 2
-
+    return jsonify({"message": "Item removed from watchlist"}), 200
+     
 
 @app.route("/api/add-watchlist", methods=["POST"])
 def add_watchlist():

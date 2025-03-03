@@ -7,7 +7,7 @@ const Watchlist = () => {
     const [watchlist, setWatchlist] = useState([]);
 
     // Fetch watchlist data
-    const getWatchlist = async () => {
+    const get_watchlist = async () => {
         try {
             const response = await fetch("http://localhost:5000/api/get-watchlist", {
                 method: "POST",
@@ -20,7 +20,7 @@ const Watchlist = () => {
                 setWatchlist(
                     data.watchlist.map((item) => ({
                         ...item,
-                        timeRemaining: calculateTimeRemaining(item.Available_until),
+                        timeRemaining: calculate_time_remaining(item.Available_until),
                     }))
                 );
             }
@@ -30,25 +30,28 @@ const Watchlist = () => {
     };
 
     // Remove item from watchlist
-    const removeFromWatchlist = async (Item_id) => {
-        // try {
-        //     const response = await fetch("http://localhost:5000/api/remove-watchlist", {
-        //         method: "POST",
-        //         headers: { "Content-Type": "application/json" },
-        //         credentials: "include",
-        //         body: JSON.stringify({ Item_id }),
-        //     });
+    const remove_from_watchlist = async (itemId) => {
+        try {
+            const response = await fetch("http://localhost:5000/api/remove-watchlist", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify({ itemId }),
+            });
 
-        //     if (response.ok) {
-        setWatchlist((prev) => prev.filter((item) => item.Item_id !== Item_id));
-        //     }
-        // } catch (error) {
-        //     console.error("Error removing item:", error);
-        // }
+            if (response.ok) {
+                setWatchlist((prev) => prev.filter((item) => item.Item_id !== itemId));
+            } else {
+                const data = await response.json();
+                console.error("Error removing item:", data.message);
+            }
+        } catch (error) {
+            console.error("Error removing item:", error);
+        }
     };
 
     // Calculate time remaining dynamically (with seconds)
-    const calculateTimeRemaining = (availableUntil) => {
+    const calculate_time_remaining = (availableUntil) => {
         const endTime = new Date(availableUntil).getTime();
         const now = new Date().getTime();
         const diffMs = endTime - now;
@@ -60,7 +63,6 @@ const Watchlist = () => {
         const minutes = Math.floor((diffMs / 60000) % 60);
         const hours = Math.floor((diffMs / 3600000));
 
-        // Return formatted time
         return `${hours.toString().padStart(2, "0")}:${minutes
             .toString()
             .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
@@ -68,7 +70,7 @@ const Watchlist = () => {
 
     useEffect(() => {
         if (user) {
-            getWatchlist();  // Fetch the watchlist only if the user is logged in
+            get_watchlist();  // Fetch the watchlist only if the user is logged in
         }
     }, [user]);
 
@@ -78,7 +80,7 @@ const Watchlist = () => {
             setWatchlist((prev) =>
                 prev.map((item) => ({
                     ...item,
-                    timeRemaining: calculateTimeRemaining(item.Available_until),
+                    timeRemaining: calculate_time_remaining(item.Available_until),
                 }))
             );
         }, 1000); // Update every second
@@ -98,18 +100,18 @@ const Watchlist = () => {
                         {watchlist.map((item) => (
                             <ItemListing
                                 key={item.Item_id}
-                                image={item.Image} // Pass base64 image to the ItemListing component
+                                image={item.Image}
                                 title={item.Listing_name}
                                 seller={item.Seller_name}
                                 description={item.Description}
                                 labels={[
-                                    `Current Bid: £${item.Current_bid}`,
-                                    `Time Remaining: ${item.timeRemaining || calculateTimeRemaining(item.Available_until)}`,
+                                    `Current Bid: £ ${(Number(item.Current_bid) > Number(item.Min_price)) ? Number(item.Current_bid).toFixed(2) : Number(item.Min_price).toFixed(2)}`,
+                                    `Time Remaining: ${item.timeRemaining || calculate_time_remaining(item.Available_until)}`,
                                 ]}
                                 buttons={[
                                     {
                                         text: "Remove from Watchlist",
-                                        onClick: () => removeFromWatchlist(item.Item_id),
+                                        onClick: () => remove_from_watchlist(item.Item_id),
                                         style: "bg-red-500 text-white hover:bg-red-600",
                                     },
                                 ]}
