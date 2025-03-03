@@ -588,3 +588,53 @@ def get_listings():
     except Exception as e:
         print("Error: ", e)
         return jsonify({"Error": "Failed to retrieve items"}), 401
+
+@app.route("/api/get-pending-auth", methods=["POST"])
+def get_pending_auth():
+    """
+    Retrieves all the items that are pending authentication.
+
+    Returns:
+        json_object: dictionary containing the items pending authentication
+        status_code: HTTP status code (200 for success, 401 for unauthorized access)
+    """
+    if "user_id" in session:
+        user_id = session["user_id"]
+        
+        # Retrieves all items that are pending authentication
+        unassigned_items = (
+            Items.query
+            .join(User, Items.Seller_id == User.User_id)  # Join Users table to get seller info
+            .outerjoin(Images, Items.Item_id == Images.Item_id)  # Join Images table to get images
+            .filter(Items.Authentication_request == True, Items.Expert_id.is_(None))  # Filter by authentication request and no expert assigned
+            .with_entities(
+                Items.Item_id, Items.Listing_name, Items.Description, 
+                Items.Current_bid, Items.Available_until, 
+                User.Username.label("Seller_name"), Images.Image, Images.Image_description
+            )
+            .all()
+        )
+        
+
+        if not unassigned_items:
+            return jsonify({"message": "No items require authentication"}), 200
+
+        # Convert query results to JSON
+        unassigned_data = [
+            {
+                "Item_id": item.Item_id,
+                "Listing_name": item.Listing_name,
+                "Description": item.Description,
+                "Current_bid": item.Current_bid,
+                "Available_until": item.Available_until,
+                "Seller_name": item.Seller_name,
+                "Image": item.Image if item.Image else "default_image_url",  # Handle missing images
+                "Image_description": item.Image_description if item.Image_description else "No description available"
+            }
+            for item in unassigned_items
+        ]
+
+        return jsonify({"Authentication required": unassigned_data}), 200        
+
+    else:
+        return jsonify({"message": "No user logged in"}), 401    
