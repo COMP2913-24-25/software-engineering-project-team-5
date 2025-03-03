@@ -10,11 +10,29 @@ const Listing_item = (props) => {
     const item = props.item;
     const available_until = new Date(item.Available_until).getTime();
 
-    const toggle_wishlist = () => {
-        if (user) {
-            set_wishlist(!wishlist);
-            console.log(`Item ${item.Item_id} added to wishlist"`);
-            // Implement api call here to add to the users wishlist!
+    const toggle_wishlist = async () => {
+        if (!user) return;
+
+        try {
+            const response = await fetch(`http://localhost:5000/api/${wishlist ? "remove-watchlist" : "add-watchlist"}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify({ Item_id: item.Item_id }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                set_wishlist(!wishlist);
+                alert(data.message);
+            } else {
+                console.error("Error:", data.message);
+                alert(`Error: ${data.message}`);
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            alert("An error occurred while updating the watchlist.");
         }
     };
 
@@ -22,15 +40,15 @@ const Listing_item = (props) => {
         // Calculates the amount of time left.
         const calculate_time_left = () => {
             const time_now = new Date().getTime();
-            const difference_time = available_until - time_now; 
+            const difference_time = available_until - time_now;
 
             // incase the time runs out while the user is viewing the listing.
-            if (difference_time > 0){
+            if (difference_time > 0) {
                 const hours = Math.floor(difference_time / (1000 * 60 * 60));
                 const minutes = Math.floor((difference_time % (1000 * 60 * 60)) / (1000 * 60));
                 const seconds = Math.floor((difference_time % (1000 * 60)) / 1000);
 
-                set_time_left(`${hours.toString().padStart(2,"0")}:${minutes.toString().padStart(2,"0")}:${seconds.toString().padStart(2,"0")}`);
+                set_time_left(`${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`);
             } else {
                 set_time_left("00:00:00");
             }
@@ -49,12 +67,12 @@ const Listing_item = (props) => {
         <div className="flex flex-wrap justify-center gap-5 mb-8">
 
             {[...Array(1)].map((_, index) => (
-                
+
                 <div className="w-[220px] border border-gray-300 rounded-lg overflow-hidden bg-gray-100 transition-transform transform hover:scale-105 cursor-pointer flex flex-col items-center" key={index}>
-    
+
                     <div className="w-full h-[180px] bg-gray-200 flex items-center justify-center overflow-hidden relative">
-                            {user && (<span className={`absolute top-2 right-2 cursor-pointer text-xl ${wishlist ? "text-red-600" : "text-white"}`} onClick={toggle_wishlist}>♥</span>)}
-                            <img src={`data:image/${item.Image};base64,${item.Image}`} alt="An image <3" className="w-full h-full object-cover"/>
+                        {user && (<span className={`absolute top-2 right-2 cursor-pointer text-xl ${wishlist ? "text-red-600" : "text-white"}`} onClick={toggle_wishlist}>♥</span>)}
+                        <img src={`data:image/${item.Image};base64,${item.Image}`} alt="An image <3" className="w-full h-full object-cover" />
                     </div>
 
                     <div className="p-4 w-full font-sans">
@@ -74,7 +92,7 @@ const Listing_item = (props) => {
 
                     </div>
                 </div>
-                ))}
+            ))}
 
         </div>
     );

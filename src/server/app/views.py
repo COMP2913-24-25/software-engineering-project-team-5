@@ -550,6 +550,7 @@ def Create_listing():
         print(f"Error: {e}")
         return jsonify({"error": "Failed to create listing in the backend"}), 500
 
+
 @app.route("/api/get-items", methods=["GET"])
 def get_listings():
     """
@@ -587,3 +588,128 @@ def get_listings():
     except Exception as e:
         print("Error: ", e)
         return jsonify({"Error": "Failed to retrieve items"}), 401
+
+
+@app.route("/api/get-watchlist", methods=["POST"])
+def get_watchlist():
+    """
+    Retrieves the user's watchlist items if they are currently logged in.
+
+    Returns:
+        json_object: dictionary containing the user's watchlist items
+        status_code: HTTP status code (200 for success, 401 for unauthorized access)
+    """
+    if "user_id" in session:
+        user_id = session["user_id"]
+        
+        # Fetch all watchlist items in one query
+        watchlist_items = (
+            Watchlist.query
+            .join(Items, Watchlist.Item_id == Items.Item_id)  # Join Items table
+            .join(User, Items.Seller_id == User.User_id)  # Join Users table
+            .outerjoin(Images, Items.Item_id == Images.Item_id)  # Join Images table
+            .filter(Watchlist.User_id == user_id)
+            .with_entities(
+                Items.Item_id, Items.Listing_name, Items.Description, Items.Current_bid, 
+                Items.Available_until, User.Username.label("Seller_name"), 
+                Images.Image, Images.Image_description
+            )
+            .all()
+        )
+
+        if not watchlist_items:
+            return jsonify({"message": "No items in watchlist"}), 200
+
+        # Convert query results to JSON
+        watchlist_data = []
+        for item in watchlist_items:
+            image_data = item.Image
+            image_base64 = None
+            if image_data:
+                # Base64 encode the image if it exists
+                image_base64 = base64.b64encode(image_data).decode('utf-8')
+
+            watchlist_data.append({
+                "Item_id": item.Item_id,
+                "Listing_name": item.Listing_name,
+                "Description": item.Description,
+                "Current_bid": item.Current_bid,
+                "Available_until": item.Available_until,
+                "Seller_name": item.Seller_name,
+                "Image": image_base64,  # Default image URL if no image exists
+                "Image_description": item.Image_description if item.Image_description else "No description available"
+            })
+
+        return jsonify({"watchlist": watchlist_data}), 200
+
+    else:
+        return jsonify({"message": "No user logged in"}), 401
+
+     
+@app.route("/api/remove-watchlist", methods=["POST"])
+def remove_watchlist():
+    """
+    Removes an item from the user's watchlist if they are logged in.
+
+    Returns:
+        json_object: success message or error message
+        status_code: HTTP status code (200 for success, 400 for bad request, 401 for unauthorized access)
+    """
+    if "user_id" not in session:
+        return jsonify({"message": "No user logged in"}), 401
+
+    data = request.get_json()
+    item_id = data.get("Item_id")
+
+    if not item_id:
+        return jsonify({"message": "Missing item ID"}), 400
+
+    user_id = session["user_id"]
+
+    # Find the watchlist entry
+    watchlist_entry = Watchlist.query.filter_by(User_id=user_id, Item_id=item_id).first()
+
+    if not watchlist_entry:
+        return jsonify({"message": "Item not found in watchlist"}), 404
+
+    # Remove the item from the watchlist
+    db.session.delete(watchlist_entry)
+    db.session.commit()
+
+    return jsonify({"message": "Item removed from watchlist"}), 2
+
+
+@app.route("/api/add-watchlist", methods=["POST"])
+def add_watchlist():
+    """
+    Adds an item to the user's watchlist if they are logged in.
+
+    Returns:
+        json_object: success message or error message
+        status_code: HTTP status code (200 for success, 400 for bad request, 401 for unauthorized access, 409 for conflict)
+    """
+    if "user_id" not in session:
+        return jsonify({"message": "No user logged in"}), 401
+
+    data = request.get_json()
+    item_id = data.get("Item_id")
+
+    if not item_id:
+        return jsonify({"message": "Missing item ID"}), 400
+
+    user_id = session["user_id"]
+
+    # Check if item already exists in the watchlist
+    existing_entry = Watchlist.query.filter_by(User_id=user_id, Item_id=item_id).first()
+    if existing_entry:
+        return jsonify({"message": "Item already in watchlist"}), 409  # Conflict status
+
+    # Add new watchlist entry
+    new_watchlist_entry = Watchlist(User_id=user_id, Item_id=item_id)
+    db.session.add(new_watchlist_entry)
+    db.session.commit()
+
+    return jsonify({"message": "Item added to watchlist"}), 200
+
+
+
