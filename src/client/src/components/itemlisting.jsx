@@ -4,13 +4,13 @@ const ItemListing = ({
     title,
     seller,
     description,
-    image,  // Binary image data from DB
+    image,
     labels = [],
     buttons = []
 }) => {
 
     return (
-        <div className="flex border rounded-lg p-4 shadow-md bg-white w-full max-w-3xl items-center">
+        <div className="flex border rounded-lg p-4 shadow-md bg-white w-full items-center">
             {/* Item Image */}
             <div className="w-32 h-32 bg-gray-200 flex-shrink-0 rounded-lg overflow-hidden flex items-center justify-center">
                 <img src={`data:image/${image};base64,${image}`} alt="An image <3" className="w-full h-full object-cover" />
