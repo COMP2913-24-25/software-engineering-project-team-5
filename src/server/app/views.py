@@ -450,9 +450,11 @@ def update_auth_request():
                 request_to_update.Available_until += datetime.datetime.now() - request_to_update.Upload_datetime
                 request_to_update.Verified = True
                 request_to_update.Authentication_request = False
+                request_to_update.Authentication_request_approved = True
             else:
                 request_to_update.Verified = False
                 request_to_update.Authentication_request = False
+                request_to_update.Authentication_request_approved = False
             
             db.session.commit()
                 
@@ -564,7 +566,12 @@ def get_listings():
     try:
         # Checks if the listing is available and doesn't still need authentication.
         available_items = db.session.query(Items, User.Username).join(User, Items.Seller_id == User.User_id).filter(
-            Items.Available_until > datetime.datetime.now(), db.or_(Items.Authentication_request == False, Items.Verified == True)).all()
+            Items.Available_until > datetime.datetime.now(),
+            db.or_(
+                db.and_(Items.Authentication_request == False, Items.Verified == True, Items.Authentication_request_approved == True),
+                db.and_(Items.Authentication_request == False, Items.Verified == False, Items.Authentication_request_approved == None)
+            )
+        ).all()
         
         items_list = []
         for item, username in available_items:
