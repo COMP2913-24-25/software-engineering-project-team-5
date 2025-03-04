@@ -42,7 +42,15 @@ export default function MAuthReq() {
       console.error("Error fetching experts:", error);
     }
   };
-
+  const getImageUrl = (imageData) => {
+    if (!imageData) return null;
+    // If imageData already includes the data URL prefix, use it as is
+    if (imageData.startsWith("data:")) {
+      return imageData;
+    }
+    // Otherwise, prepend the prefix
+    return `data:image/png;base64,${imageData}`;
+  };
   // Assign an expert to an item
   const assignExpertToItem = async (item_id, expert_id) => {
     try {
@@ -83,7 +91,7 @@ export default function MAuthReq() {
           {pendingauth.map((item) => (
             <div key={item.Item_id} className="border p-4 rounded-lg">
               <ItemListing
-                image={item.Image ? `data:image/png;base64,${item.Image}` : null}
+                image={getImageUrl(item.Image)}
                 title={item.Listing_name}
                 seller={item.Username}
                 description={item.Description}

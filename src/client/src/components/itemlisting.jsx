@@ -8,12 +8,19 @@ const ItemListing = ({
     labels = [],
     buttons = []
 }) => {
-
     return (
         <div className="flex border rounded-lg p-4 shadow-md bg-white w-full items-center">
             {/* Item Image */}
             <div className="w-32 h-32 bg-gray-200 flex-shrink-0 rounded-lg overflow-hidden flex items-center justify-center">
-                <img src={`data:image/${image};base64,${image}`} alt="An image <3" className="w-full h-full object-cover" />
+                {image ? (
+                    <img 
+                      src={image} 
+                      alt="Item" 
+                      className="w-full h-full object-cover" 
+                    />
+                ) : (
+                    <span>No Image</span>
+                )}
             </div>
 
             {/* Item Details */}
@@ -21,8 +28,6 @@ const ItemListing = ({
                 <h2 className="text-lg font-semibold">{title}</h2>
                 <p className="text-sm text-gray-600">{seller}</p>
                 <p className="text-sm text-gray-700 mt-1">{description}</p>
-
-                {/* Dynamic Labels */}
                 {labels.length > 0 && (
                     <div className="mt-2 space-y-1">
                         {labels.map((label, index) => (

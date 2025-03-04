@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "../../App"; // Access the user
 import AuthRequestsTable from "../../components/auth_req_table";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const EAuthReq = () => {
     const navigate = useNavigate();
@@ -40,9 +42,14 @@ const EAuthReq = () => {
             const data = await response.json();
 
             if (response.ok) {
+                // Compare previous pending count with the new one.
+                if (data.pending_auth_requests && data.pending_auth_requests.length > prevPendingCount.current) {
+                    toast.success("You have a new assignment!");
+                }
                 // If response is ok, set variables to server data
                 set_pending_auth_requests(data.pending_auth_requests);
                 set_past_auth_requests(data.past_auth_requests);
+                prevPendingCount.current = data.pending_auth_requests ? data.pending_auth_requests.length : 0;
             }
         } catch (error) {
             console.error("Error fetching authentication requests:", error);
@@ -59,11 +66,16 @@ const EAuthReq = () => {
     useEffect(() => {
         if (user) {
             get_auth_requests();
+            const interval = setInterval(() => {
+                get_auth_requests();
+              }, 30000); // every 30 seconds
+              return () => clearInterval(interval);
         }
     }, [user]);
 
     return (
         <div className="pl-[10%] pr-[10%]">
+            <ToastContainer position="top-right" autoClose={5000} />
             <h1 className="text-2xl font-display font-semibold text-left px-[0.5em] pt-[1em]">
                 Pending Authentication Requests
             </h1>
