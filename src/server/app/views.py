@@ -562,7 +562,9 @@ def get_listings():
     """
 
     try:
-        available_items = db.session.query(Items, User.Username).join(User, Items.Seller_id == User.User_id).filter(Items.Available_until > datetime.datetime.now()).all()
+        # Checks if the listing is available and doesn't still need authentication.
+        available_items = db.session.query(Items, User.Username).join(User, Items.Seller_id == User.User_id).filter(
+            Items.Available_until > datetime.datetime.now(), db.or_(Items.Authentication_request == False, Items.Verified == True)).all()
         
         items_list = []
         for item, username in available_items:
