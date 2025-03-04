@@ -590,7 +590,7 @@ def get_listings():
         return jsonify({"Error": "Failed to retrieve items"}), 401
 
 
-@app.route("/api/get-watchlist", methods=["POST"])
+@app.route("/api/get-watchlist", methods=["GET"])
 def get_watchlist():
     """
     Retrieves the user's watchlist items if they are currently logged in.
