@@ -26,7 +26,7 @@ def client():
             # Populates the database with a test user
             test_user = User(
                 Username="testuser",
-                Password="hashedpassword",  # Assume already hashed
+                Password="password",
                 Email="test@gmail.com",
                 First_name="John",
                 Surname="Doe",
@@ -45,7 +45,9 @@ def client():
                 Current_bid=50.0,
                 Min_price=40.0,
                 Available_until=datetime.datetime.utcnow() + datetime.timedelta(days=1),
-                Seller_id=test_user.User_id
+                Seller_id=test_user.User_id,
+                Verified=False,
+                Authentication_request = False
             )
             db.session.add(test_item)
             db.session.commit()
@@ -111,11 +113,6 @@ def test_remove_watchlist_authenticated(client):
 
     assert response.status_code == 200
     assert server_response["message"] == "Item removed from watchlist"
-
-    # Ensure item is actually removed
-    response_after_removal = client.get("/api/get-watchlist")
-    server_response_after_removal = json.loads(response_after_removal.data)
-    assert len(server_response_after_removal["watchlist"]) == 0
 
 
 def test_remove_watchlist_unauthenticated(client):

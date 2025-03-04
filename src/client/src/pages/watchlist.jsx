@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useUser } from "../App";
 import ItemListing from "../components/itemlisting";
+import { useNavigate } from "react-router-dom";
+
 
 const Watchlist = () => {
     const { user } = useUser();
     const [watchlist, setWatchlist] = useState([]);
+    const navigate = useNavigate();
 
     // Fetch watchlist data
     const get_watchlist = async () => {
