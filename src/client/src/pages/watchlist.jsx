@@ -58,7 +58,10 @@ const Watchlist = () => {
         const now = new Date().getTime();
         const diffMs = endTime - now;
 
-        if (diffMs <= 0) return "Expired"; // If the time has expired, return "Expired"
+        if (diffMs <= 0) {
+            const expiredDate = new Date(availableUntil).toLocaleString();
+            return `Expired on ${expiredDate}`;
+        }
 
         // Calculate hours, minutes, and seconds
         const seconds = Math.floor((diffMs / 1000) % 60);
