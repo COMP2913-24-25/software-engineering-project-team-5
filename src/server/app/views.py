@@ -660,10 +660,10 @@ def remove_watchlist():
         return jsonify({"message": "No user logged in"}), 401
 
     data = request.get_json()
-    item_id = data.get("itemId")
+    item_id = data.get("item_id")
 
     if not item_id:
-        return jsonify({"message": "Missing item ID"}), 400
+        return jsonify({"message": "Missing item IDr"}), 400
 
     user_id = session["user_id"]
 
@@ -693,10 +693,10 @@ def add_watchlist():
         return jsonify({"message": "No user logged in"}), 401
 
     data = request.get_json()
-    item_id = data.get("Item_id")
+    item_id = data.get("item_id")
 
     if not item_id:
-        return jsonify({"message": "Missing item ID"}), 400
+        return jsonify({"message": "Missing item IDa"}), 400
 
     user_id = session["user_id"]
 
@@ -713,4 +713,28 @@ def add_watchlist():
     return jsonify({"message": "Item added to watchlist"}), 200
 
 
+@app.route("/api/check-watchlist", methods=["GET"])
+def check_watchlist():
+    """
+    Checks if an item is in the user's watchlist.
 
+    Returns:
+        json_object: Boolean result or error message.
+        status_code: HTTP status code (200 for success, 400 for bad request, 401 for unauthorized access).
+    """
+    if "user_id" not in session:
+        return jsonify({"message": "No user logged in"}), 401
+
+    item_id = request.args.get("Item_id")
+
+    if not item_id:
+        return jsonify({"message": "Missing item ID"}), 400
+
+    user_id = session["user_id"]
+
+    checking_entry = Watchlist.query.filter_by(User_id=user_id, Item_id=item_id).first()
+
+    if checking_entry:
+        return jsonify({"in_watchlist": True}), 200
+    else:
+        return jsonify({"in_watchlist": False}), 200

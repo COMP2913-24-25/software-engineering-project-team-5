@@ -30,17 +30,19 @@ const Watchlist = () => {
     };
 
     // Remove item from watchlist
-    const remove_from_watchlist = async (itemId) => {
+    const remove_from_watchlist = async (item_id) => {
+        if (!user) return;
+
         try {
             const response = await fetch("http://localhost:5000/api/remove-watchlist", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 credentials: "include",
-                body: JSON.stringify({ itemId }),
+                body: JSON.stringify({ item_id }),
             });
 
             if (response.ok) {
-                setWatchlist((prev) => prev.filter((item) => item.Item_id !== itemId));
+                setWatchlist((prev) => prev.filter((item) => item.Item_id !== item_id));
             } else {
                 const data = await response.json();
                 console.error("Error removing item:", data.message);

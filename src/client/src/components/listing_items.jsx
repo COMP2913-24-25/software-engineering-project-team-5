@@ -10,7 +10,7 @@ const Listing_item = (props) => {
     const item = props.item;
     const available_until = new Date(item.Available_until).getTime();
 
-    const toggle_wishlist = async () => {
+    const toggle_wishlist = async (item_id) => {
         if (!user) return;
 
         try {
@@ -18,21 +18,44 @@ const Listing_item = (props) => {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 credentials: "include",
-                body: JSON.stringify({ Item_id: item.Item_id }),
+                body: JSON.stringify({ item_id }),
             });
 
             const data = await response.json();
 
             if (response.ok) {
                 set_wishlist(!wishlist);
-                alert(data.message);
             } else {
-                console.error("Error:", data.message);
-                alert(`Error: ${data.message}`);
+                console.error("Error11:", data.message);
+                alert(`Error12: ${data.message}`);
             }
         } catch (error) {
             console.error("Error:", error);
             alert("An error occurred while updating the watchlist.");
+        }
+    };
+
+    // This function checks if the item already is in the db
+    const check_watchlist = async () => {
+        if (!user) return;
+
+        try {
+            const response = await fetch(`http://localhost:5000/api/check-watchlist?Item_id=${item.Item_id}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                set_wishlist(data.in_watchlist); // Set the wishlist state based on the response
+            } else {
+                console.error("Error2:", data.message);
+            }
+        } catch (error) {
+            console.error("Error2:", error);
+            alert("An error occurred while checking the watchlist.");
         }
     };
 
@@ -60,6 +83,12 @@ const Listing_item = (props) => {
 
     }, [item.Available_until]);
 
+    useEffect(() => {
+        if (user) {
+            check_watchlist(); // Run the check upon the page loading so that the heart button colours are correct and remove/add functionality is correct
+        }
+    }, [user, item.Item_id]);
+
     return (
         // Components html
 
@@ -71,7 +100,7 @@ const Listing_item = (props) => {
                 <div className="w-[220px] border border-gray-300 rounded-lg overflow-hidden bg-gray-100 transition-transform transform hover:scale-105 cursor-pointer flex flex-col items-center" key={index}>
 
                     <div className="w-full h-[180px] bg-gray-200 flex items-center justify-center overflow-hidden relative">
-                        {user && (<span className={`absolute top-2 right-2 cursor-pointer text-xl ${wishlist ? "text-red-600" : "text-white"}`} onClick={toggle_wishlist}>♥</span>)}
+                        {user && (<span className={`absolute top-2 right-2 cursor-pointer text-xl ${wishlist ? "text-red-600" : "text-white"}`} onClick={() => toggle_wishlist(item.Item_id)}>♥</span>)}
                         <img src={`data:image/${item.Image};base64,${item.Image}`} alt="An image <3" className="w-full h-full object-cover" />
                     </div>
 
