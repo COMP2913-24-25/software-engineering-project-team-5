@@ -65,6 +65,7 @@ class Items(db.Model):
     Verified = db.Column(db.Boolean, nullable=False)
     Authentication_request = db.Column(db.Boolean, nullable=False)
     Authentication_request_approved = db.Column(db.Boolean, nullable=True)
+    Second_opinion = db.Column(db.Boolean, nullable=True)
 
     #Relationships
     Images = db.relationship('Images', backref='item', lazy=True)
