@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import UserDetailsForm from "../components/user_details_form";
 import AddressForm from "../components/address_form";
-import { useUser } from "../App"; // Access the user
+import { useUser, useCSRF } from "../App"; // Access the user
 
 const AccountSummary = () => {
     /*
@@ -13,10 +13,11 @@ const AccountSummary = () => {
 
     const navigate = useNavigate();
     const { user } = useUser();
+    const { csrfToken } = useCSRF();
 
     // Check if user is logged in and redirect if not
     useEffect(() => {
-        if (!user) {
+        if (user === null) {
             navigate("/signup");
         }
     }, [user, navigate]);
@@ -46,6 +47,7 @@ const AccountSummary = () => {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": csrfToken,
                     },
                     credentials: "include",
                 }
@@ -109,8 +111,8 @@ const AccountSummary = () => {
 
             <AddressForm
                 address={empty_address}
-                onUpdate={handle_address_update}
-                onDelete={handle_address_delete}
+                on_update={handle_address_update}
+                on_delete={handle_address_delete}
                 title_text="Create New Address"
                 create_address={true}
                 button_text={"Create Address"}
@@ -120,8 +122,8 @@ const AccountSummary = () => {
                 <AddressForm
                     key={index}
                     address={address}
-                    onUpdate={handle_address_update}
-                    onDelete={handle_address_delete}
+                    on_update={handle_address_update}
+                    on_delete={handle_address_delete}
                     title_text={"Address " + (index + 1)}
                     create_address={false}
                     button_text={"Update Address"}
