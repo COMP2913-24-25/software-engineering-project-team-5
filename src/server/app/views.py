@@ -554,6 +554,9 @@ def Create_listing():
             Description=request.form["listing_description"],
             Authentication_request=authentication_request,
         )
+        print(
+            "Authentication Request:", request.form.get("authentication_request", False)
+        )
 
         # Adds the item to the database and then flushes so that we can get listing.Item_id **IMPORTANT**
         db.session.add(listing)
@@ -645,3 +648,145 @@ def get_listings():
     except Exception as e:
         print("Error: ", e)
         return jsonify({"Error": "Failed to retrieve items"}), 401
+
+
+@app.route("/api/get-pending-auth", methods=["GET"])
+def get_pending_auth():
+    """
+    Retrieves all the items that are pending authentication.
+    """
+    if not current_user.is_authenticated:
+        return jsonify({"message": "No user logged in"}), 401
+
+    # Only managers (level 3) can access this endpoint.
+    if current_user.Level_of_access == 3:
+        try:
+            # Fetch all pending authentication items in one query
+            unassigned_items = (
+                Items.query.join(
+                    User, Items.Seller_id == User.User_id
+                )  # Join Users table to get seller info
+                .outerjoin(
+                    Images, Items.Item_id == Images.Item_id
+                )  # Join Images table to get images
+                .filter(Items.Authentication_request == True, Items.Expert_id.is_(None))
+                .with_entities(
+                    Items.Item_id,
+                    Items.Listing_name,
+                    Items.Description,
+                    Items.Current_bid,
+                    Items.Available_until,
+                    User.Username,
+                    Images.Image,
+                    Images.Image_description,
+                )
+                .all()
+            )
+
+            if not unassigned_items:
+                return jsonify({"message": "No items require authentication"}), 200
+
+            # Convert query results to JSON
+            unassigned_data = []
+            for item in unassigned_items:
+                image_base64 = None
+                if item.Image:
+                    image_base64 = base64.b64encode(item.Image).decode("utf-8")
+                unassigned_data.append(
+                    {
+                        "Item_id": item.Item_id,
+                        "Listing_name": item.Listing_name,
+                        "Description": item.Description,
+                        "Current_bid": item.Current_bid,
+                        "Available_until": item.Available_until,
+                        "Username": item.Username,
+                        "Image": image_base64,
+                        "Image_description": (
+                            item.Image_description
+                            if item.Image_description
+                            else "No description available"
+                        ),
+                    }
+                )
+
+            return jsonify({"Authentication required": unassigned_data}), 200
+
+        except Exception as e:
+            print("Error:", e)
+            return jsonify({"Error": "Failed to retrieve items"}), 500
+
+    return jsonify({"message": "User has invalid access level"}), 401
+
+
+@app.route("/api/get-expert-id", methods=["GET"])
+def get_expert_id():
+    """
+    Retrieves all available experts (users with Level_of_access == 2) for assignment.
+    """
+    if not current_user.is_authenticated:
+        return jsonify({"message": "No user logged in"}), 401
+
+    # Only managers (level 3) can access this endpoint.
+    if current_user.Level_of_access == 3:
+        try:
+            # Fetch experts available for assignment
+            available_experts = (
+                User.query.filter(
+                    User.Level_of_access == 2
+                )  # Use correct attribute and numeric comparison
+                .with_entities(User.User_id, User.Username)
+                .all()
+            )
+
+            if not available_experts:
+                return jsonify({"message": "No available experts found"}), 200
+
+            expert_data = [
+                {"Expert_id": expert.User_id, "Username": expert.Username}
+                for expert in available_experts
+            ]
+
+            return jsonify({"Available Experts": expert_data}), 200
+
+        except Exception as e:
+            print("Error:", e)
+            return jsonify({"Error": "Failed to retrieve experts"}), 500
+
+    return jsonify({"message": "User has invalid access level"}), 401
+
+
+@app.route("/api/update_item_auth", methods=["POST"])
+def update_item_auth():
+    """
+    Assigns an expert to an item pending authentication.
+    """
+    if not current_user.is_authenticated:
+        return jsonify({"message": "No user logged in"}), 401
+
+    if current_user.Level_of_access == 3:
+        data = request.json
+        item_id = data.get("item_id")
+        expert_id = data.get("expert_id")
+
+        if not item_id or not expert_id:
+            return jsonify({"message": "Missing item_id or expert_id"}), 400
+
+        try:
+            item = Items.query.filter_by(Item_id=item_id).first()
+            if not item:
+                return jsonify({"message": "Item not found"}), 404
+
+            expert = User.query.filter_by(User_id=expert_id, Level_of_access=2).first()
+            if not expert:
+                return jsonify({"message": "Invalid expert ID"}), 404
+
+            item.Expert_id = expert_id
+            db.session.commit()
+
+            return jsonify({"message": "Item successfully assigned to expert"}), 200
+
+        except Exception as e:
+            print("Error:", e)
+            return jsonify({"Error": "Failed to update item authentication"}), 500
+
+    return jsonify({"message": "User has invalid access level"}), 401

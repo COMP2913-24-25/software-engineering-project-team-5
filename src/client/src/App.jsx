@@ -1,6 +1,6 @@
 import React, { useState, createContext, useEffect, useContext } from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
-
+import { NotificationProvider } from "./components/NotificationComponent";
 // Import your pages here
 import Login from "./pages/login";
 import Signup from "./pages/signup";
@@ -108,8 +108,9 @@ function App() {
 
     return (
         //Wraps the app in UserProvider
-        <UserProvider>
+        <UserProvider>  
             <Router>
+            <NotificationProvider>
                 <div className="navbar">
                     <Link to="/" onClick={() => setActiveSubMenu(null)}>
                         Login
@@ -253,7 +254,8 @@ function App() {
                     <Route path="/expert/auth" element={<EAuthRequests />} />
                     <Route path="/expert/profile" element={<Profile />} />
                 </Routes>
-            </Router>
+                </NotificationProvider> 
+            </Router> 
         </UserProvider>
     );
 }

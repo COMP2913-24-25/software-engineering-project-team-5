@@ -99,6 +99,7 @@ const CreateListing = () => {
     // Handle form submission - asynchronous function, as the function needs to wait
     // for the servers response before continuing
     const handle_submit = async (event) => {
+      console.log(formData)
         // Prevents resubmission when form is being submitted
         event.preventDefault();
 
