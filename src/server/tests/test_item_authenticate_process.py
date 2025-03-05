@@ -64,7 +64,7 @@ def logged_in_manager(client):
 def test_get_pending_auth_not_logged_in(client):
     response = client.get("/api/get-pending-auth")
     assert response.status_code == 401
-    assert json.loads(response.data)["message"] == "No user logged in"
+    assert json.loads(response.data)["message"] == "User has invalid access level"
 
 
 def test_get_pending_auth_invalid_access(client):
@@ -133,4 +133,4 @@ def test_update_item_auth_not_logged_in(client):
     )
     
     assert response.status_code == 401
-    assert json.loads(response.data)["message"] == "No user logged in"
+    assert json.loads(response.data)["message"] == "User has invalid access level"
