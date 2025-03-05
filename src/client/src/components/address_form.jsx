@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useUser } from "../App";
+import { useUser, useCSRF } from "../App";
 
 const AddressForm = ({
     address,
@@ -18,9 +18,10 @@ const AddressForm = ({
 
     const navigate = useNavigate();
     const { user } = useUser();
+    const { csrfToken } = useCSRF();
 
     // If not authenticated, return null (early return)
-    if (!user) {
+    if (user === null) {
         return null;
     }
 
@@ -108,7 +109,10 @@ const AddressForm = ({
                 "http://localhost:5000/api/update-address",
                 {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": csrfToken,
+                    },
                     body: JSON.stringify(form_data),
                     credentials: "include",
                 }
@@ -148,7 +152,10 @@ const AddressForm = ({
                 "http://localhost:5000/api/delete-address",
                 {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": csrfToken,
+                    },
                     body: JSON.stringify({ Address_id: address.Address_id }),
                     credentials: "include",
                 }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useUser } from "../App";
+import { useUser, useCSRF } from "../App";
 
 const AuthRequestsTable = ({
     auth_requests,
@@ -19,10 +19,11 @@ const AuthRequestsTable = ({
 
     const navigate = useNavigate();
     const { user } = useUser();
+    const { csrfToken } = useCSRF();
     const [requests, set_requests] = useState([]);
 
     // If not authenticated, return null
-    if (!user && !user.is_expert) {
+    if (user === null && user.is_expert === false) {
         return null;
     }
 
@@ -48,7 +49,10 @@ const AuthRequestsTable = ({
                 "http://localhost:5000/api/update_auth_request",
                 {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": csrfToken,
+                    },
                     body: JSON.stringify({
                         request_id: request_id,
                         action: action,
@@ -85,7 +89,10 @@ const AuthRequestsTable = ({
                 "http://localhost:5000/api/<funcname>",
                 {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": csrfToken,
+                    },
                     body: JSON.stringify({
                         Item_id: item_id,
                         Listing_name: listing_name,
@@ -115,7 +122,7 @@ const AuthRequestsTable = ({
                 </div>
             )}
 
-            <div className="hidden lg:block">
+            <div className="hidden xl:block">
                 <table className="w-full text-left table-auto min-w-max">
                     <thead>
                         <tr className="bg-slate-50">
@@ -240,7 +247,7 @@ const AuthRequestsTable = ({
                 </table>
             </div>
 
-            <div className="lg:hidden flex flex-col gap-4">
+            <div className="xl:hidden flex flex-col gap-4">
                 {requests.map((request, index) => (
                     <div
                         key={index}

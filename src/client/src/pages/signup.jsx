@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useUser, useCSRF } from "../App";
 
 const Signup = () => {
     const navigate = useNavigate();
+    const { user } = useUser(); // Access the user state
+    const { csrfToken } = useCSRF(); // Access the CSRF token
 
     // Set up form data
     const [form_data, set_form_data] = useState({
@@ -86,11 +89,15 @@ const Signup = () => {
 
         // After client-side validation has been passed, makes a HTTP POST request to the
         // server to authenticate the user
-        // Note: 'http://localhost:5000/api/login' needs to be repalced with actual url once
+        // Note: 'http://localhost:5000/api/login' needs to be replaced with actual url once
         // the server is set up.
         const response = await fetch("http://localhost:5000/api/signup", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": csrfToken,
+            },
+            credentials: "include",
             body: JSON.stringify(form_data),
         });
 

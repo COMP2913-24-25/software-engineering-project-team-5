@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useUser } from "../App";
+import { useUser, useCSRF } from "../App";
 
 const UserDetailsForm = () => {
     /*
@@ -11,9 +11,10 @@ const UserDetailsForm = () => {
 
     const navigate = useNavigate();
     const { user } = useUser();
+    const { csrfToken } = useCSRF();
 
     useEffect(() => {
-        if (!user) {
+        if (user === null) {
             navigate("/signup");
         }
     }, [user, navigate]);
@@ -42,6 +43,7 @@ const UserDetailsForm = () => {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",
+                            "X-CSRF-TOKEN": csrfToken,
                         },
                         credentials: "include",
                     }
@@ -125,7 +127,10 @@ const UserDetailsForm = () => {
                 "http://localhost:5000/api/update-user-details",
                 {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": csrfToken,
+                    },
                     body: JSON.stringify(form_data),
                     credentials: "include",
                 }
