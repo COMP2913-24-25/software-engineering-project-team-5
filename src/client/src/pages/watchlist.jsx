@@ -2,19 +2,24 @@ import React, { useState, useEffect } from "react";
 import { useUser } from "../App";
 import ItemListing from "../components/itemlisting";
 import { useNavigate } from "react-router-dom";
+import { useUser, useCSRF } from "../App"; // Calls the user
 
 
 const Watchlist = () => {
     const { user } = useUser();
     const [watchlist, setWatchlist] = useState([]);
     const navigate = useNavigate();
+    const { csrfToken } = useCSRF(); // Get the CSRF token
 
     // Fetch watchlist data
     const get_watchlist = async () => {
         try {
             const response = await fetch("http://localhost:5000/api/get-watchlist", {
                 method: "GET",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": csrfToken, // Include CSRF token in header
+                },
                 credentials: "include",
             });
 
@@ -39,7 +44,10 @@ const Watchlist = () => {
         try {
             const response = await fetch("http://localhost:5000/api/remove-watchlist", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": csrfToken // Include CSRF token in header
+                },
                 credentials: "include",
                 body: JSON.stringify({ item_id }),
             });
