@@ -1,20 +1,21 @@
 import React, { useState, useEffect } from "react";
 import "./authreq.css";
 import ItemListing from "../../components/itemlisting";
-import { useUser } from "../../App";
+import { useUser, useCSRF  } from "../../App";
 
 export default function MAuthReq() {
   const [pendingauth, setPendingAuth] = useState([]);
   const [experts, setExperts] = useState([]);
   const [selectedExperts, setSelectedExperts] = useState({});
   const { user } = useUser();
+  const { csrfToken } = useCSRF();
 
   // Fetch items pending authentication
   const getPendingAuth = async () => {
     try {
       const response = await fetch("http://localhost:5000/api/get-pending-auth", {
         method: "GET",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrfToken, },
         credentials: "include",
       });
       const data = await response.json();
@@ -31,7 +32,7 @@ export default function MAuthReq() {
     try {
       const response = await fetch("http://localhost:5000/api/get-expert-id", {
         method: "GET",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json","X-CSRF-TOKEN": csrfToken, },
         credentials: "include",
       });
       const data = await response.json();
@@ -56,7 +57,7 @@ export default function MAuthReq() {
     try {
       const response = await fetch("http://localhost:5000/api/update_item_auth", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json","X-CSRF-TOKEN": csrfToken, },
         credentials: "include",
         body: JSON.stringify({ item_id, expert_id }),
       });
