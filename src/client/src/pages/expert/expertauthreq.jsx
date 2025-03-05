@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { useUser } from "../../App"; // Access the user
+import { useUser, useCSRF } from "../../App"; // Access the user
 import AuthRequestsTable from "../../components/auth_req_table";
 import { useNotification } from "../../components/NotificationComponent";
 
@@ -8,13 +8,14 @@ const EAuthReq = () => {
     const navigate = useNavigate();
     const { user } = useUser();
     const { notify } = useNotification();
+    const { csrfToken } = useCSRF();
     // Check if expert user is logged in and redirect if not
     useEffect(() => {
-        if (!user) {
+        if (user === null) {
             navigate("/");
         }
 
-        if (!user.is_expert) {
+        if (user.is_expert === false) {
             navigate("/");
         }
     }, [user, navigate]);
@@ -35,6 +36,7 @@ const EAuthReq = () => {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": csrfToken,
                     },
                     credentials: "include",
                 }
