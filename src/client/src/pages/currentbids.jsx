@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { useUser } from "../App";
-import ItemListing from "../components/itemlisting"
+import ItemListing from "../components/itemlisting";
+import { useUser, useCSRF } from "../App";
+
 
 const CurrentBids = () => {
     /*  
@@ -14,6 +15,8 @@ const CurrentBids = () => {
     // Variable to store the bids stored and bidding history
     const [bids, setBids] = useState([]);
 
+    const { csrfToken } = useCSRF();
+
     // Function to fetch bidding history from the server
     const getBids = async () => {
         try {
@@ -23,6 +26,7 @@ const CurrentBids = () => {
                     method: "GET",
                     headers: {
                         "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": csrfToken,
                     },
                     credentials: "include",
                 }
