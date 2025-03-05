@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useUser } from "../App";
+import ItemListing from "../components/itemlisting"
 
 const CurrentBids = () => {
     /*  
@@ -19,7 +20,7 @@ const CurrentBids = () => {
             const response = await fetch(
                 "http://localhost:5000/api/get-bids",
                 {
-                    method: "POST",
+                    method: "GET",
                     headers: {
                         "Content-Type": "application/json",
                     },
@@ -31,7 +32,12 @@ const CurrentBids = () => {
             const data = await response.json();
 
             if (response.ok) {
-                setBids(data.bids);
+                setBids(
+                    data.bids.map((item) => ({
+                        ...item,
+                        timeRemaining: calculate_time_remaining(item.Available_until),
+                    }))
+                );
             }
         } catch (error) {
             console.error("Error fetching bids:", error);
@@ -39,13 +45,17 @@ const CurrentBids = () => {
     };
 
     // Calculate time remaining dynamically (with seconds)
-    const calculateTimeRemaining = (availableUntil) => {
+    const calculate_time_remaining = (availableUntil) => {
         const endTime = new Date(availableUntil).getTime();
         const now = new Date().getTime();
         const diffMs = endTime - now;
 
-        if (diffMs <= 0) return "Expired";
+        if (diffMs <= 0) {
+            const expiredDate = new Date(availableUntil).toLocaleString();
+            return `Expired on ${expiredDate}`;
+        }
 
+        // Calculate hours, minutes, and seconds
         const seconds = Math.floor((diffMs / 1000) % 60);
         const minutes = Math.floor((diffMs / 60000) % 60);
         const hours = Math.floor((diffMs / 3600000));
@@ -54,7 +64,6 @@ const CurrentBids = () => {
             .toString()
             .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
     };
-
 
     // Gets bidding history when the page loads for the first time
     useEffect(() => {
@@ -69,7 +78,7 @@ const CurrentBids = () => {
             setBids((prev) =>
                 prev.map((item) => ({
                     ...item,
-                    timeRemaining: calculateTimeRemaining(item.Available_until),
+                    timeRemaining: calculate_time_remaining(item.Available_until),
                 }))
             );
         }, 1000); // Update every second
@@ -86,7 +95,7 @@ const CurrentBids = () => {
                     <div className="space-y-4">
                         {bids.map((item, index) => (
                             <ItemListing
-                                key={index}
+                                key={item.Bid_id}
                                 title={item.Listing_name}
                                 seller={item.Seller_name}
                                 description={item.Description}

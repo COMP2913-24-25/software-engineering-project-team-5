@@ -588,7 +588,7 @@ def get_listings():
         print("Error: ", e)
         return jsonify({"Error": "Failed to retrieve items"}), 401
 
-@app.route("/api/get-bids", methods=["POST"])
+@app.route("/api/get-bids", methods=["GET"])
 def get_history():
     """
     Retrieves the user's bidding history from the database, if they 
@@ -605,6 +605,7 @@ def get_history():
     if "user_id" in session:
         user_id = session["user_id"]
 
+        # Variable to store history
         bid_data = (
             Bidding_history.query
             .join(Items, Bidding_history.Item_id == Items.Item_id)  # Join Items table
@@ -666,7 +667,7 @@ def get_history():
     else:
         return jsonify({"message": "No user logged in"}), 401
 
-@app.route("/api/get-bids", methods=["POST"])
+@app.route("/api/get-bids", methods=["GET"])
 def get_bids():
     """
     Retrieves the user's current bids from the database, if they 
@@ -710,35 +711,36 @@ def get_bids():
             .all()
         )
 
-        if bid_data:
-            result = []
-            for bid in bid_data:
-                image_data = bid.Image
-                image_base64 = None
-                if image_data:
-                    # Base64 encode the image if it exists
-                    image_base64 = base64.b64encode(image_data).decode('utf-8')
-                bid_data = {
-                    "Bid_id": bid.Bid_id,
-                    "Bid_price": bid.Bid_price,
-                    "Bid_datetime": bid.Bid_datetime,
-                    "Successful_bid": bid.Successful_bid,
-                    "Item_id": bid.Item_id,
-                    "Listing_name": bid.Listing_name,
-                    "Description": bid.Description,
-                    "Current_bid": bid.Current_bid,
-                    "Available_until": bid.Available_until,
-                    "Seller_name": bid.Username,
-                    "Image": image_base64,
-                    "Image_description": bid.Image_description or "No Image",
-                    "Min_price": bid.Min_price
-                }
-                result.append(bid_data)
+        if not bid_data:
+            return jsonify({"message": "No current bids"}), 400
+        
+        current_bids = []
 
-            return jsonify(result), 200  # Return all the bid details
+        for item in bid_data:
+            image_data = item.Image
+            image_base64 = None
+            if image_data:
+                # Base64 encode the image if it exists
+                image_base64 = base64.b64encode(image_data).decode('utf-8')
 
-        else:
-            return jsonify({"message": "No bidding information available"}), 400
+            current_bids.append({
+                "Bid_id": item.Bid_id,
+                "Bid_price": item.Bid_price,
+                "Bid_datetime": item.Bid_datetime,
+                "Successful_bid": item.Successful_bid,
+                "Item_id": item.Item_id,
+                "Listing_name": item.Listing_name,
+                "Description": item.Description,
+                "Current_bid": item.Current_bid,
+                "Available_until": item.Available_until,
+                "Seller_name": item.Username,
+                "Image": image_base64,
+                "Image_description": item.Image_description or "No Image",
+                "Min_price": item.Min_price
 
+            })
+
+        return jsonify({"bids"}, current_bids), 200
+    
     else:
         return jsonify({"message": "No user logged in"}), 401

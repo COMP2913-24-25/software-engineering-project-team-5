@@ -20,7 +20,7 @@ const BiddingHistory = () => {
             const response = await fetch(
                 "http://localhost:5000/api/get-bids",
                 {
-                    method: "POST",
+                    method: "GET",
                     headers: {
                         "Content-Type": "application/json",
                     },
