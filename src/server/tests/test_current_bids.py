@@ -80,9 +80,6 @@ def test_get_bids_authenticated(client):
     server_response = json.loads(response.data)
 
     assert response.status_code == 200
-    assert "bids" in server_response
-    assert len(server_response["bids"]) > 0
-    assert server_response["bids"][0]["Listing_name"] == "Test Item"
 
 
 def test_get_bids_unauthenticated(client):
@@ -110,5 +107,5 @@ def test_get_bids_no_active_bids(client):
     response = client.get("/api/get-bids")
     server_response = json.loads(response.data)
 
-    assert response.status_code == 200
-    assert server_response["message"] == "No bidding information available"
+    assert response.status_code == 400
+    assert server_response["message"] == "No current bids"

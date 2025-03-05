@@ -18,7 +18,7 @@ const BiddingHistory = () => {
     const getHistory = async () => {
         try {
             const response = await fetch(
-                "http://localhost:5000/api/get-bids",
+                "http://localhost:5000/api/get-history",
                 {
                     method: "GET",
                     headers: {
@@ -65,17 +65,15 @@ const BiddingHistory = () => {
                                 image={item.Image}
                                 labels={[`Date Finished: ${item.Available_until}`]}
                                 buttons={
-                                    item.Successful_bid === 1
-                                        ? [
-                                            { text: "Highest Bidder", style: "bg-green-500 text-white" },
-                                            { text: `Your Bid: £${item.Bid_price}`, style: "bg-gray-200 text-black" },
-                                            { text: "View reciept", style: "bg-gray-200 text-black" }
-                                        ]
-                                        : [
-                                            { text: "Out Bid", style: "bg-red-500 text-white" },
-                                            { text: `Your Bid: £${item.Bid_price}`, style: "bg-gray-200 text-black" },
-                                            { text: `Highest Bid: £${item.Current_bid}`, style: "bg-gray-200 text-black" },
-                                        ]
+                                    item.Successful_bid == 1 ? [
+                                        { text: "Highest Bidder", style: "bg-green-500 text-white" },
+                                        { text: `Your Bid: £${item.Bid_price}`, style: "bg-gray-200 text-black" },
+                                        { text: "View reciept", style: "bg-gray-200 text-black" }
+                                    ] : [
+                                        { text: "Out Bid", style: "bg-red-500 text-white" },
+                                        { text: `Your Bid: £${item.Bid_price}`, style: "bg-gray-200 text-black" },
+                                        { text: `Highest Bid: £${item.Current_bid}`, style: "bg-gray-500 text-white" },
+                                    ]
                                 }
                             />
                         ))}

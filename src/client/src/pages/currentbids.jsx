@@ -102,16 +102,14 @@ const CurrentBids = () => {
                                 image={item.Image}
                                 labels={[`Time Left: ${item.timeRemaining}`]}
                                 buttons={
-                                    item.Successful_bid === 1
-                                        ? [
-                                            { text: "Highest Bidder", style: "bg-green-500 text-white" },
-                                            { text: `Your Bid: £${item.Bid_price}`, style: "bg-gray-200 text-black" },
-                                        ]
-                                        : [
-                                            { text: "Out Bid", style: "bg-red-500 text-white" },
-                                            { text: `Your Bid: £${item.Bid_price}`, style: "bg-gray-200 text-black" },
-                                            { text: `Highest Bid: £${item.Current_bid}`, style: "bg-blue-500 text-white" },
-                                        ]
+                                    item.Successful_bid == 1 ? [
+                                        { text: "Highest Bidder", style: "bg-green-500 text-white" },
+                                        { text: `Your Bid: £${item.Bid_price}`, style: "bg-gray-200 text-black" },
+                                    ] : [
+                                        { text: "Out Bid", style: "bg-red-500 text-white" },
+                                        { text: `Your Bid: £${item.Bid_price}`, style: "bg-gray-200 text-black" },
+                                        { text: `Highest Bid: £${item.Current_bid}`, style: "bg-gray-500 text-white" },
+                                    ]
                                 }
                             />
                         ))}
