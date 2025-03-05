@@ -656,7 +656,7 @@ def get_pending_auth():
         return jsonify({"message": "No user logged in"}), 401
 
     # Only managers (level 3) can access this endpoint.
-    if session["level_of_access"] == 3:
+    if current_user.Level_of_access == 3:
         try:
             # Fetch all pending authentication items in one query
             unassigned_items = (
@@ -742,7 +742,7 @@ def update_item_auth():
     if "user_id" not in session:
         return jsonify({"message": "No user logged in"}), 401
 
-    if session["level_of_access"] == 3:
+    if current_user.Level_of_access == 3:
         data = request.json
         item_id = data.get("item_id")
         expert_id = data.get("expert_id")

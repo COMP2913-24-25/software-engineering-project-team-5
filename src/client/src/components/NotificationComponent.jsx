@@ -2,11 +2,11 @@ import React, { createContext, useContext, useState, useEffect, useRef } from "r
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
-
+import {useCSRF} from "../App";
 // Create Notification Context
 const NotificationContext = createContext();
-
 export const NotificationProvider = ({ children }) => {
+    const {csrfToken} = useCSRF();
     const navigate = useNavigate();
     const [notifications, setNotifications] = useState([]);
     const [pendingCount, setPendingCount] = useState(0);
@@ -34,7 +34,7 @@ export const NotificationProvider = ({ children }) => {
                 "http://localhost:5000/api/get-experts-authentication-requests",
                 {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrfToken,},
                     credentials: "include",
                 }
             );
