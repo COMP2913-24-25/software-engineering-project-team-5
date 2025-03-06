@@ -9,24 +9,27 @@ const EAuthReq = () => {
     const { user } = useUser();
     const { notify } = useNotification();
     const { csrfToken } = useCSRF();
+
     // Check if expert user is logged in and redirect if not
     useEffect(() => {
         if (user === null) {
-            navigate("/");
+            navigate("/signup");
         }
 
-        if (user.is_expert === false) {
-            navigate("/");
+        if (user) {
+            if (user.is_expert === false) {
+                navigate("/signup");
+            }
         }
     }, [user, navigate]);
 
     // Variables to store pending and past authentication requests
     const [pending_auth_requests, set_pending_auth_requests] = useState([]);
     const [past_auth_requests, set_past_auth_requests] = useState([]);
-    
+
     // useRef to store the previous pending count to detect new assignments
     const prevPendingCount = useRef(0);
-    
+
     // Gets all the authentication requests assigned to the expert
     const get_auth_requests = async () => {
         try {
@@ -50,7 +53,9 @@ const EAuthReq = () => {
                 set_pending_auth_requests(data.pending_auth_requests);
                 set_past_auth_requests(data.past_auth_requests);
 
-                if (data.pending_auth_requests.length > prevPendingCount.current) {
+                if (
+                    data.pending_auth_requests.length > prevPendingCount.current
+                ) {
                     // notify("New expert authentication request received! click here", "/expert/auth");
                 }
                 prevPendingCount.current = data.pending_auth_requests.length;
