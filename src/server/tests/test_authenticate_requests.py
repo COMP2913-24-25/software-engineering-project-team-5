@@ -310,3 +310,132 @@ def test_update_auth_request_invalid_access(client):
 
     # Checks if the correct error message is returned
     assert server_response["message"] == "User has invalid access level"
+
+
+def test_get_single_listing_success(client):
+    """
+    Test if the correct listing details are retrieved successfully
+    """
+
+    # Create test item
+    test_item = Items(
+        Listing_name="Puma Shoes",
+        Seller_id=1,
+        Upload_datetime=datetime.datetime.now(),
+        Available_until=datetime.datetime.now(),
+        Min_price=150,
+        Current_bid=150,
+        Description="Cool Puma Shoes",
+        Authentication_request=False,
+        Authentication_request_approved=True,
+        Second_opinion=False,
+        Verified=True,
+    )
+    db.session.add(test_item)
+    db.session.commit()
+
+    seller = User.query.filter_by(User_id=test_item.Seller_id).first()
+
+    response = client.post(
+        "/api/get-single-listing", json={"Item_id": test_item.Item_id}
+    )
+    server_response = json.loads(response.data)
+
+    # Checks if successful status code returned
+    assert response.status_code == 200
+
+    # Checks if correct item details are returned
+    assert server_response["Item_id"] == test_item.Item_id
+    assert server_response["Listing_name"] == "Puma Shoes"
+    assert server_response["Seller_id"] == seller.User_id
+    assert server_response["Seller_name"] == seller.First_name + " " + seller.Surname
+    assert server_response["Min_price"] == 150
+    assert server_response["Description"] == "Cool Puma Shoes"
+    assert server_response["Approved"] is True
+    assert server_response["Second_opinion"] is False
+    assert isinstance(server_response["Images"], list)
+
+
+def test_get_single_listing_invalid_item(client):
+    """
+    Test that an error is returned when an invalid item ID is provided
+    """
+
+    response = client.post("/api/get-single-listing", json={"Item_id": 0})
+    server_response = json.loads(response.data)
+
+    # Checks if error status code returned
+    assert response.status_code == 400
+    assert server_response["Error"] == "Failed to retrieve items"
+
+
+def test_request_second_opinion_success(client, logged_in_expert):
+    """
+    Test if an expert can successfully request a second opinion
+    """
+
+    # Create a test item assigned to the expert
+    test_item = Items(
+        Listing_name="Reebok Shoes",
+        Seller_id=1,
+        Expert_id=logged_in_expert.User_id,
+        Upload_datetime=datetime.datetime.now(),
+        Available_until=datetime.datetime.now(),
+        Min_price=250,
+        Current_bid=250,
+        Description="Cool Reebok Shoes",
+        Authentication_request=False,
+        Authentication_request_approved=True,
+        Second_opinion=False,
+        Verified=True,
+    )
+    db.session.add(test_item)
+    db.session.commit()
+
+    response = client.post(
+        "/api/request-second-opinion", json={"Item_id": test_item.Item_id}
+    )
+    server_response = json.loads(response.data)
+
+    # Checks if successful status code returned
+    assert response.status_code == 200
+    assert server_response["message"] == "Details Updated Successfully"
+
+    # Checks if database updates were applied correctly
+    updated_item = Items.query.get(test_item.Item_id)
+    assert updated_item.Second_opinion is True
+    assert updated_item.Expert_id is None
+
+
+def test_request_second_opinion_not_logged_in(client):
+    """
+    Test that a second opinion request cannot be made when no user is logged in
+    """
+
+    response = client.post("/api/request-second-opinion", json={"Item_id": 1})
+    server_response = json.loads(response.data)
+
+    # Checks if unauthorized status code returned
+    assert response.status_code == 401
+    assert server_response["message"] == "No user logged in"
+
+
+def test_request_second_opinion_invalid_access(client):
+    """
+    Test that a non-expert user cannot request a second opinion
+    """
+
+    user = User.query.filter_by(Username="testuser").first()
+
+    client.post(
+        "/api/login",
+        json={"email_or_username": user.Email, "password": "PASSword123@"},
+        content_type="application/json",
+    )
+
+    response = client.post("/api/request-second-opinion", json={"Item_id": 1})
+    server_response = json.loads(response.data)
+
+    # Checks if unauthorized status code returned
+    assert response.status_code == 401
+    assert server_response["message"] == "Invalid Level of Access"
