@@ -99,8 +99,6 @@ def validate_price():
             raise ValidationError(message)
         
     return _validate_price
-
-
     
 class sign_up_form(FlaskForm):
     first_name = wtforms.StringField(validators=[DataRequired(), validate_name()])

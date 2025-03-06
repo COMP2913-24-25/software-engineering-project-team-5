@@ -27,6 +27,7 @@ from .models import (
     Types,
     Watchlist,
     Bidding_history,
+    Profit_structure
 )
 from .forms import login_form, sign_up_form, Create_listing_form, update_user_form
 
@@ -46,6 +47,7 @@ admin.add_view(ModelView(Middle_type, db.session))
 admin.add_view(ModelView(Types, db.session))
 admin.add_view(ModelView(Watchlist, db.session))
 admin.add_view(ModelView(Bidding_history, db.session))
+admin.add_view(ModelView(Profit_structure, db.session))
 
 
 @app.route("/api/login", methods=["POST"])
@@ -790,3 +792,71 @@ def update_item_auth():
             return jsonify({"Error": "Failed to update item authentication"}), 500
 
     return jsonify({"message": "User has invalid access level"}), 401
+
+@app.route("/api/get-profit-structure", methods=["GET"])
+def get_profit_structure():
+    """
+    Retrieves the most recent profit structure from the database.
+
+    Returns:
+        json_object: containing the most recent profit structure's details
+        status_code: HTTP status code (200 for success, 404 for no profit structure, 500 for server error)
+    """
+    try:
+        # Fetch the most recent profit structure, ordering by enforced_datetime descending
+        prof_struct = Profit_structure.query.order_by(Profit_structure.Enforced_datetime.desc()).first()
+
+        if prof_struct:
+            # Create a dictionary to return the profit structure details
+            profit_data = {  # Changed from list to dictionary
+                "structure_id": prof_struct.Structure_id,
+                "expert_split": prof_struct.Expert_split,
+                "manager_split": prof_struct.Manager_split,
+                "enforced_datetime": prof_struct.Enforced_datetime
+            }
+
+            return jsonify({"profit_data": profit_data}), 200
+        else:
+            return jsonify({"Error": "No profit structure found."}), 404
+
+    except Exception as e:
+        import traceback
+        print("Error retrieving profit structure:", traceback.format_exc())  # Print full error stack
+        return jsonify({"Error": "Failed to retrieve profit structure"}), 500
+
+@app.route("/api/update-profit-structure", methods=["POST"])
+def update_profit_structure():
+    """
+    Updates the profit structure.
+
+    Returns:
+        status_code: HTTP status code (200 for success, 400 for validation error,
+                        401 and 403 for user errors)
+    """
+
+    # Check if the user is logged in
+    if "user_id" not in session:
+        return jsonify({"message": "No user logged in"}), 401
+
+    # Check if the user has the correct access level (expert level)
+    if session.get("level_of_access") != 3:
+        return jsonify({"message": "User has invalid access level"}), 403
+    
+    # Parse incoming JSON data
+    data = request.json
+
+    # If validation passes, extract validated data from form
+    expert_split = data.get("expert_split")
+    manager_split = data.get("manager_split")
+
+    # Create the new profit structure
+    new_profit_structure = Profit_structure(
+        Expert_split=expert_split,
+        Manager_split=manager_split,
+    )
+
+    # Add to the database and commit
+    db.session.add(new_profit_structure)
+    db.session.commit()
+
+    return jsonify({"message": "Profit structure updated successfully!"}), 200

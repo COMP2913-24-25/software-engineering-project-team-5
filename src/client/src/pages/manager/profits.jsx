@@ -1,56 +1,128 @@
-import React, { useState } from "react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import "./profits.css"; // Initial imports needed
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useUser } from "../../App"; // Access the user
+import { KeyRound } from "lucide-react";
 
-const initialData = [ // Test data
-    { week: "10/02/25", sold: 1000, sProfit: 100, eProfit: 400 },
-    { week: "17/02/25", sold: 1200, sProfit: 150, eProfit: 500 },
-    { week: "24/02/25", sold: 900, sProfit: 80, eProfit: 350 },
-    { week: "03/03/25", sold: 700, sProfit: 70, eProfit: 300 },
-    { week: "10/03/25", sold: 1100, sProfit: 110, eProfit: 400 },
-];
+export default function Dashboard() {
+    const { user } = useUser();
+    const navigate = useNavigate();
 
-export default function WeeklyProfits() {
-    const [data] = useState(initialData);
+    const [managerSplit, setManagerSplit] = useState(0.01); // Default 1% split
+    const [expertSplit, setExpertSplit] = useState(0.04); // Default 4% split
+    const [userSplit, setUserSplit] = useState(0.95); // Default remaining user split
+
+    useEffect(() => {
+        if (user && user.level_of_access === 3) {
+            getProfitStructure();
+        } else {
+            navigate("/");
+        }
+    }, [user, navigate]);
+
+    // Fetch profit structure from backend
+    const getProfitStructure = async () => {
+        try {
+            const response = await fetch("http://localhost:5000/api/get-profit-structure", {
+                method: "GET",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+            });
+
+            const data = await response.json();
+
+            if (response.ok && response.status === 200 && data.profit_data) {
+                const { manager_split, expert_split } = data.profit_data;
+
+                // Set state with fetched profit structure
+                setManagerSplit(manager_split);
+                setExpertSplit(expert_split);
+                setUserSplit(1 - manager_split - expert_split);
+            } else {
+                alert(data.Error || "Failed to fetch profit structure");
+            }
+        } catch (error) {
+            console.error("Error fetching profit structure:", error);
+        }
+    };
+
+    // Handle Save Button click
+    const update_profit_structure = async () => {
+        try {
+            console.log("Sending data: ", {
+                expert_split: expertSplit,
+                manager_split: managerSplit,
+            });
+
+            const response = await fetch("http://localhost:5000/api/update-profit-structure", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    expert_split: expertSplit,
+                    manager_split: managerSplit,
+                }),
+                credentials: "include",
+            });
+
+            if (response.ok) {
+                alert("Profit structure updated successfully!");
+                getProfitStructure();
+            } else {
+                const errorData = await response.json();
+                alert(errorData.message || "An error occurred while updating the profit structure.");
+            }
+        } catch (error) {
+            console.error("Error saving profit structure:", error);
+            alert("An unexpected error occurred.");
+        }
+    };
+
+
 
     return (
-        <div className="weekly-profits">
+        <div className="dashboard">
             <h2>Weekly Profits</h2>
+            <div className="profit-structure">
+                <div>
+                    <label htmlFor="manager-split">Manager Split:</label>
+                    <input
+                        type="number"
+                        id="manager-split"
+                        value={managerSplit}
+                        onChange={(e) => {
+                            const value = parseFloat(e.target.value);
+                            setManagerSplit(value);
+                            setUserSplit(1 - value - expertSplit); // Update user split automatically
+                        }}
+                    />
+                </div>
+                <div>
+                    <label htmlFor="expert-split">Expert Split:</label>
+                    <input
+                        type="number"
+                        id="expert-split"
+                        value={expertSplit}
+                        onChange={(e) => {
+                            const value = parseFloat(e.target.value);
+                            setExpertSplit(value);
+                            setUserSplit(1 - managerSplit - value); // Update user split automatically
+                        }}
+                    />
+                </div>
+                <div>
+                    <label htmlFor="user-split">User Split:</label>
+                    <input
+                        type="number"
+                        id="user-split"
+                        value={userSplit.toFixed(3)}
+                        readOnly
+                    />
+                </div>
 
-            <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={data}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="week" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Line type="monotone" dataKey="sold" stroke="red" name="Total Sold (£)" />
-                    <Line type="monotone" dataKey="sProfit" stroke="blue" name="Profit for Site (£)" />
-                    <Line type="monotone" dataKey="eProfit" stroke="green" name="Profit for Experts (£)" />
-                </LineChart>
-            </ResponsiveContainer>
+                <button onClick={update_profit_structure}>Save</button>
 
-
-            <table>
-                <thead>
-                    <tr>
-                        <th>Week</th>
-                        <th>Total Sold (£)</th>
-                        <th>Profit for Site (£)</th>
-                        <th>Profit for Experts (£)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {data.map((row, index) => (
-                        <tr key={index}>
-                            <td>{row.week}</td>
-                            <td>£{row.sold}</td>
-                            <td>£{row.sProfit}</td>
-                            <td>£{row.eProfit}</td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+            </div>
         </div>
     );
 }
