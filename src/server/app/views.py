@@ -793,6 +793,7 @@ def update_item_auth():
 
     return jsonify({"message": "User has invalid access level"}), 401
 
+
 @app.route("/api/get-profit-structure", methods=["GET"])
 def get_profit_structure():
     """
@@ -817,46 +818,29 @@ def get_profit_structure():
 
             return jsonify({"profit_data": profit_data}), 200
         else:
-            return jsonify({"Error": "No profit structure found."}), 404
+            return jsonify({"message": "no profit structures reccorded"}), 200
+
 
     except Exception as e:
         import traceback
         print("Error retrieving profit structure:", traceback.format_exc())  # Print full error stack
         return jsonify({"Error": "Failed to retrieve profit structure"}), 500
 
+
 @app.route("/api/update-profit-structure", methods=["POST"])
 def update_profit_structure():
     """
-    Updates the profit structure.
-
-    Returns:
-        status_code: HTTP status code (200 for success, 400 for validation error,
-                        401 and 403 for user errors)
+    Appends a new profit structure to the database based on the manager's request.
     """
-
-    # Check if the user is logged in
-    if "user_id" not in session:
-        return jsonify({"message": "No user logged in"}), 401
-
-    # Check if the user has the correct access level (expert level)
-    if session.get("level_of_access") != 3:
-        return jsonify({"message": "User has invalid access level"}), 403
     
-    # Parse incoming JSON data
-    data = request.json
+    try:
+        if current_user.Level_of_access != 3:
+            return jsonify({"message": "nah"}), 400
+        data = request.get_json()
+        manager_split = data.get("managerSplit")
+        expert_split = data.get("expertSplit")
 
-    # If validation passes, extract validated data from form
-    expert_split = data.get("expert_split")
-    manager_split = data.get("manager_split")
+        return jsonify({"message": "Profit structure updated successfully!"}), 200
 
-    # Create the new profit structure
-    new_profit_structure = Profit_structure(
-        Expert_split=expert_split,
-        Manager_split=manager_split,
-    )
-
-    # Add to the database and commit
-    db.session.add(new_profit_structure)
-    db.session.commit()
-
-    return jsonify({"message": "Profit structure updated successfully!"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

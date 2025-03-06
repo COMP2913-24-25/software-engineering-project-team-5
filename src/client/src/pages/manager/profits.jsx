@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useUser } from "../../App"; // Access the user
-import { KeyRound } from "lucide-react";
+import { useUser, useCSRF } from "../../App";
 
 export default function Dashboard() {
     const { user } = useUser();
     const navigate = useNavigate();
+    const { csrfToken } = useCSRF(); // Access the CSRF token
+
 
     const [managerSplit, setManagerSplit] = useState(0.01); // Default 1% split
     const [expertSplit, setExpertSplit] = useState(0.04); // Default 4% split
@@ -30,13 +31,15 @@ export default function Dashboard() {
 
             const data = await response.json();
 
-            if (response.ok && response.status === 200 && data.profit_data) {
-                const { manager_split, expert_split } = data.profit_data;
+            if (response.ok && response.status === 200) {
+                if (data.profit_data) {
+                    const { manager_split, expert_split } = data.profit_data;
 
-                // Set state with fetched profit structure
-                setManagerSplit(manager_split);
-                setExpertSplit(expert_split);
-                setUserSplit(1 - manager_split - expert_split);
+                    // Set state with fetched profit structure
+                    setManagerSplit(manager_split);
+                    setExpertSplit(expert_split);
+                    setUserSplit(1 - manager_split - expert_split);
+                }
             } else {
                 alert(data.Error || "Failed to fetch profit structure");
             }
@@ -45,40 +48,30 @@ export default function Dashboard() {
         }
     };
 
-    // Handle Save Button click
-    const update_profit_structure = async () => {
+    const updateProfitStructure = async () => {
         try {
-            console.log("Sending data: ", {
-                expert_split: expertSplit,
-                manager_split: managerSplit,
-            });
 
             const response = await fetch("http://localhost:5000/api/update-profit-structure", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": csrfToken // Include CSRF token in header
                 },
-                body: JSON.stringify({
-                    expert_split: expertSplit,
-                    manager_split: managerSplit,
-                }),
                 credentials: "include",
+                body: JSON.stringify({ managerSplit, expertSplit }),
             });
+
+            const data = await response.json();
 
             if (response.ok) {
                 alert("Profit structure updated successfully!");
-                getProfitStructure();
             } else {
-                const errorData = await response.json();
-                alert(errorData.message || "An error occurred while updating the profit structure.");
+                alert(`Error: ${data.error || data.message || "Failed to update profit structure."}`);
             }
         } catch (error) {
-            console.error("Error saving profit structure:", error);
-            alert("An unexpected error occurred.");
+            console.error("Network or server error:", error);
         }
     };
-
-
 
     return (
         <div className="dashboard">
@@ -120,7 +113,7 @@ export default function Dashboard() {
                     />
                 </div>
 
-                <button onClick={update_profit_structure}>Save</button>
+                <button onClick={updateProfitStructure}>Save</button>
 
             </div>
         </div>
