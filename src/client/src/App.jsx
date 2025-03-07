@@ -1,6 +1,6 @@
 import React, { useState, createContext, useEffect, useContext } from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
-
+import { NotificationProvider } from "./components/NotificationComponent";
 // Import your pages here
 import Login from "./pages/login";
 import Signup from "./pages/signup";
@@ -20,46 +20,80 @@ import SearchExperts from "./pages/manager/searchexp";
 import EAuthRequests from "./pages/expert/expertauthreq";
 import Profile from "./pages/expert/profile";
 
-// Creates a global state to store user information - Makes it available to ANY component in the app
+// Creates a global state to store user information and CSRF token information
+// Makes it available to ANY component in the app
 export const UserContext = createContext();
+export const CSRFContext = createContext();
 
 // Makes it so components can be accessed without needing the Provider directly.
 export const useUser = () => useContext(UserContext);
+export const useCSRF = () => useContext(CSRFContext);
+
+// Global function to fetch CSRF token from backend
+export const fetchCSRFToken = async () => {
+    try {
+        const response = await fetch(
+            "http://localhost:5000/api/get-csrf-token",
+            {
+                method: "GET",
+                credentials: "include",
+            }
+        );
+        const data = await response.json();
+        return data.csrf_token;
+    } catch (error) {
+        console.error("Error fetching CSRF token:", error);
+        return null;
+    }
+};
 
 // ORDER MATTERS. DO NOT MOVE THIS BELOW THE function App(){...}
 // DO NOT MOVE THIS CODE PLEASE OR ALTER IT PLEASE
+
 export const UserProvider = ({ children }) => {
-    const [user, setUser] = useState(() => {
-        const stored_user = localStorage.getItem("user");
-        return stored_user ? JSON.parse(stored_user) : null;
-    }); // This is the initial state when no one is logged in, so it is null
+    const [user, setUser] = useState(null);
+    const [csrfToken, setCsrfToken] = useState("");
+    const [isLoading, setIsLoading] = useState(true); // Add this line
 
     useEffect(() => {
-        // Check if the user is already logged in
-        // With credentials having include, even if the papge is refreshed, the app will remember that the user is logged in.
-        fetch("http://localhost:5000/api/user", { credentials: "include" })
-            .then((response) => response.json())
-            .then((data) => {
-                if (data.user_id) {
-                    setUser(data);
-                    localStorage.setItem("user", JSON.stringify(data));
+        const createContext = async () => {
+            try {
+                // Fetch CSRF token
+                const token = await fetchCSRFToken();
+                if (token) setCsrfToken(token);
+
+                // Fetch current user
+                const response = await fetch(
+                    "http://localhost:5000/api/get_current_user",
+                    {
+                        credentials: "include",
+                    }
+                );
+
+                if (response.ok) {
+                    const userData = await response.json();
+                    setUser(userData);
                 }
-            })
-            .catch((error) => console.error("Failed to fetch user", error));
+            } catch (error) {
+                console.error("Error: ", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        createContext();
     }, []);
 
-    useEffect(() => {
-        if (user) {
-            localStorage.setItem("user", JSON.stringify(user));
-        } else {
-            localStorage.removeItem("user");
-        }
-    }, [user]);
+    // If still loading, you could return a loading indicator
+    if (isLoading) {
+        return;
+    }
 
     return (
-        // Provides the data to the components
         <UserContext.Provider value={{ user, setUser }}>
-            {children}
+            <CSRFContext.Provider value={{ csrfToken, setCsrfToken }}>
+                {children}
+            </CSRFContext.Provider>
         </UserContext.Provider>
     );
 };
@@ -74,8 +108,9 @@ function App() {
 
     return (
         //Wraps the app in UserProvider
-        <UserProvider>
+        <UserProvider>  
             <Router>
+            <NotificationProvider>
                 <div className="navbar">
                     <Link to="/" onClick={() => setActiveSubMenu(null)}>
                         Login
@@ -219,7 +254,8 @@ function App() {
                     <Route path="/expert/auth" element={<EAuthRequests />} />
                     <Route path="/expert/profile" element={<Profile />} />
                 </Routes>
-            </Router>
+                </NotificationProvider> 
+            </Router> 
         </UserProvider>
     );
 }
