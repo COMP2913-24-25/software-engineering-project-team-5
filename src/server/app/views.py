@@ -591,7 +591,7 @@ def Create_listing():
         return jsonify({"error": "Failed to create listing in the backend"}), 500
 
 
-@app.route("/api/get-items", methods=["GET"])
+@app.route("/api/get-items", methods=["POST"])
 def get_listings():
     """
     Retrieves the item details from the database that are still available.
@@ -959,4 +959,76 @@ def update_item_auth():
             return jsonify({"Error": "Failed to update item authentication"}), 500
 
     return jsonify({"message": "User has invalid access level"}), 401
+
+
+
+@app.route("/api/get-single-listing", methods=["POST"])
+def get_single_listing():
+    """
+    Gets listing information for a given item ID
+
+    Returns:
+        json_object:  containing the item details
+        status_code: HTTP status code (200 for success,
+                                       400 for error)
+    """
+
+    try:
+        data = request.json
+
+        item = Items.query.filter_by(Item_id=data["Item_id"]).first()
+        seller = User.query.filter_by(User_id=item.Seller_id).first()
+        images = Images.query.filter_by(Item_id=item.Item_id).all()
+
+        item_details = {
+            "Item_id": item.Item_id,
+            "Listing_name": item.Listing_name,
+            "Description": item.Description,
+            "Seller_name": seller.First_name + " " + seller.Surname,
+            "Seller_id": item.Seller_id,
+            "Seller_username": seller.Username,
+            "Upload_datetime": item.Upload_datetime,
+            "Min_price": item.Min_price,
+            "Approved": item.Authentication_request_approved,
+            "Second_opinion": item.Second_opinion,
+            "Images": [
+                base64.b64encode(image.Image).decode("utf-8") for image in images
+            ],
+        }
+
+        return jsonify(item_details), 200
+
+    except Exception as e:
+        print("Error: ", e)
+        return jsonify({"Error": "Failed to retrieve items"}), 400
+
+
+@app.route("/api/request-second-opinion", methods=["POST"])
+def request_second_opinion():
+    """
+    Updates Item details - unassigns expert ID and sets Second_opinion
+    flag to true
+
+    Returns:
+        json_object:  containing success or error message
+        status_code: HTTP status code (200 for success,
+                                       401 for unauthorized access)
+    """
+
+    # Checks if the user is logged in
+    if current_user.is_authenticated:
+        if current_user.Level_of_access == 2:
+            data = request.json
+            item = Items.query.filter_by(Item_id=data["Item_id"]).first()
+
+            item.Second_opinion = True
+            item.Expert_id = None
+
+            db.session.commit()
+
+            return jsonify({"message": "Details Updated Successfully"}), 200
+
+        return jsonify({"message": "Invalid Level of Access"}), 401
+
+    return jsonify({"message": "No user logged in"}), 401
 
