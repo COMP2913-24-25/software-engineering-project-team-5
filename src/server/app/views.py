@@ -650,6 +650,172 @@ def get_listings():
         return jsonify({"Error": "Failed to retrieve items"}), 401
 
 
+@app.route("/api/get-bids", methods=["GET"])
+def get_bids():
+    """
+    Retrieves the user's current bids from the database, ensuring that only the highest bid for each item
+    is returned, if they are currently logged in.
+
+    Returns:
+        json_object: dictionary containing the user's highest bid per item
+        status_code: HTTP status code (200 for success, 
+                                       401 for unauthorized access,
+                                       400 for no bidding information)
+    """
+
+    # Checks if user is logged in
+    if current_user.is_authenticated:
+        bid_data = (
+            Bidding_history.query
+            .join(Items, Bidding_history.Item_id == Items.Item_id)  # Join Items table
+            .join(User, Items.Seller_id == User.User_id)  # Join User table to get seller info
+            .outerjoin(Images, Items.Item_id == Images.Item_id)  # Outer join Images table to get item image
+            .filter(
+                Bidding_history.Bidder_id == current_user.User_id,
+                Items.Available_until > datetime.datetime.now()  # Only valid bids
+            )
+            .with_entities(
+                Bidding_history.Bid_id,
+                Bidding_history.Bid_price,
+                Bidding_history.Bid_datetime,
+                Bidding_history.Successful_bid,
+                Items.Item_id,
+                Items.Listing_name,
+                Items.Description,
+                Items.Current_bid,
+                Items.Available_until,
+                User.Username,
+                Images.Image,
+                Images.Image_description,
+                Items.Min_price
+            )
+            .order_by(Items.Item_id, Bidding_history.Bid_price.desc())  # Order by Item and Bid Price (descending)
+            .all()
+        )
+
+        if not bid_data:
+            return jsonify({"message": "No current bids"}), 400
+        
+        # Create a dictionary to store the highest bid per item
+        unique_bids = {}
+        
+        for item in bid_data:
+            if item.Item_id not in unique_bids:
+                # Save the first bid for this item (the highest one, because of ordering)
+                image_data = item.Image
+                image_base64 = None
+                if image_data:
+                    # Base64 encode the image if it exists
+                    image_base64 = base64.b64encode(image_data).decode('utf-8')
+
+                unique_bids[item.Item_id] = {
+                    "Bid_id": item.Bid_id,
+                    "Bid_price": item.Bid_price,
+                    "Bid_datetime": item.Bid_datetime,
+                    "Successful_bid": item.Successful_bid,
+                    "Item_id": item.Item_id,
+                    "Listing_name": item.Listing_name,
+                    "Description": item.Description,
+                    "Current_bid": item.Current_bid,
+                    "Available_until": item.Available_until,
+                    "Seller_name": item.Username,
+                    "Image": image_base64,
+                    "Image_description": item.Image_description or "No Image",
+                    "Min_price": item.Min_price
+                }
+
+        # Convert dictionary to list for JSON response
+        current_bids = list(unique_bids.values())
+
+        return jsonify({"bids": current_bids}), 200
+    
+    else:
+        return jsonify({"message": "No user logged in"}), 401
+
+
+@app.route("/api/get-history", methods=["GET"])
+def get_history():
+    """
+    Retrieves the user's expired bids from the database, ensuring that only the highest bid for each item
+    is returned, if they are currently logged in.
+
+    Returns:
+        json_object: dictionary containing the user's highest bid per item
+        status_code: HTTP status code (200 for success, 
+                                       401 for unauthorized access,
+                                       400 for no bidding information)
+    """
+
+    # Checks if user is logged in
+    if current_user.is_authenticated:
+        bid_data = (
+            Bidding_history.query
+            .join(Items, Bidding_history.Item_id == Items.Item_id)  # Join Items table
+            .join(User, Items.Seller_id == User.User_id)  # Join User table to get seller info
+            .outerjoin(Images, Items.Item_id == Images.Item_id)  # Outer join Images table to get item image
+            .filter(
+                Bidding_history.Bidder_id == current_user.User_id,
+                Items.Available_until < datetime.datetime.now()  # Only expired bids
+            )
+            .with_entities(
+                Bidding_history.Bid_id,
+                Bidding_history.Bid_price,
+                Bidding_history.Bid_datetime,
+                Bidding_history.Successful_bid,
+                Items.Item_id,
+                Items.Listing_name,
+                Items.Description,
+                Items.Current_bid,
+                Items.Available_until,
+                User.Username,
+                Images.Image,
+                Images.Image_description,
+                Items.Min_price
+            )
+            .order_by(Items.Item_id, Bidding_history.Bid_price.desc())  # Order by Item and Bid Price (descending)
+            .all()
+        )
+
+        if not bid_data:
+            return jsonify({"message": "No expired bids"}), 400
+        
+        # Create a dictionary to store the highest bid per item
+        unique_bids = {}
+        
+        for item in bid_data:
+            if item.Item_id not in unique_bids:
+                # Save the first bid for this item (the highest one, because of ordering)
+                image_data = item.Image
+                image_base64 = None
+                if image_data:
+                    # Base64 encode the image if it exists
+                    image_base64 = base64.b64encode(image_data).decode('utf-8')
+
+                unique_bids[item.Item_id] = {
+                    "Bid_id": item.Bid_id,
+                    "Bid_price": item.Bid_price,
+                    "Bid_datetime": item.Bid_datetime,
+                    "Successful_bid": item.Successful_bid,
+                    "Item_id": item.Item_id,
+                    "Listing_name": item.Listing_name,
+                    "Description": item.Description,
+                    "Current_bid": item.Current_bid,
+                    "Available_until": item.Available_until,
+                    "Seller_name": item.Username,
+                    "Image": image_base64,
+                    "Image_description": item.Image_description or "No Image",
+                    "Min_price": item.Min_price
+                }
+
+        # Convert dictionary to list for JSON response
+        history = list(unique_bids.values())
+
+        return jsonify({"history": history}), 200
+    
+    else:
+        return jsonify({"message": "No user logged in"}), 401
+
+
 @app.route("/api/get-pending-auth", methods=["GET"])
 def get_pending_auth():
     """
@@ -792,6 +958,7 @@ def update_item_auth():
     return jsonify({"message": "User has invalid access level"}), 401
 
 
+
 @app.route("/api/get-single-listing", methods=["POST"])
 def get_single_listing():
     """
@@ -861,3 +1028,4 @@ def request_second_opinion():
         return jsonify({"message": "Invalid Level of Access"}), 401
 
     return jsonify({"message": "No user logged in"}), 401
+

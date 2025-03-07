@@ -1,43 +1,93 @@
-import React from "react";
-import "../App.css"; // Initial imports needed
+import React, { useState, useEffect } from "react";
+import { useUser, useCSRF } from "../App";
+import ItemListing from "../components/itemlisting";
 
-const initialBiddingHistory = [ // These are the test dummy items to be displayed
-    { id: 1, title: "Product Title", seller: "Seller Name", description: "Product Description...", dateFinished: "01/01/2025", status: "Auction Cancelled", price: null },
-    { id: 2, title: "Product Title", seller: "Seller Name", description: "Product Description...", dateFinished: "01/01/2025", status: "Bid Won", price: "£150" },
-    { id: 3, title: "Product Title", seller: "Seller Name", description: "Product Description...", dateFinished: "01/01/2025", status: "Out Bid", price: "£250" },
-];
+const BiddingHistory = () => {
+    /*  
+    Allows user to see items that they previous bidded on (items that have expired), it has functionality
+    to filter the bids and sort them too. Per item is shows an image of it, the name, the sellers name,
+    the product description, time remaining, and the status. 
+    */
 
-export default function BiddingHistory() {
+    const { user } = useUser();
+
+    // Variable to store the bids stored and bidding history
+    const [history, setHistory] = useState([]);
+
+    const { csrfToken } = useCSRF();
+
+
+    // Function to fetch bidding history from the server
+    const getHistory = async () => {
+        try {
+            const response = await fetch(
+                "http://localhost:5000/api/get-history",
+                {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": csrfToken,
+                    },
+                    credentials: "include",
+                }
+            );
+
+            // Waits for the server response
+            const data = await response.json();
+
+            if (response.ok) {
+                setHistory(data.history);
+            }
+        } catch (error) {
+            console.error("Error fetching history:", error);
+        }
+    };
+
+    // Gets bidding history when the page loads for the first time
+    useEffect(() => {
+        if (user) {
+            getHistory();
+        }
+    }, [user]);
+
+
     return (
-        <div>
-            <h1>Bidding History</h1>
-            {initialBiddingHistory.map((item) => ( // Display details of all items in array, with correct button config
-                <div key={item.id} className="bid-item">
-                    <div className="image-placeholder"></div>
-                    <div className="bid-info">
-                        <h2>{item.title}</h2>
-                        <p><strong>{item.seller}</strong></p>
-                        <p>{item.description}</p>
-                        <p><strong>Date Finished:</strong> {item.dateFinished}</p>
+        <div className="container p-6">
+            <h1 className="text-3xl font-bold mb-6">Bidding history</h1>
+
+            {user ? (
+                history.length === 0 ? (
+                    <p className="text-gray-600">You have no expired auctions.</p>
+                ) : (
+                    <div className="space-y-4">
+                        {history.map((item, index) => (
+                            <ItemListing
+                                key={index}
+                                title={item.Listing_name}
+                                seller={item.Seller_name}
+                                description={item.Description}
+                                image={item.Image}
+                                labels={[`Date Finished: ${item.Available_until}`]}
+                                buttons={
+                                    item.Successful_bid == 1 ? [
+                                        { text: "Highest Bidder", style: "bg-green-500 text-white" },
+                                        { text: `Your Bid: £${item.Bid_price}`, style: "bg-gray-200 text-black" },
+                                        { text: "View reciept", style: "bg-gray-200 text-black" }
+                                    ] : [
+                                        { text: "Out Bid", style: "bg-red-500 text-white" },
+                                        { text: `Your Bid: £${item.Bid_price}`, style: "bg-gray-200 text-black" },
+                                        { text: `Highest Bid: £${item.Current_bid}`, style: "bg-gray-500 text-white" },
+                                    ]
+                                }
+                            />
+                        ))}
                     </div>
-                    <div className="bid-status">
-                        {item.status === "Auction Cancelled" && <button className="cancelled">Auction Cancelled</button>}
-                        {item.status === "Bid Won" && (
-                            <>
-                                <button className="won">Bid Won</button>
-                                <p>Paid: {item.price}</p>
-                                <button>View Receipt</button>
-                            </>
-                        )}
-                        {item.status === "Out Bid" && (
-                            <>
-                                <button className="outbid">Out Bid</button>
-                                <p>Sold At: {item.price}</p>
-                            </>
-                        )}
-                    </div>
-                </div>
-            ))}
+                )
+            ) : (
+                <p className="text-gray-600">Login to see Bidding History</p>
+            )}
         </div>
     );
-}
+};
+
+export default BiddingHistory;
