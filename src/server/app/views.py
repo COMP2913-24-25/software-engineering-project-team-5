@@ -665,14 +665,13 @@ def get_bids():
 
     # Checks if user is logged in
     if current_user.is_authenticated:
-
         bid_data = (
             Bidding_history.query
             .join(Items, Bidding_history.Item_id == Items.Item_id)  # Join Items table
             .join(User, Items.Seller_id == User.User_id)  # Join User table to get seller info
             .outerjoin(Images, Items.Item_id == Images.Item_id)  # Outer join Images table to get item image
             .filter(
-                Bidding_history.Bidder_id == user_id,
+                Bidding_history.Bidder_id == current_user.User_id,
                 Items.Available_until > datetime.datetime.now()  # Only valid bids
             )
             .with_entities(
@@ -733,6 +732,7 @@ def get_bids():
     else:
         return jsonify({"message": "No user logged in"}), 401
 
+
 @app.route("/api/get-history", methods=["GET"])
 def get_history():
     """
@@ -748,14 +748,13 @@ def get_history():
 
     # Checks if user is logged in
     if current_user.is_authenticated:
-
         bid_data = (
             Bidding_history.query
             .join(Items, Bidding_history.Item_id == Items.Item_id)  # Join Items table
             .join(User, Items.Seller_id == User.User_id)  # Join User table to get seller info
             .outerjoin(Images, Items.Item_id == Images.Item_id)  # Outer join Images table to get item image
             .filter(
-                Bidding_history.Bidder_id == user_id,
+                Bidding_history.Bidder_id == current_user.User_id,
                 Items.Available_until < datetime.datetime.now()  # Only expired bids
             )
             .with_entities(
