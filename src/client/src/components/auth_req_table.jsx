@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useUser, useCSRF } from "../App";
+import { useCSRF } from "../App";
 
 const AuthRequestsTable = ({
     auth_requests,
@@ -16,16 +16,9 @@ const AuthRequestsTable = ({
     request, and give them option to accept, reject or give the case to another expert.
         -> Dependancy on Enlarged Listing page for reuseable components
     */
-
     const navigate = useNavigate();
-    const { user } = useUser();
     const { csrfToken } = useCSRF();
     const [requests, set_requests] = useState([]);
-
-    // If not authenticated, return null
-    if (user === null && user.is_expert === false) {
-        return null;
-    }
 
     // Sets request to auth_requests when component first loaded
     useEffect(() => {
@@ -80,37 +73,13 @@ const AuthRequestsTable = ({
     };
 
     // TODO: After Enlarged Listing page implemented - reuse components from there.
-    const handle_view_more = async (event, item_id, listing_name) => {
+    const handle_view_more = async (event, Item_id, Listing_name) => {
         event.preventDefault();
         set_errors({});
-
-        try {
-            const response = await fetch(
-                "http://localhost:5000/api/<funcname>",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRF-TOKEN": csrfToken,
-                    },
-                    body: JSON.stringify({
-                        Item_id: item_id,
-                        Listing_name: listing_name,
-                    }),
-                    credentials: "include",
-                }
-            );
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                set_errors({
-                    general: ["Unexpected Error. Please Try Again."],
-                });
-            }
-        } catch (error) {
-            set_errors({ general: ["Network error. Please try again."] });
-        }
+        let url =
+            "/expert/auth/" + String(Listing_name) + "/" + String(Item_id);
+        console.log(url);
+        navigate(url);
     };
 
     // Component HTML
@@ -218,7 +187,8 @@ const AuthRequestsTable = ({
                                                     onClick={(event) =>
                                                         handle_view_more(
                                                             event,
-                                                            request
+                                                            request.Item_id,
+                                                            request.Listing_name
                                                         )
                                                     }
                                                 >
@@ -313,7 +283,11 @@ const AuthRequestsTable = ({
                                     <button
                                         className="bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition duration-300"
                                         onClick={(event) =>
-                                            handle_view_more(event, request)
+                                            handle_view_more(
+                                                event,
+                                                request.Item_id,
+                                                request.Listing_name
+                                            )
                                         }
                                     >
                                         View More

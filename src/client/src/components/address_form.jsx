@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useUser, useCSRF } from "../App";
+import { useCSRF } from "../App";
 
 const AddressForm = ({
     address,
@@ -16,14 +15,7 @@ const AddressForm = ({
     Upon submission, the form data is sent to the server to update details
     */
 
-    const navigate = useNavigate();
-    const { user } = useUser();
     const { csrfToken } = useCSRF();
-
-    // If not authenticated, return null (early return)
-    if (user === null) {
-        return null;
-    }
 
     // Sets form data - Address_id is blank ("") when new address is being created
     const [form_data, set_form_data] = useState({

@@ -24,7 +24,7 @@ const HomePage = () => {
                 const response = await fetch(
                     "http://localhost:5000/api/get-items",
                     {
-                        method: "GET",
+                        method: "POST",
                         headers: {
                             "Content-Type": "application/json",
                             "X-CSRF-TOKEN": csrfToken,
