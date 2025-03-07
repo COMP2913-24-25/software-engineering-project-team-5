@@ -835,12 +835,80 @@ def update_profit_structure():
     
     try:
         if current_user.Level_of_access != 3:
-            return jsonify({"message": "nah"}), 400
+            return jsonify({"message": ""}), 400
         data = request.get_json()
         manager_split = data.get("managerSplit")
         expert_split = data.get("expertSplit")
+
+        if expert_split is None or manager_split is None:
+            return jsonify({"message": "Expert split and Manager split are required"}), 400
+
+        if not (0 <= expert_split <= 1) or not (0 <= manager_split <= 1):
+            return jsonify({"message": "Splits must be between 0 and 1."}), 400
+        
+        new_profit_structure = Profit_structure(
+            Expert_split=expert_split,
+            Manager_split=manager_split,
+        )
+
+        db.session.add(new_profit_structure)
+        db.session.commit()
 
         return jsonify({"message": "Profit structure updated successfully!"}), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/get-sold", methods=["GET"])
+def get_sold():
+    """
+    Fetches all the sold items (items that are past their 'available_until' dates) and links with the profit structure.
+    """
+
+    try:
+        # Query the database for items where 'available_until' is in the past, joining with Profit_structure
+        sold_items = db.session.query(Items, Profit_structure).join(
+            Profit_structure, Profit_structure.Structure_id == Items.Structure_id
+        ).filter(Items.Available_until < datetime.datetime.now()).all()
+
+        sold_items = (
+            Items.query
+            .join(Profit_structure, Items.Structure_id == Profit_structure.Structure_id)
+            .filter(Items.Available_until < datetime.datetime.now())
+            .with_entities(
+                Items.Item_id, Items.Listing_name, Items.Seller_id, Items.Upload_datetime,
+                Items.Available_until, Items.Min_price, Items.Current_bid, Items.Structure_id,
+                Items.Expert_id, Profit_structure.Expert_split, Profit_structure.Manager_split, 
+                Profit_structure.Enforced_datetime
+            )
+        )
+
+        # If no sold items are found
+        if not sold_items:
+            return jsonify({"message": "No sold items found."}), 200
+
+        # Prepare the response data
+        sold_items_data = []
+        for item in sold_items:
+            sold_items_data.append({
+                "Item_id": item.Item_id,
+                "Listing_name": item.Listing_name,
+                "Seller_id": item.Seller_id,
+                "Upload_datetime": item.Upload_datetime,
+                "Available_until": item.Available_until,
+                "Min_price": item.Min_price,
+                "Current_bid": item.Current_bid,
+                "Structure_id": item.Structure_id,
+                "Expert_id": item.Expert_id,
+                "Expert_split": item.Expert_split,
+                "Manager_split": item.Manager_split,
+                "Enforced_datetime": item.Enforced_datetime
+            })
+
+        # Return the list of sold items as a JSON response
+        return jsonify({"sold_items": sold_items_data}), 200
+
+    except Exception as e:
+        # Handle any unexpected errors and return a 500 error
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
