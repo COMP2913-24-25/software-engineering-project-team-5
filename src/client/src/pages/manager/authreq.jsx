@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./authreq.css";
 import ItemListing from "../../components/itemlisting";
-import { useUser, useCSRF  } from "../../App";
+import { useUser, useCSRF } from "../../App";
 
 export default function MAuthReq() {
   const [pendingauth, setPendingAuth] = useState([]);
@@ -32,7 +32,7 @@ export default function MAuthReq() {
     try {
       const response = await fetch("http://localhost:5000/api/get-expert-id", {
         method: "GET",
-        headers: { "Content-Type": "application/json","X-CSRF-TOKEN": csrfToken, },
+        headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrfToken, },
         credentials: "include",
       });
       const data = await response.json();
@@ -57,7 +57,7 @@ export default function MAuthReq() {
     try {
       const response = await fetch("http://localhost:5000/api/update_item_auth", {
         method: "POST",
-        headers: { "Content-Type": "application/json","X-CSRF-TOKEN": csrfToken, },
+        headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrfToken, },
         credentials: "include",
         body: JSON.stringify({ item_id, expert_id }),
       });
@@ -92,7 +92,7 @@ export default function MAuthReq() {
           {pendingauth.map((item) => (
             <div key={item.Item_id} className="border p-4 rounded-lg">
               <ItemListing
-                image={getImageUrl(item.Image)}
+                image={item.Image}
                 title={item.Listing_name}
                 seller={item.Username}
                 description={item.Description}
