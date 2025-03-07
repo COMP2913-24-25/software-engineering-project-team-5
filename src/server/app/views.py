@@ -664,8 +664,7 @@ def get_bids():
     """
 
     # Checks if user is logged in
-    if "user_id" in session:
-        user_id = session["user_id"]
+    if current_user.is_authenticated:
 
         bid_data = (
             Bidding_history.query
@@ -748,8 +747,7 @@ def get_history():
     """
 
     # Checks if user is logged in
-    if "user_id" in session:
-        user_id = session["user_id"]
+    if current_user.is_authenticated:
 
         bid_data = (
             Bidding_history.query
