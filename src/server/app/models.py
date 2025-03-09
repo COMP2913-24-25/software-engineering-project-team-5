@@ -54,15 +54,19 @@ class Items(db.Model):
     Item_id = db.Column(db.Integer, primary_key=True)
     Listing_name = db.Column(db.String(50), nullable=False)
     Seller_id = db.Column(db.Integer, db.ForeignKey('user.User_id'), nullable=False)
-    Expert_id = db.Column(db.Integer, db.ForeignKey('user.User_id'), nullable=True)
-    Verified = db.Column(db.Boolean, nullable=False)
     Upload_datetime = db.Column(db.DateTime, default=datetime.datetime.now(datetime.UTC))
     Available_until = db.Column(db.DateTime, nullable=False)
     Min_price = db.Column(db.Float, nullable=False)
     Current_bid = db.Column(db.Float, nullable=False)
     Description = db.Column(db.String(500), nullable=False)
-    Authentication_request = db.Column(db.Boolean, nullable=False)
     Structure_id = db.Column(db.Integer, db.ForeignKey('profit_structure.Structure_id'))
+    
+    #Item Authentication Fields
+    Expert_id = db.Column(db.Integer, db.ForeignKey('user.User_id'), nullable=True)
+    Verified = db.Column(db.Boolean, nullable=False)
+    Authentication_request = db.Column(db.Boolean, nullable=False)
+    Authentication_request_approved = db.Column(db.Boolean, nullable=True)
+    Second_opinion = db.Column(db.Boolean, nullable=True)
 
     #Relationships
     Images = db.relationship('Images', backref='item', lazy=True)
@@ -100,7 +104,7 @@ class Bidding_history(db.Model):
     Item_id = db.Column(db.Integer, db.ForeignKey('items.Item_id'), nullable=False)
     Bidder_id = db.Column(db.Integer, db.ForeignKey('user.User_id'), nullable=False)
     Successful_bid = db.Column(db.Boolean, nullable=False)
-    Bid_datetime = db.Column(db.DateTime, default=datetime.datetime.now(datetime.UTC), nullable=False)
+    Bid_datetime = db.Column(db.DateTime, default=datetime.datetime.now(datetime.UTC))
     Bid_price = db.Column(db.Float, nullable=False)
 
 # This is for ID24, enforcing different profit structures for the website
@@ -109,4 +113,3 @@ class Profit_structure(db.Model):
     Expert_split = db.Column(db.Float, nullable=False)
     Manager_split = db.Column(db.Float, nullable=False)
     Enforced_datetime = db.Column(db.DateTime, default=datetime.datetime.utcnow)
-

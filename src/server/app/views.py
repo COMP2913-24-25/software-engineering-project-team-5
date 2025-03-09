@@ -1050,6 +1050,7 @@ def update_profit_structure():
     else:
         return jsonify({"message": "No user logged in"}), 401
 
+
 @app.route("/api/get-sold", methods=["GET"])
 def get_sold():
     """
