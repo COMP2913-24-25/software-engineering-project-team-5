@@ -11,6 +11,7 @@ import BiddingHistory from "./pages/biddinghistory";
 import CurrentBids from "./pages/currentbids";
 import CreateListing from "./pages/create_listing";
 import AccountSummary from "./pages/accountsummary";
+import CurrentListings from "./pages/current_listings";
 
 import WeeklyProfits from "./pages/manager/profits";
 import CustomerTable from "./pages/manager/custinfo";
@@ -20,6 +21,7 @@ import SearchExperts from "./pages/manager/searchexp";
 import EAuthRequests from "./pages/expert/expertauthreq";
 import EnlargedExpertAuthRequest from "./pages/expert/enlargedexpertauthrequest";
 import Profile from "./pages/expert/profile";
+import Navbar from "./components/navbar";
 
 // Creates a global state to store user information and CSRF token information
 // Makes it available to ANY component in the app
@@ -100,6 +102,7 @@ export const UserProvider = ({ children }) => {
 
 function App() {
     const [activeSubMenu, setActiveSubMenu] = useState(null); // Tracks which submenu is active
+    const [searchQuery, setSearchQuery] = useState(""); // Tracks user search input
 
     // Function to handle submenu toggle
     const toggleSubMenu = (menu) => {
@@ -112,67 +115,9 @@ function App() {
             <Router>
                 <NotificationProvider>
                     <div className="navbar">
-                        <Link to="/" onClick={() => setActiveSubMenu(null)}>
-                            Login
-                        </Link>
-                        <Link
-                            to="/signup"
-                            onClick={() => setActiveSubMenu(null)}
-                        >
-                            Signup
-                        </Link>
-                        <Link
-                            to="/accountsummary"
-                            onClick={() => setActiveSubMenu(null)}
-                        >
-                            Account Summary
-                        </Link>
-                        <Link
-                            to="/home-page"
-                            onClick={() => setActiveSubMenu(null)}
-                        >
-                            Homepage
-                        </Link>
-                        <Link
-                            to="/seller-dash"
-                            onClick={() => setActiveSubMenu(null)}
-                        >
-                            Seller Dashboard
-                        </Link>
-                        <Link
-                            to="/watchlist"
-                            onClick={() => setActiveSubMenu(null)}
-                        >
-                            Watchlist
-                        </Link>
-                        <Link
-                            to="/bidding-history"
-                            onClick={() => setActiveSubMenu(null)}
-                        >
-                            Bidding History
-                        </Link>
-                        <Link
-                            to="/current-bids"
-                            onClick={() => setActiveSubMenu(null)}
-                        >
-                            Current Bids
-                        </Link>
-
-                        {/* Expert View Dropdown */}
-                        <button
-                            className="nav-button"
-                            onClick={() => toggleSubMenu("expert")}
-                        >
-                            Expert View
-                        </button>
-
-                        {/* Manager View Dropdown */}
-                        <button
-                            className="nav-button"
-                            onClick={() => toggleSubMenu("manager")}
-                        >
-                            Manager View
-                        </button>
+                      <Navbar 
+                        searchQuery={searchQuery} setSearchQuery={setSearchQuery} 
+                      /> 
                     </div>
 
                     {/* Expert View Sub Navbar */}
@@ -208,6 +153,8 @@ function App() {
                             >
                                 CustomerInfo
                             </Link>
+                                                <Route path="/current_listings" element={<CurrentListings />} />
+
                             <Link
                                 to="/manager/auth"
                                 onClick={() => setActiveSubMenu(null)}
@@ -240,6 +187,10 @@ function App() {
                             path="/bidding-history"
                             element={<BiddingHistory />}
                         />
+                        <Route
+                        path="/current_listings"
+                        element={<CurrentListings searchQuery={searchQuery} />}
+                    />
                         <Route path="/current-bids" element={<CurrentBids />} />
                         <Route
                             path="/create-listing"
