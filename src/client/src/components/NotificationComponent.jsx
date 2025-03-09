@@ -2,10 +2,11 @@ import React, { createContext, useContext, useState, useEffect, useRef } from "r
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
-import {useCSRF} from "../App";
+import { useUser, useCSRF } from "../App";
 // Create Notification Context
 const NotificationContext = createContext();
 export const NotificationProvider = ({ children }) => {
+    const { user } = useUser();
     const {csrfToken} = useCSRF();
     const navigate = useNavigate();
     const [notifications, setNotifications] = useState([]);
@@ -57,8 +58,10 @@ export const NotificationProvider = ({ children }) => {
     };
 
     useEffect(() => {
+        if (user?.level_of_access === 2 ){
         const interval = setInterval(checkNewAuthRequests, 10000); //every 10 seconds check
         return () => clearInterval(interval);
+        }
     }, []);
 
     return (
