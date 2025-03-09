@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser, useCSRF } from "../App"; // Calls the user
 
+// This might need to be changed slightly to add an onClick function to the listing name to redirect to the correct listing.
 
 const Listing_item = (props) => {
 
