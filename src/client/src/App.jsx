@@ -4,6 +4,7 @@ import { NotificationProvider } from "./components/NotificationComponent";
 // Import your pages here
 import Login from "./pages/login";
 import Signup from "./pages/signup";
+import LogOut from "./pages/logout";
 import HomePage from "./pages/homepage";
 import SellerDashboard from "./pages/sellerdashboard";
 import WatchList from "./pages/watchlist";
@@ -122,6 +123,12 @@ function App() {
                             Signup
                         </Link>
                         <Link
+                            to="/logout"
+                            onClick={() => setActiveSubMenu(null)}
+                        >
+                            Log Out
+                        </Link>
+                        <Link
                             to="/accountsummary"
                             onClick={() => setActiveSubMenu(null)}
                         >
@@ -226,6 +233,7 @@ function App() {
                     <Routes>
                         <Route path="/" element={<Login />} />
                         <Route path="/signup" element={<Signup />} />
+                        <Route path="/logout" element={<LogOut />} />
                         <Route
                             path="/accountsummary"
                             element={<AccountSummary />}
