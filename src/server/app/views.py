@@ -11,6 +11,7 @@ from flask import (
     Flask,
     jsonify,
     session,
+    json
 )
 from flask_admin.contrib.sqla import ModelView
 from flask_login import login_user, login_required, logout_user, current_user
@@ -577,6 +578,16 @@ def Create_listing():
         # Bulk saves all the images in saved_images
         if saved_images:
             db.session.bulk_save_objects(saved_images)
+
+
+        # Adds the tags in.
+        tags = json.loads(request.form.get("tags", "[]"))
+        for tag in tags:
+            middle_type_record = Middle_type(
+                Item_id = listing.Item_id,
+                Type_id = tag
+            )
+            db.session.add(middle_type_record)
 
         # Commits to complete the transaction
         db.session.commit()
@@ -1174,3 +1185,25 @@ def check_watchlist():
             return jsonify({"in_watchlist": False}), 200
     else:
         return jsonify({"message": "No user logged in"}), 401
+    
+@app.route("/api/get-tags", methods=["GET"])
+def get_tags():
+    """
+    Gets all the tags from the tags table
+
+    Returns:
+        json_object: A list of all the tags and their respective ids
+        status_code: HTTP status code (200 for success, 400 for bad request)
+    """
+
+    try:
+        # Checks if the types are available
+        available_types = (
+            db.session.query(Types).all()
+        )
+
+        return jsonify([{"Type_id": t.Type_id, "Type_name": t.Type_name} for t in available_types]), 200
+
+    except Exception as e:
+        print("Error: ", e)
+        return jsonify({"Error": "Failed to retrieve types"}), 400
