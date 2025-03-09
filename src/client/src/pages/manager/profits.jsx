@@ -9,7 +9,6 @@ export default function Dashboard() {
     const navigate = useNavigate();
     const { csrfToken } = useCSRF(); // Access the CSRF token
 
-    const [soldItems, setSoldItems] = useState([]);
     const [managerSplit, setManagerSplit] = useState(0.01); // Default 1% split
     const [expertSplit, setExpertSplit] = useState(0.04); // Default 4% split
     const [userSplit, setUserSplit] = useState(0.95); // Default remaining user split
@@ -29,8 +28,12 @@ export default function Dashboard() {
         try {
             const response = await fetch("http://localhost:5000/api/get-profit-structure", {
                 method: "GET",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": csrfToken // Include CSRF token in header
+                },
                 credentials: "include",
+
             });
 
             const data = await response.json();
@@ -89,7 +92,7 @@ export default function Dashboard() {
 
             const data = await response.json();
             if (response.ok) {
-                setSoldItems(data.sold_items);
+                console.log(data)
                 const profitData = calculateProfit(data.sold_items);
                 setWeeklyProfits(profitData);
             } else {
@@ -100,7 +103,6 @@ export default function Dashboard() {
         }
     };
 
-    // Calculate weekly profits (similar to `calculate_time_remaining` logic)
     const calculateProfit = (soldItems) => {
         const weeklyData = {};
 
@@ -108,14 +110,9 @@ export default function Dashboard() {
             const current_bid = item.Current_bid;
             let expertProfit = 0;
             let managerProfit = 0;
-            if (item.Expert) {
-                expertProfit = current_bid * item.Expert_split;
-                managerProfit = current_bid * item.Manager_split;
-            }
-            else {
-                expertProfit = current_bid * item.Expert_split;
-                managerProfit = current_bid * item.Manager_split;
-            }
+
+            expertProfit = current_bid * item.Expert_split;
+            managerProfit = current_bid * item.Manager_split;
 
             const sold_date = new Date(item.Available_until);
 
@@ -174,13 +171,13 @@ export default function Dashboard() {
             <div className="profit-structure p-4 border rounded shadow-lg">
                 <h3 className="font-bold mb-4">Update Profit Structure</h3>
                 <div className="mb-4">
-                    <label htmlFor="manager-split" className="block text-sm">Manager Split:</label>
+                    <label htmlFor="manager-split" className="block text-sm">Manager percentage split (%):</label>
                     <input
                         type="number"
                         id="manager-split"
-                        value={managerSplit}
+                        value={managerSplit * 100}
                         onChange={(e) => {
-                            const value = parseFloat(e.target.value);
+                            const value = parseFloat(e.target.value / 100);
                             setManagerSplit(value);
                             setUserSplit(1 - value - expertSplit); // Update user split automatically
                         }}
@@ -188,13 +185,13 @@ export default function Dashboard() {
                     />
                 </div>
                 <div className="mb-4">
-                    <label htmlFor="expert-split" className="block text-sm">Expert Split:</label>
+                    <label htmlFor="expert-split" className="block text-sm">Expert percentage split (%):</label>
                     <input
                         type="number"
                         id="expert-split"
-                        value={expertSplit}
+                        value={expertSplit * 100}
                         onChange={(e) => {
-                            const value = parseFloat(e.target.value);
+                            const value = parseFloat(e.target.value / 100);
                             setExpertSplit(value);
                             setUserSplit(1 - managerSplit - value); // Update user split automatically
                         }}
@@ -202,11 +199,11 @@ export default function Dashboard() {
                     />
                 </div>
                 <div className="mb-4">
-                    <label htmlFor="user-split" className="block text-sm">User Split:</label>
+                    <label htmlFor="user-split" className="block text-sm">User percentage split (%):</label>
                     <input
                         type="number"
                         id="user-split"
-                        value={userSplit}
+                        value={(userSplit * 100).toFixed(3)}
                         readOnly
                         className="border rounded p-2 bg-gray-200"
                     />

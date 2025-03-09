@@ -801,7 +801,7 @@ def get_profit_structure():
 
     Returns:
         json_object: containing the most recent profit structure's details
-        status_code: HTTP status code (200 for success, 404 for no profit structure, 500 for server error)
+        status_code: HTTP status code (200 for success, 404 for incorrect level of access / no user, 500 for server error)
     """
     if current_user.is_authenticated:
         if current_user.Level_of_access == 3:  
@@ -811,7 +811,7 @@ def get_profit_structure():
 
                 if prof_struct:
                     # Create a dictionary to return the profit structure details
-                    profit_data = {  # Changed from list to dictionary
+                    profit_data = {
                         "structure_id": prof_struct.Structure_id,
                         "expert_split": prof_struct.Expert_split,
                         "manager_split": prof_struct.Manager_split,
@@ -832,10 +832,15 @@ def get_profit_structure():
     else:
         return jsonify({"message": "No user logged in"}), 401        
 
+
 @app.route("/api/update-profit-structure", methods=["POST"])
 def update_profit_structure():
     """
     Appends a new profit structure to the database based on the manager's request.
+    
+    Returns:
+        json_object: status of how the structure update went
+        status_code: HTTP status code (200 for success, 400 for validation errors, 401 for incorrect level of access / no user, 500 for server error)
     """
     if current_user.is_authenticated:
         if current_user.Level_of_access == 3:    
@@ -871,19 +876,17 @@ def update_profit_structure():
 def get_sold():
     """
     Fetches all the sold items (items that are past their 'available_until' dates) and links with the profit structure.
+    
+    Returns:
+        json_object: details of all the items that were "sold"
+        status_code: HTTP status code (200 for success, 401 for incorrect level of access / no user, 500 for server error)
     """
     if current_user.is_authenticated:
         if current_user.Level_of_access == 3:
             try:
-                
-                # Query the database for items where 'available_until' is in the past, joining with Profit_structure
-                sold_items = db.session.query(Items, Profit_structure).join(
-                    Profit_structure, Profit_structure.Structure_id == Items.Structure_id
-                ).filter(Items.Available_until < datetime.datetime.now()).all()
-
                 sold_items = (
                     Items.query
-                    .join(Profit_structure, Items.Structure_id == Profit_structure.Structure_id)
+                    .outerjoin(Profit_structure, Items.Structure_id == Profit_structure.Structure_id)
                     .filter(Items.Available_until < datetime.datetime.now())
                     .with_entities(
                         Items.Item_id, Items.Listing_name, Items.Seller_id, Items.Upload_datetime,
@@ -893,9 +896,11 @@ def get_sold():
                     )
                 )
 
-                # Prepare the response data
                 sold_items_data = []
                 for item in sold_items:
+                    eSplit = item.Expert_split if item.Expert_split is not None else 0.04
+                    mSplit = item.Manager_split if item.Manager_split is not None else 0.01
+
                     sold_items_data.append({
                         "Item_id": item.Item_id,
                         "Listing_name": item.Listing_name,
@@ -906,19 +911,16 @@ def get_sold():
                         "Current_bid": item.Current_bid,
                         "Structure_id": item.Structure_id,
                         "Expert_id": item.Expert_id,
-                        "Expert_split": item.Expert_split,
-                        "Manager_split": item.Manager_split,
-                        "Enforced_datetime": item.Enforced_datetime
+                        "Expert_split": eSplit,
+                        "Manager_split": mSplit,
+                        "Enforced_datetime": item.Enforced_datetime if item.Enforced_datetime is not None else None
                     })
 
-                # Return the list of sold items as a JSON response
                 return jsonify({"sold_items": sold_items_data}), 200
 
             except Exception as e:
-                # Handle any unexpected errors and return a 500 error
                 return jsonify({"error": f"Server error: {str(e)}"}), 500
         else: 
             return jsonify({"message": "User is not on correct level of access!"}), 401
     else:
         return jsonify({"message": "No user logged in"}), 401
-
