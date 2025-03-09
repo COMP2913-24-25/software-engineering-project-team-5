@@ -11,6 +11,7 @@ from flask import (
     Flask,
     jsonify,
     session,
+    json
 )
 from flask_admin.contrib.sqla import ModelView
 from flask_login import login_user, login_required, logout_user, current_user
@@ -580,6 +581,16 @@ def Create_listing():
         if saved_images:
             db.session.bulk_save_objects(saved_images)
 
+
+        # Adds the tags in.
+        tags = json.loads(request.form.get("tags", "[]"))
+        for tag in tags:
+            middle_type_record = Middle_type(
+                Item_id = listing.Item_id,
+                Type_id = tag
+            )
+            db.session.add(middle_type_record)
+
         # Commits to complete the transaction
         db.session.commit()
 
@@ -593,7 +604,7 @@ def Create_listing():
         return jsonify({"error": "Failed to create listing in the backend"}), 500
 
 
-@app.route("/api/get-items", methods=["GET"])
+@app.route("/api/get-items", methods=["POST"])
 def get_listings():
     """
     Retrieves the item details from the database that are still available.
@@ -650,6 +661,172 @@ def get_listings():
     except Exception as e:
         print("Error: ", e)
         return jsonify({"Error": "Failed to retrieve items"}), 401
+
+
+@app.route("/api/get-bids", methods=["GET"])
+def get_bids():
+    """
+    Retrieves the user's current bids from the database, ensuring that only the highest bid for each item
+    is returned, if they are currently logged in.
+
+    Returns:
+        json_object: dictionary containing the user's highest bid per item
+        status_code: HTTP status code (200 for success, 
+                                       401 for unauthorized access,
+                                       400 for no bidding information)
+    """
+
+    # Checks if user is logged in
+    if current_user.is_authenticated:
+        bid_data = (
+            Bidding_history.query
+            .join(Items, Bidding_history.Item_id == Items.Item_id)  # Join Items table
+            .join(User, Items.Seller_id == User.User_id)  # Join User table to get seller info
+            .outerjoin(Images, Items.Item_id == Images.Item_id)  # Outer join Images table to get item image
+            .filter(
+                Bidding_history.Bidder_id == current_user.User_id,
+                Items.Available_until > datetime.datetime.now()  # Only valid bids
+            )
+            .with_entities(
+                Bidding_history.Bid_id,
+                Bidding_history.Bid_price,
+                Bidding_history.Bid_datetime,
+                Bidding_history.Successful_bid,
+                Items.Item_id,
+                Items.Listing_name,
+                Items.Description,
+                Items.Current_bid,
+                Items.Available_until,
+                User.Username,
+                Images.Image,
+                Images.Image_description,
+                Items.Min_price
+            )
+            .order_by(Items.Item_id, Bidding_history.Bid_price.desc())  # Order by Item and Bid Price (descending)
+            .all()
+        )
+
+        if not bid_data:
+            return jsonify({"message": "No current bids"}), 400
+        
+        # Create a dictionary to store the highest bid per item
+        unique_bids = {}
+        
+        for item in bid_data:
+            if item.Item_id not in unique_bids:
+                # Save the first bid for this item (the highest one, because of ordering)
+                image_data = item.Image
+                image_base64 = None
+                if image_data:
+                    # Base64 encode the image if it exists
+                    image_base64 = base64.b64encode(image_data).decode('utf-8')
+
+                unique_bids[item.Item_id] = {
+                    "Bid_id": item.Bid_id,
+                    "Bid_price": item.Bid_price,
+                    "Bid_datetime": item.Bid_datetime,
+                    "Successful_bid": item.Successful_bid,
+                    "Item_id": item.Item_id,
+                    "Listing_name": item.Listing_name,
+                    "Description": item.Description,
+                    "Current_bid": item.Current_bid,
+                    "Available_until": item.Available_until,
+                    "Seller_name": item.Username,
+                    "Image": image_base64,
+                    "Image_description": item.Image_description or "No Image",
+                    "Min_price": item.Min_price
+                }
+
+        # Convert dictionary to list for JSON response
+        current_bids = list(unique_bids.values())
+
+        return jsonify({"bids": current_bids}), 200
+    
+    else:
+        return jsonify({"message": "No user logged in"}), 401
+
+
+@app.route("/api/get-history", methods=["GET"])
+def get_history():
+    """
+    Retrieves the user's expired bids from the database, ensuring that only the highest bid for each item
+    is returned, if they are currently logged in.
+
+    Returns:
+        json_object: dictionary containing the user's highest bid per item
+        status_code: HTTP status code (200 for success, 
+                                       401 for unauthorized access,
+                                       400 for no bidding information)
+    """
+
+    # Checks if user is logged in
+    if current_user.is_authenticated:
+        bid_data = (
+            Bidding_history.query
+            .join(Items, Bidding_history.Item_id == Items.Item_id)  # Join Items table
+            .join(User, Items.Seller_id == User.User_id)  # Join User table to get seller info
+            .outerjoin(Images, Items.Item_id == Images.Item_id)  # Outer join Images table to get item image
+            .filter(
+                Bidding_history.Bidder_id == current_user.User_id,
+                Items.Available_until < datetime.datetime.now()  # Only expired bids
+            )
+            .with_entities(
+                Bidding_history.Bid_id,
+                Bidding_history.Bid_price,
+                Bidding_history.Bid_datetime,
+                Bidding_history.Successful_bid,
+                Items.Item_id,
+                Items.Listing_name,
+                Items.Description,
+                Items.Current_bid,
+                Items.Available_until,
+                User.Username,
+                Images.Image,
+                Images.Image_description,
+                Items.Min_price
+            )
+            .order_by(Items.Item_id, Bidding_history.Bid_price.desc())  # Order by Item and Bid Price (descending)
+            .all()
+        )
+
+        if not bid_data:
+            return jsonify({"message": "No expired bids"}), 400
+        
+        # Create a dictionary to store the highest bid per item
+        unique_bids = {}
+        
+        for item in bid_data:
+            if item.Item_id not in unique_bids:
+                # Save the first bid for this item (the highest one, because of ordering)
+                image_data = item.Image
+                image_base64 = None
+                if image_data:
+                    # Base64 encode the image if it exists
+                    image_base64 = base64.b64encode(image_data).decode('utf-8')
+
+                unique_bids[item.Item_id] = {
+                    "Bid_id": item.Bid_id,
+                    "Bid_price": item.Bid_price,
+                    "Bid_datetime": item.Bid_datetime,
+                    "Successful_bid": item.Successful_bid,
+                    "Item_id": item.Item_id,
+                    "Listing_name": item.Listing_name,
+                    "Description": item.Description,
+                    "Current_bid": item.Current_bid,
+                    "Available_until": item.Available_until,
+                    "Seller_name": item.Username,
+                    "Image": image_base64,
+                    "Image_description": item.Image_description or "No Image",
+                    "Min_price": item.Min_price
+                }
+
+        # Convert dictionary to list for JSON response
+        history = list(unique_bids.values())
+
+        return jsonify({"history": history}), 200
+    
+    else:
+        return jsonify({"message": "No user logged in"}), 401
 
 
 @app.route("/api/get-pending-auth", methods=["GET"])
@@ -794,6 +971,7 @@ def update_item_auth():
     return jsonify({"message": "User has invalid access level"}), 401
 
 
+
 @app.route("/api/get-profit-structure", methods=["GET"])
 def get_profit_structure():
     """
@@ -924,3 +1102,243 @@ def get_sold():
             return jsonify({"message": "User is not on correct level of access!"}), 401
     else:
         return jsonify({"message": "No user logged in"}), 401
+
+
+@app.route("/api/get-single-listing", methods=["POST"])
+def get_single_listing():
+    """
+    Gets listing information for a given item ID
+
+    Returns:
+        json_object:  containing the item details
+        status_code: HTTP status code (200 for success,
+                                       400 for error)
+    """
+
+    try:
+        data = request.json
+
+        item = Items.query.filter_by(Item_id=data["Item_id"]).first()
+        seller = User.query.filter_by(User_id=item.Seller_id).first()
+        images = Images.query.filter_by(Item_id=item.Item_id).all()
+
+        item_details = {
+            "Item_id": item.Item_id,
+            "Listing_name": item.Listing_name,
+            "Description": item.Description,
+            "Seller_name": seller.First_name + " " + seller.Surname,
+            "Seller_id": item.Seller_id,
+            "Seller_username": seller.Username,
+            "Upload_datetime": item.Upload_datetime,
+            "Min_price": item.Min_price,
+            "Approved": item.Authentication_request_approved,
+            "Second_opinion": item.Second_opinion,
+            "Images": [
+                base64.b64encode(image.Image).decode("utf-8") for image in images
+            ],
+        }
+
+        return jsonify(item_details), 200
+
+    except Exception as e:
+        print("Error: ", e)
+        return jsonify({"Error": "Failed to retrieve items"}), 400
+
+
+@app.route("/api/request-second-opinion", methods=["POST"])
+def request_second_opinion():
+    """
+    Updates Item details - unassigns expert ID and sets Second_opinion
+    flag to true
+
+    Returns:
+        json_object:  containing success or error message
+        status_code: HTTP status code (200 for success,
+                                       401 for unauthorized access)
+    """
+
+    # Checks if the user is logged in
+    if current_user.is_authenticated:
+        if current_user.Level_of_access == 2:
+            data = request.json
+            item = Items.query.filter_by(Item_id=data["Item_id"]).first()
+
+            item.Second_opinion = True
+            item.Expert_id = None
+
+            db.session.commit()
+
+            return jsonify({"message": "Details Updated Successfully"}), 200
+
+        return jsonify({"message": "Invalid Level of Access"}), 401
+
+    return jsonify({"message": "No user logged in"}), 401
+
+
+@app.route("/api/get-watchlist", methods=["GET"])
+def get_watchlist():
+    """
+    Retrieves the user's watchlist items if they are currently logged in.
+
+    Returns:
+        json_object: dictionary containing the user's watchlist items
+        status_code: HTTP status code (200 for success, 401 for unauthorized access)
+    """
+    if current_user.is_authenticated:
+        
+        # Fetch all watchlist items in one query
+        watchlist_items = (
+            Watchlist.query
+            .join(Items, Watchlist.Item_id == Items.Item_id)  # Join Items table
+            .join(User, Items.Seller_id == User.User_id)  # Join Users table
+            .outerjoin(Images, Items.Item_id == Images.Item_id)  # Join Images table
+            .filter(Watchlist.User_id == current_user.User_id)
+            .with_entities(
+                Items.Item_id, Items.Listing_name, Items.Description, Items.Current_bid, 
+                Items.Available_until, User.Username.label("Seller_name"), 
+                Images.Image, Images.Image_description, Items.Min_price
+            )
+            .all()
+        )
+
+        if not watchlist_items:
+            return jsonify({"message": "No items in watchlist"}), 200
+
+        # Convert query results to JSON
+        watchlist_data = []
+        for item in watchlist_items:
+            image_data = item.Image
+            image_base64 = None
+            if image_data:
+                # Base64 encode the image if it exists
+                image_base64 = base64.b64encode(image_data).decode('utf-8')
+
+            watchlist_data.append({
+                "Item_id": item.Item_id,
+                "Listing_name": item.Listing_name,
+                "Description": item.Description,
+                "Current_bid": item.Current_bid,
+                "Min_price": item.Min_price if item.Min_price is not None else 0,
+                "Available_until": item.Available_until,
+                "Seller_name": item.Seller_name,
+                "Image": image_base64,
+                "Image_description": item.Image_description if item.Image_description else "No description available"
+            })
+
+        return jsonify({"watchlist": watchlist_data}), 200
+
+    else:
+        return jsonify({"message": "No user logged in"}), 401
+
+
+@app.route("/api/remove-watchlist", methods=["POST"])
+def remove_watchlist():
+    """
+    Removes an item from the user's watchlist if they are logged in.
+
+    Returns:
+        json_object: success message or error message
+        status_code: HTTP status code (200 for success, 400 for bad request, 401 for unauthorized access)
+    """
+    if current_user.is_authenticated:
+
+        data = request.get_json()
+        item_id = data.get("item_id")
+
+        if not item_id:
+            return jsonify({"message": "Missing item IDr"}), 400
+
+        # Find the watchlist entry
+        watchlist_entry = Watchlist.query.filter_by(User_id=current_user.User_id, Item_id=item_id).first()
+
+        if not watchlist_entry:
+            return jsonify({"message": "Item not found in watchlist"}), 404
+
+        # Remove the item from the watchlist
+        db.session.delete(watchlist_entry)
+        db.session.commit()
+
+        return jsonify({"message": "Item removed from watchlist"}), 200
+    else:
+        return jsonify({"message": "No user logged in"}), 401
+     
+
+@app.route("/api/add-watchlist", methods=["POST"])
+def add_watchlist():
+    """
+    Adds an item to the user's watchlist if they are logged in.
+
+    Returns:
+        json_object: success message or error message
+        status_code: HTTP status code (200 for success, 400 for bad request, 401 for unauthorized access, 405 for conflict)
+    """
+    if current_user.is_authenticated:
+
+        data = request.get_json()
+        item_id = data.get("item_id")
+
+        if not item_id:
+            return jsonify({"message": "Missing item ID"}), 400
+
+
+        # Check if item already exists in the watchlist
+        existing_entry = Watchlist.query.filter_by(User_id=current_user.User_id, Item_id=item_id).first()
+        if existing_entry:
+            return jsonify({"message": "Item already in watchlist"}), 405
+
+        # Add new watchlist entry
+        new_watchlist_entry = Watchlist(User_id=current_user.User_id, Item_id=item_id)
+        db.session.add(new_watchlist_entry)
+        db.session.commit()
+
+        return jsonify({"message": "Item added to watchlist"}), 200
+    else:    
+        return jsonify({"message": "No user logged in"}), 401
+
+@app.route("/api/check-watchlist", methods=["GET"])
+def check_watchlist():
+    """
+    Checks if an item is in the user's watchlist.
+
+    Returns:
+        json_object: Boolean result or error message.
+        status_code: HTTP status code (200 for success, 400 for bad request, 401 for unauthorized access).
+    """
+    if current_user.is_authenticated:
+        item_id = request.args.get("Item_id")
+
+        if not item_id:
+            return jsonify({"message": "Missing item ID"}), 400
+
+
+        checking_entry = Watchlist.query.filter_by(User_id=current_user.User_id, Item_id=item_id).first()
+
+        if checking_entry:
+            return jsonify({"in_watchlist": True}), 200
+        else:
+            return jsonify({"in_watchlist": False}), 200
+    else:
+        return jsonify({"message": "No user logged in"}), 401
+    
+@app.route("/api/get-tags", methods=["GET"])
+def get_tags():
+    """
+    Gets all the tags from the tags table
+
+    Returns:
+        json_object: A list of all the tags and their respective ids
+        status_code: HTTP status code (200 for success, 400 for bad request)
+    """
+
+    try:
+        # Checks if the types are available
+        available_types = (
+            db.session.query(Types).all()
+        )
+
+        return jsonify([{"Type_id": t.Type_id, "Type_name": t.Type_name} for t in available_types]), 200
+
+    except Exception as e:
+        print("Error: ", e)
+        return jsonify({"Error": "Failed to retrieve types"}), 400
+

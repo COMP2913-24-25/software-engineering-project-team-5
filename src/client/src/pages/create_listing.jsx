@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useUser, useCSRF } from "../App"; // Access the user
 import { useNavigate } from "react-router-dom";
+import Tag_selector from "../components/tags_dropdown";
 
 const CreateListing = () => {
     /*
@@ -33,6 +34,8 @@ const CreateListing = () => {
     // Error dictionary to display errors when doing client side validation
     const [errors, setErrors] = useState({});
 
+    const [selected_tags, set_selected_tags] = useState([]);
+    
     useEffect(() => {
         if (user) {
             setFormData((prevData) => ({
@@ -99,7 +102,6 @@ const CreateListing = () => {
     // Handle form submission - asynchronous function, as the function needs to wait
     // for the servers response before continuing
     const handle_submit = async (event) => {
-      console.log(formData)
         // Prevents resubmission when form is being submitted
         event.preventDefault();
 
@@ -116,6 +118,8 @@ const CreateListing = () => {
             return;
         }
 
+        const selected_tag_names = selected_tags.map(tag => tag.value);
+
         // Need to append the data again because FormData doesn't automatically include the existing formData.
         // This handles both text fields and files unlike FormData
         const form_data_to_send = new FormData();
@@ -128,6 +132,9 @@ const CreateListing = () => {
                 form_data_to_send.append(key, value);
             }
         });
+
+        // Appends the tags as a JSON string
+        form_data_to_send.append("tags", JSON.stringify(selected_tag_names));
 
         // After client-side validation has been passed, makes a HTTP POST request to the
         // server to authenticate the user. The route/url passed has to be the same as the route
@@ -229,6 +236,11 @@ const CreateListing = () => {
                                     )
                                 )}
                         </div>
+
+                        <div>
+                            <Tag_selector selected_tags={selected_tags} set_selected_tags={set_selected_tags} />
+                        </div>
+
                         <div>
                             <input
                                 className="form-control"
