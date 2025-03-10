@@ -28,6 +28,7 @@ from .models import (
     Types,
     Watchlist,
     Bidding_history,
+    Availabilities
 )
 from .forms import login_form, sign_up_form, Create_listing_form, update_user_form
 
@@ -1207,3 +1208,51 @@ def get_tags():
     except Exception as e:
         print("Error: ", e)
         return jsonify({"Error": "Failed to retrieve types"}), 400
+    
+@app.route("/api/set-availability", methods=["POST"])
+def set_availability():
+    """
+    Sets the availabilities for each user.
+    If the expert has already set availabilities for the upcoming week, the existing records are deleted and replaced with the new ones
+    """
+    try:
+        data = request.json
+        availability = data.get("availability")
+        week_start_date = data.get("week_start_date")
+
+
+        # Deletes all existing availabilites for the same upcoming week
+        existing_availabilities = Availabilities.query.filter(
+            Availabilities.Expert_id == current_user.User_id,
+            Availabilities.Week_start_date == datetime.datetime.strptime(week_start_date, "%Y-%m-%d").date()
+        ).delete()
+
+
+
+        # Goes through each of the days and the time blocks, then add each new block to the availability table.
+
+        for day, time_blocks in availability.items():
+            days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].index(day) + 1
+            for block in time_blocks:
+                new_availability = Availabilities(
+                    Expert_id = current_user.User_id,
+                    Day_of_week=days,
+                    Start_time = datetime.datetime.strptime(block["start_time"], "%H:%M").time(),
+                    End_time = datetime.datetime.strptime(block["end_time"], "%H:%M").time(),
+                    Week_start_date = datetime.datetime.strptime(week_start_date, "%Y-%m-%d").date()
+                )
+                db.session.add(new_availability)
+
+
+
+        # Commits to complete the transaction
+        db.session.commit()
+
+        # Returns a success message and a status code of 200 (ok)
+        return jsonify({"message": "Availability set successfully"}), 200
+
+    except Exception as e:
+        # If there are any errors, then we need to rollback to ensure the integrity of our database.
+        db.session.rollback()
+        print(f"Error: {e}")
+        return jsonify({"error": "Failed to set availability"}), 500
