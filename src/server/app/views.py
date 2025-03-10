@@ -1071,14 +1071,22 @@ def get_sold():
                         Items.Item_id, Items.Listing_name, Items.Seller_id, Items.Upload_datetime,
                         Items.Available_until, Items.Min_price, Items.Current_bid, Items.Structure_id,
                         Items.Expert_id, Profit_structure.Expert_split, Profit_structure.Manager_split, 
-                        Profit_structure.Enforced_datetime
+                        Profit_structure.Enforced_datetime, Items.Authentication_request_approved
                     )
                 )
 
                 sold_items_data = []
                 for item in sold_items:
-                    eSplit = item.Expert_split if item.Expert_split is not None else 0.04
-                    mSplit = item.Manager_split if item.Manager_split is not None else 0.01
+                    eSplit = item.Expert_split
+                    mSplit = item.Manager_split
+
+                    if item.Authentication_request_approved is False:
+                        eSplit = 0
+                        mSplit = 0.01
+                    else:
+                        if item.Structure_id is None:
+                            eSplit = 0.04
+                            mSplit = 0.01
 
                     sold_items_data.append({
                         "Item_id": item.Item_id,
@@ -1092,7 +1100,8 @@ def get_sold():
                         "Expert_id": item.Expert_id,
                         "Expert_split": eSplit,
                         "Manager_split": mSplit,
-                        "Enforced_datetime": item.Enforced_datetime if item.Enforced_datetime is not None else None
+                        "Enforced_datetime": item.Enforced_datetime,
+                        "Authentication_request_approved": item.Authentication_request_approved
                     })
 
                 return jsonify({"sold_items": sold_items_data}), 200
