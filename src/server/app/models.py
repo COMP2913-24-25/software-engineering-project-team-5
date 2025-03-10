@@ -106,3 +106,12 @@ class Bidding_history(db.Model):
     Bid_datetime = db.Column(db.DateTime, default=datetime.datetime.now(datetime.UTC))
     Bid_price = db.Column(db.Float, nullable=False)
 
+class Availabilities(db.Model):
+    #Columns
+    Availability_id = db.Column(db.Integer, primary_key=True)
+    Expert_id = db.Column(db.Integer, db.ForeignKey('user.User_id'), nullable=False)
+    Day_of_week = db.Column(db.Integer, nullable=False)
+    Start_time = db.Column(db.Time, nullable=False)
+    End_time = db.Column(db.Time, nullable=False)
+    Week_start_date = db.Column(db.Date, nullable=False)
+
