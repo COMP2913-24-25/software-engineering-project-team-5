@@ -370,7 +370,73 @@ def update_user_details():
 
     return jsonify({"message": "No user logged in"}), 401
 
+@app.route("/api/get_filtered_listings", methods =["POST"])
+def get_filtered_listings():
+   
+    """Filters listings based on the selected price range. (will be implementing more categories)
 
+    Receives a JSON payload containing:
+    - price_range (str): Selected price filter category.
+    - listing_Ids (list): List of listing IDs to filter.
+
+    Returns:
+    - JSON response with a list of filtered listing IDs that match the price range.
+    - Returns an error response if an exception occurs.
+    """
+    # Intakes all filter data 
+    # filter_price, filter_searchQuery, filter_bid_status
+    # These are NULL if filter is not applied or have the filter type parsed through
+    
+    try:
+        data = request.json
+        price_range = data.get("price_range", "")
+        listing_Ids = data.get("listing_Ids", [])
+        listing_Ids = list(map(int, listing_Ids))
+        filtered_listing_Ids = []
+        # print("DATAAAA", data)
+        if( price_range != ""):
+            for Id in listing_Ids :
+                item = Items.query.filter_by(Item_id = Id).first()
+                print(item.Listing_name)
+                if price_range == "less_than_50":
+                    if get_listing_price(item) < 50:
+                        filtered_listing_Ids.append(Id)
+                elif price_range == "50_200" :
+                    if get_listing_price(item) >= 50 and get_listing_price(item) < 200:
+                        filtered_listing_Ids.append(Id)
+                elif price_range == "200_500":
+                    if get_listing_price(item) >= 200 and get_listing_price(item) <= 500:
+                        filtered_listing_Ids.append(Id)
+                elif price_range == "more_than_500":
+                    if get_listing_price(item) > 500:
+                        filtered_listing_Ids.append(Id)
+                    
+        return jsonify(filtered_listing_Ids)
+    
+    except Exception as e:
+        print(f"Error : {e}")
+        return jsonify({"error" : "Interal Server Error"}), 500
+
+
+def get_listing_price(listing):
+    """
+    Determines the correct price of a listing.
+
+    If the current bid is lower than the minimum price, the function returns the minimum price.
+    Otherwise, it returns the current bid.
+    
+    Args:
+    - listing (object): An item object containing 'Current_bid' and 'Min_price' attributes.
+    
+    Returns:
+    - int: The listing's current price.
+    """
+    if listing.Current_bid < listing.Min_price :
+        return listing.Min_price
+    else :
+        return listing.Current_bid
+        
+        
 @app.route("/api/update-address", methods=["POST"])
 def update_address():
     """
@@ -385,7 +451,8 @@ def update_address():
     """
     # Checks if user is logged in
     if current_user.is_authenticated:
-        data = request.json
+        data = request.json 
+        """ gets form_data from frontend"""
         user_id = current_user.User_id
 
         # Updates the parameter to be Boolean value
@@ -931,6 +998,11 @@ def get_expert_id():
             return jsonify({"Error": "Failed to retrieve experts"}), 500
 
     return jsonify({"message": "User has invalid access level"}), 401
+
+
+    
+    
+    
 
 
 @app.route("/api/update_item_auth", methods=["POST"])
