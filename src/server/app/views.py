@@ -28,7 +28,9 @@ from .models import (
     Types,
     Watchlist,
     Bidding_history,
+    Profit_structure,
     Availabilities
+
 )
 from .forms import login_form, sign_up_form, Create_listing_form, update_user_form
 
@@ -48,6 +50,7 @@ admin.add_view(ModelView(Middle_type, db.session))
 admin.add_view(ModelView(Types, db.session))
 admin.add_view(ModelView(Watchlist, db.session))
 admin.add_view(ModelView(Bidding_history, db.session))
+admin.add_view(ModelView(Profit_structure, db.session))
 
 
 @app.route("/api/login", methods=["POST"])
@@ -1043,6 +1046,148 @@ def update_item_auth():
 
 
 
+@app.route("/api/get-profit-structure", methods=["GET"])
+def get_profit_structure():
+    """
+    Retrieves the most recent profit structure from the database.
+
+    Returns:
+        json_object: containing the most recent profit structure's details
+        status_code: HTTP status code (200 for success, 404 for incorrect level of access / no user, 500 for server error)
+    """
+    if current_user.is_authenticated:
+        if current_user.Level_of_access == 3:  
+            try:
+                # Fetch the most recent profit structure, ordering by enforced_datetime descending
+                prof_struct = Profit_structure.query.order_by(Profit_structure.Enforced_datetime.desc()).first()
+
+                if prof_struct:
+                    # Create a dictionary to return the profit structure details
+                    profit_data = {
+                        "structure_id": prof_struct.Structure_id,
+                        "expert_split": prof_struct.Expert_split,
+                        "manager_split": prof_struct.Manager_split,
+                        "enforced_datetime": prof_struct.Enforced_datetime
+                    }
+
+                    return jsonify({"profit_data": profit_data}), 200
+                else:
+                    return jsonify({"message": "no profit structures reccorded"}), 200
+
+
+            except Exception as e:
+                import traceback
+                print("Error retrieving profit structure:", traceback.format_exc())  # Print full error stack
+                return jsonify({"Error": "Failed to retrieve profit structure"}), 500
+        else:
+            return jsonify({"message": "User is not on correct level of access!"}), 401
+    else:
+        return jsonify({"message": "No user logged in"}), 401        
+
+
+@app.route("/api/update-profit-structure", methods=["POST"])
+def update_profit_structure():
+    """
+    Appends a new profit structure to the database based on the manager's request.
+    
+    Returns:
+        json_object: status of how the structure update went
+        status_code: HTTP status code (200 for success, 400 for validation errors, 401 for incorrect level of access / no user, 500 for server error)
+    """
+    if current_user.is_authenticated:
+        if current_user.Level_of_access == 3:    
+            try:        
+                data = request.get_json()
+                manager_split = data.get("managerSplit")
+                expert_split = data.get("expertSplit")
+
+                if expert_split is None or manager_split is None:
+                    return jsonify({"message": "Expert split and Manager split are required"}), 400
+
+                if not (0 <= expert_split <= 1) or not (0 <= manager_split <= 1):
+                    return jsonify({"message": "Splits must be between 0 and 1."}), 400
+                
+                new_profit_structure = Profit_structure(
+                    Expert_split=expert_split,
+                    Manager_split=manager_split,
+                )
+
+                db.session.add(new_profit_structure)
+                db.session.commit()
+
+                return jsonify({"message": "Profit structure updated successfully!"}), 200
+
+            except Exception as e:
+                return jsonify({"error": str(e)}), 500
+        else: 
+            return jsonify({"message": "User is not on correct level of access!"}), 401
+    else:
+        return jsonify({"message": "No user logged in"}), 401
+
+
+@app.route("/api/get-sold", methods=["GET"])
+def get_sold():
+    """
+    Fetches all the sold items (items that are past their 'available_until' dates) and links with the profit structure.
+    
+    Returns:
+        json_object: details of all the items that were "sold"
+        status_code: HTTP status code (200 for success, 401 for incorrect level of access / no user, 500 for server error)
+    """
+    if current_user.is_authenticated:
+        if current_user.Level_of_access == 3:
+            try:
+                sold_items = (
+                    Items.query
+                    .outerjoin(Profit_structure, Items.Structure_id == Profit_structure.Structure_id)
+                    .filter(Items.Available_until < datetime.datetime.now())
+                    .with_entities(
+                        Items.Item_id, Items.Listing_name, Items.Seller_id, Items.Upload_datetime,
+                        Items.Available_until, Items.Min_price, Items.Current_bid, Items.Structure_id,
+                        Items.Expert_id, Profit_structure.Expert_split, Profit_structure.Manager_split, 
+                        Profit_structure.Enforced_datetime, Items.Authentication_request_approved
+                    )
+                )
+
+                sold_items_data = []
+                for item in sold_items:
+                    eSplit = item.Expert_split
+                    mSplit = item.Manager_split
+
+                    if item.Authentication_request_approved is False:
+                        eSplit = 0
+                        mSplit = 0.01
+                    else:
+                        if item.Structure_id is None:
+                            eSplit = 0.04
+                            mSplit = 0.01
+
+                    sold_items_data.append({
+                        "Item_id": item.Item_id,
+                        "Listing_name": item.Listing_name,
+                        "Seller_id": item.Seller_id,
+                        "Upload_datetime": item.Upload_datetime,
+                        "Available_until": item.Available_until,
+                        "Min_price": item.Min_price,
+                        "Current_bid": item.Current_bid,
+                        "Structure_id": item.Structure_id,
+                        "Expert_id": item.Expert_id,
+                        "Expert_split": eSplit,
+                        "Manager_split": mSplit,
+                        "Enforced_datetime": item.Enforced_datetime,
+                        "Authentication_request_approved": item.Authentication_request_approved
+                    })
+
+                return jsonify({"sold_items": sold_items_data}), 200
+
+            except Exception as e:
+                return jsonify({"error": f"Server error: {str(e)}"}), 500
+        else: 
+            return jsonify({"message": "User is not on correct level of access!"}), 401
+    else:
+        return jsonify({"message": "No user logged in"}), 401
+
+
 @app.route("/api/get-single-listing", methods=["POST"])
 def get_single_listing():
     """
@@ -1280,6 +1425,7 @@ def get_tags():
     except Exception as e:
         print("Error: ", e)
         return jsonify({"Error": "Failed to retrieve types"}), 400
+
     
 @app.route("/api/set-availability", methods=["POST"])
 def set_availability():
