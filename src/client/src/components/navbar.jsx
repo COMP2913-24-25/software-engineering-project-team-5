@@ -3,7 +3,7 @@ import { Link } from "react-router-dom"; //to create a navigation link in UI
 import { Home, User, Heart, ShoppingCart, Bell } from "lucide-react"; // Import icons from lucide-react
 
 import { useUser } from "../App"; // Calls the user
-
+import Search_component from "./Search_component";
 import { useNavigate } from "react-router-dom"; //React hook to navigate between routes without user interaction
 
 const Navbar = ({ searchQuery, setSearchQuery }) => {
@@ -31,7 +31,9 @@ const Navbar = ({ searchQuery, setSearchQuery }) => {
                     </Link>
 
                     {/* Center - Search Bar (flex-grow to occupy space) */}
-                    <div className="flex-grow flex ml-2">
+                    {/* can search for user XOR expert */}
+                    <Search_component user = {false} item={true} searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+                    {/* <div className="flex-grow flex ml-2">
                         <input
                             type="text"
                             placeholder="Search..."
@@ -46,7 +48,7 @@ const Navbar = ({ searchQuery, setSearchQuery }) => {
                         >
                             Search
                         </button>
-                    </div>
+                    </div> */}
                     {user?.level_of_access === 1 && (
                         <>
                             {/* Temporarily here, to be moved to account summary page */}
