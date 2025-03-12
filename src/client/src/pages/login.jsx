@@ -110,6 +110,7 @@ const Login = () => {
             setUser(data.user);
             navigate("/signup");
         }
+
     };
 
     // Where the actual html for the web page is described.
@@ -160,6 +161,7 @@ const Login = () => {
                     Log In
                 </button>
             </form>
+     
         </div>
     );
 };

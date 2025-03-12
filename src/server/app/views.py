@@ -39,6 +39,11 @@ from werkzeug.utils import secure_filename
 
 import datetime
 
+# Stripe API
+import stripe 
+stripe.api_key = 'sk_test_51QvN8MIrwvA3VrIBU92sndiPG7ZWIgYImzVxVP2ofd1xEDLpwPgF4fgWNsWpVm46klGLfcfbjTvbec7Vfi11p9vk00ODQbcday'
+
+import traceback
 # Admin mode accessed using "http://<url>/admin"
 # Used to view database on website instead of app.db
 admin.add_view(ModelView(User, db.session))
@@ -168,6 +173,63 @@ def signup():
 
     # Returns a success message and a status code of 200 (ok)
     return jsonify({"message": "User created successfully"}), 200
+
+@app.route("/api/create-stripe-customer", methods=["POST"])
+def create_stripe_customer():
+    """
+    Creates a new customer in the Stripe database using the provided data.
+    Then adds the customer ID to the user in the local database.
+
+    Returns:
+        json_object: message to the user saying success
+        status_code: HTTP status code (200 for success,
+                                       400 for validation errors)
+    """
+    try:
+        # Checks if the user is logged in
+        if current_user.is_authenticated:
+            # data = request.json
+            # form = update_user_form(data=data)
+            # errors = {}
+
+            # if not form.validate():
+            #     for field, messages in form.errors.items():
+            #         errors[field] = messages
+
+            # if errors:
+            #     return jsonify({"errors": errors}), 400
+            
+            # gets user's name, and email
+            
+            user_id = current_user.User_id
+            user_details = User.query.filter_by(User_id=user_id).first()
+
+            f_name = user_details.First_name
+            s_name = user_details.Surname
+            user_email = user_details.Email
+            
+            # Creates a new customer in the Stripe database
+
+            new_customer = stripe.Customer.create(
+                name = f_name + " " + s_name,
+                email = user_email,
+            )
+            # Adds the customer ID to the user in the local database
+
+            user = User.query.get(user_id)
+            user.Customer_ID = new_customer.id
+
+            db.session.commit()
+
+            return jsonify({"message": "Stripe customer created!"}), 200
+
+        return jsonify({"message": "No user logged in, unable to create stripe customer"}), 401
+    except Exception as e:
+        print(f"Error: {e}")
+        print(traceback.format_exc())
+        return jsonify({"error": "Failed to create Stripe customer"}), 500
+    
+
 
 
 @app.route("/api/logout", methods=["POST"])
@@ -1001,11 +1063,6 @@ def get_expert_id():
             return jsonify({"Error": "Failed to retrieve experts"}), 500
 
     return jsonify({"message": "User has invalid access level"}), 401
-
-
-    
-    
-    
 
 
 @app.route("/api/update_item_auth", methods=["POST"])
