@@ -89,56 +89,77 @@ const HomePage = () => {
     };
 
     return (
-        <div className="container mx-auto p-8 text-center">
-            <div className="text-center mb-8">
-                <h1 className="text-3xl font-bold">Welcome to Bidly</h1>
-                <p className="text-lg text-gray-600">
-                    Bid and auction items efficiently.
-                </p>
+        <div className="bg-gray-100 min-h-screen">
+            {/* Hero Section */}
+            <div className="bg-blue-500 text-white py-16 px-4 text-center">
+                <h1 className="text-3xl sm:text-5xl font-bold tracking-wide">Welcome to Bidly</h1>
+                <p className="text-md sm:text-lg mt-3 opacity-90">Discover and bid on amazing products effortlessly.</p>
             </div>
 
-            <h2 className="text-2xl font-semibold mb-4">Products</h2>
-            <div className="flex items-center justify-center gap-4">
-                <ChevronLeft
-                    className="cursor-pointer"
-                    onClick={() => prevPage("unverified")}
-                />
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                    {unverified_items
-                        .slice(
-                            unverified_index,
-                            unverified_index + items_per_page
-                        )
-                        .map((item, index) => (
-                            <Listing_item key={index} item={item} />
-                        ))}
+            <div className="container mx-auto py-12 px-4">
+                {/* Unverified Items Section */}
+                <div className="mb-12">
+                    <h2 className="text-2xl sm:text-3xl font-semibold text-gray-800 text-center mb-4">
+                        Explore New Arrivals
+                    </h2>
+                    <div className="relative flex items-center justify-center">
+                        <button
+                            className="absolute left-2 bg-white shadow-md p-2 sm:p-3 rounded-full text-gray-600 hover:bg-gray-200 transition hidden sm:flex"
+                            onClick={() => prevPage("unverified")}
+                        >
+                            <ChevronLeft size={28} />
+                        </button>
+                        <div className="flex overflow-x-auto space-x-4 sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 scrollbar-hide">
+                            {unverified_items
+                                .slice(unverified_index, unverified_index + items_per_page)
+                                .map((item, index) => (
+                                    <div className="min-w-[70%] sm:min-w-0 sm:w-auto">
+                                        <Listing_item key={index} item={item} />
+                                    </div>
+                                ))}
+                        </div>
+                        <button
+                            className="absolute right-2 bg-white shadow-md p-2 sm:p-3 rounded-full text-gray-600 hover:bg-gray-200 transition hidden sm:flex"
+                            onClick={() => nextPage("unverified")}
+                        >
+                            <ChevronRight size={28} />
+                        </button>
+                    </div>
                 </div>
-                <ChevronRight
-                    className="cursor-pointer"
-                    onClick={() => nextPage("unverified")}
-                />
-            </div>
 
-            <h2 className="text-2xl font-semibold mb-4">SHOP AUTHENTIC</h2>
-            <div className="flex items-center justify-center gap-4">
-                <ChevronLeft
-                    className="cursor-pointer"
-                    onClick={() => prevPage("verified")}
-                />
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                    {verified_items
-                        .slice(verified_index, verified_index + items_per_page)
-                        .map((item, index) => (
-                            <Listing_item key={index} item={item} />
-                        ))}
+                {/* Verified Items Section */}
+                <div>
+                    <h2 className="text-2xl sm:text-3xl font-semibold text-gray-800 text-center mb-4">
+                        Shop Authentic
+                    </h2>
+                    <div className="relative flex items-center justify-center">
+                        <button
+                            className="absolute left-2 bg-white shadow-md p-2 sm:p-3 rounded-full text-gray-600 hover:bg-gray-200 transition hidden sm:flex"
+                            onClick={() => prevPage("verified")}
+                        >
+                            <ChevronLeft size={28} />
+                        </button>
+                        <div className="flex overflow-x-auto space-x-4 sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 scrollbar-hide">
+                            {verified_items
+                                .slice(verified_index, verified_index + items_per_page)
+                                .map((item, index) => (
+                                    <div className="min-w-[70%] sm:min-w-0 sm:w-auto">
+                                        <Listing_item key={index} item={item} />
+                                    </div>
+                                ))}
+                        </div>
+                        <button
+                            className="absolute right-2 bg-white shadow-md p-2 sm:p-3 rounded-full text-gray-600 hover:bg-gray-200 transition hidden sm:flex"
+                            onClick={() => nextPage("verified")}
+                        >
+                            <ChevronRight size={28} />
+                        </button>
+                    </div>
                 </div>
-                <ChevronRight
-                    className="cursor-pointer"
-                    onClick={() => nextPage("verified")}
-                />
             </div>
         </div>
     );
+
 };
 
 export default HomePage;

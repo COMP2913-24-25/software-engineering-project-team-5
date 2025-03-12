@@ -108,32 +108,32 @@ const AccountSummary = () => {
 
             }
 
-            if (!is_valid){ break; }
+            if (!is_valid) { break; }
 
         }
 
-        if (is_valid){
+        if (is_valid) {
             try {
                 const response = await fetch("http://localhost:5000/api/set-availability", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "X-CSRF-TOKEN" : csrfToken,
+                        "X-CSRF-TOKEN": csrfToken,
                     },
                     credentials: "include",
-                    body: JSON.stringify({availability, week_start_date: get_week_start_date()})
+                    body: JSON.stringify({ availability, week_start_date: get_week_start_date() })
                 })
-    
+
                 if (response.ok) {
                     console.log("Availability submitted successfully");
                 } else {
                     console.error("Failed to submit availability")
                 }
-    
+
             } catch (error) {
                 console.error("Error submitting availability: ", error)
             }
-            
+
         } else {
             console.log("Invalid availability: Start time must end before end time");
         }
@@ -153,62 +153,79 @@ const AccountSummary = () => {
     //const is_sunday = true; // For testing purposes
 
     return (
-        <div className="pl-[10%] pr-[10%]">
-            <h1 className="text-2xl font-display font-semibold text-left px-[0.5em] pt-[1em]">
-                View Bidding history and seller dashboard button: do after
-                Button component (?) created.
-            </h1>
+        <div className="relative min-h-screen bg-gray-100 px-4 py-8">
+            {/* Account Summary Header */}
+            <div className="text-center mb-8">
+                <h1 className="text-2xl font-semibold text-center text-gray-800 mb-4">Account Summary</h1>
+                <p className="text-xl text-gray-500 mt-2">Manage your account, addresses, and more.</p>
+            </div>
 
-            <h1 className="text-2xl font-display font-semibold text-left px-[0.5em] pt-[1em]">
-                Notifications
-            </h1>
+            {/* User Details Section */}
+            <div className="p-6 mb-8">
+                <h2 className="text-2xl font-semibold text-gray-800 mb-4">Personal Details</h2>
+                <UserDetailsForm />
+            </div>
 
-            <h3 className="text-2xl font-display font-semibold text-left px-[0.5em] pt-[1em]">
-                To do: After bidding system completed
-            </h3>
+            {/* Addresses Section */}
+            <div className="p-6 mb-8">
+                <h2 className="text-2xl font-semibold text-gray-800 mb-4">Addresses</h2>
 
-            <h1 className="text-2xl font-display font-semibold text-left px-[0.5em] pt-[1em]">
-                Account Summary
-            </h1>
+                {/* Create New Address Form */}
+                <div className="mb-6">
+                    <AddressForm
+                        address={empty_address}
+                        on_update={handle_address_update}
+                        on_delete={handle_address_delete}
+                        title_text="Create New Address"
+                        create_address={true}
+                        button_text="Create Address"
+                    />
+                </div>
 
-            <UserDetailsForm />
+                {/* Existing Addresses List */}
+                {addresses.length > 0 ? (
+                    addresses.map((address, index) => (
+                        <div key={index} className="mt-6">
+                            <AddressForm
+                                address={address}
+                                on_update={handle_address_update}
+                                on_delete={handle_address_delete}
+                                title_text={`Address ${index + 1}`}
+                                create_address={false}
+                                button_text="Update Address"
+                            />
+                        </div>
+                    ))
+                ) : (
+                    <p className="text-gray-500 mt-4">No addresses available. Please add one.</p>
+                )}
+            </div>
 
-            <h1 className="text-xl font-display font-semibold text-left px-[0.5em] pt-[2em]">
-                Addresses
-            </h1>
+            {/* Card Details Section */}
+            <div className="p-6 mb-8">
+                <h2 className="text-2xl font-semibold text-gray-800 mb-4">Card Details</h2>
+                <p className="text-gray-500">To do: After bidding system is completed.</p>
+            </div>
 
-            <AddressForm
-                address={empty_address}
-                on_update={handle_address_update}
-                on_delete={handle_address_delete}
-                title_text="Create New Address"
-                create_address={true}
-                button_text={"Create Address"}
-            />
+            {/* Expert Availability Section (Visible only for experts on Sunday) */}
+            {is_expert && is_sunday && (
+                <div className="p-6 mb-8">
+                    <h2 className="text-2xl font-semibold text-gray-800 mb-4">Set Your Availability</h2>
+                    <Availabilty_calendar onSubmit={handle_submit} />
+                </div>
+            )}
 
-            {addresses.map((address, index) => (
-                <AddressForm
-                    key={index}
-                    address={address}
-                    on_update={handle_address_update}
-                    on_delete={handle_address_delete}
-                    title_text={"Address " + (index + 1)}
-                    create_address={false}
-                    button_text={"Update Address"}
-                />
-            ))}
+            {/* Notifications Section (Placeholder for now) */}
+            <div className="p-6 mb-8">
+                <h2 className="text-2xl font-semibold text-gray-800 mb-4">Notifications</h2>
+                <p className="text-gray-500">To do: After bidding system is completed.</p>
+            </div>
 
-            <h1 className="text-2xl font-display font-semibold text-left px-[0.5em] pt-[1em]">
-                Card Details
-            </h1>
-
-            <h3 className="text-2xl font-display font-semibold text-left px-[0.5em] pt-[1em]">
-                To do: After bidding system completed
-            </h3>
-
-            {is_expert && is_sunday && (<Availabilty_calendar onSubmit={handle_submit}/>)}
-            {/* Only displays the availability calendar if the user is an expert and it is a sunday */}
-        
+            {/* Bidding History / Seller Dashboard Section (Placeholder for now) */}
+            <div className="p-6">
+                <h2 className="text-2xl font-semibold text-gray-800 mb-4">Bidding History & Dashboard</h2>
+                <p className="text-gray-500">To do: After bidding system is completed.</p>
+            </div>
         </div>
     );
 };
