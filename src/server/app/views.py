@@ -731,7 +731,6 @@ def get_listings():
         print("Error: ", e)
         return jsonify({"Error": "Failed to retrieve items"}), 401
 
-
 @app.route("/api/get-bids", methods=["GET"])
 def get_bids():
     """
@@ -769,7 +768,7 @@ def get_bids():
                 User.Username,
                 Images.Image,
                 Images.Image_description,
-                Items.Min_price,
+                Items.Min_price
             )
             .order_by(Items.Item_id, Bidding_history.Bid_price.desc())  # Order by Item and Bid Price (descending)
             .all()
@@ -805,7 +804,7 @@ def get_bids():
                     "Current_bid": item.Current_bid,
                     "Available_until": item.Available_until,
                     "Seller_name": item.Username,
-                    "Images": image_list,
+                    "Image": image_list,
                     "Image_description": item.Image_description or "No Image",
                     "Min_price": item.Min_price
                 }

@@ -44,6 +44,7 @@ const CurrentBids = () => {
                         }))
                     );
                 } else {
+                    console.log(response.status)
                     console.log("No items currently bidded");
                 }
             }
