@@ -44,7 +44,6 @@ const Watchlist = () => {
         }
     };
 
-
     // Remove item from watchlist
     const remove_from_watchlist = async (item_id) => {
         if (!user) return;
@@ -124,7 +123,7 @@ const Watchlist = () => {
                         {watchlist.map((item) => (
                             <ItemListing
                                 key={item.Item_id}
-                                image={item.Image}
+                                images={item.Images}
                                 title={item.Listing_name}
                                 seller={item.Seller_name}
                                 description={item.Description}

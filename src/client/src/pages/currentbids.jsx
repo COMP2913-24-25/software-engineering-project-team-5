@@ -107,7 +107,7 @@ const CurrentBids = () => {
                                 title={item.Listing_name}
                                 seller={item.Seller_name}
                                 description={item.Description}
-                                image={item.Image}
+                                images={item.Images}
                                 labels={[`Time Left: ${item.timeRemaining}`]}
                                 buttons={
                                     item.Successful_bid == 1 ? [

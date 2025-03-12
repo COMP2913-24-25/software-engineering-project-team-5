@@ -71,7 +71,7 @@ const BiddingHistory = () => {
                                 title={item.Listing_name}
                                 seller={item.Seller_name}
                                 description={item.Description}
-                                image={item.Image}
+                                images={item.Images}
                                 labels={[`Date Finished: ${item.Available_until}`]}
                                 buttons={
                                     item.Successful_bid == 1 ? [

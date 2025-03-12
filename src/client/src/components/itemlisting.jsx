@@ -1,29 +1,53 @@
-import React from "react";
+import React, { useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const ItemListing = ({
     title,
     seller,
     description,
-    image,
+    images = [],
     labels = [],
     buttons = []
 }) => {
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+    // Handle next and previous image in carousel
+    const nextImage = () => {
+        setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
+    };
+
+    const prevImage = () => {
+        setCurrentImageIndex((prevIndex) => (prevIndex - 1 + images.length) % images.length);
+    };
 
     return (
-        <div className="flex border rounded-lg p-4 shadow-md bg-white w-full items-center">
-            {/* Item Image */}
-            <div className="w-32 h-32 bg-gray-200 flex-shrink-0 rounded-lg overflow-hidden flex items-center justify-center">
-
-                <img src={`data:image/${image};base64,${image}`} alt="An image <3" className="w-full h-full object-cover" />
-
+        <div className="flex flex-col md:flex-row border rounded-lg p-4 shadow-md bg-white w-full items-center">
+            {/* Item Image / Carousel */}
+            <div className="w-70 h-40 bg-gray-200 flex-shrink-0 rounded-lg overflow-hidden flex items-center justify-center relative">
+                {images.length > 1 ? (
+                    <>
+                        <button onClick={prevImage} className="absolute left-1 bg-white/80 hover:bg-gray-200 rounded-full p-1 shadow-md">
+                            <ChevronLeft className="h-5 w-5 text-gray-800" />
+                        </button>
+                        <img src={`data:image/${images[currentImageIndex].Image};base64,${images[currentImageIndex].Image}`} className="w-full h-full object-cover" />
+                        <button onClick={nextImage} className="absolute right-1 bg-white/80 hover:bg-gray-200 rounded-full p-1 shadow-md">
+                            <ChevronRight className="h-5 w-5 text-gray-800" />
+                        </button>
+                        {/* Image Counter */}
+                        <div className="absolute bottom-1 right-1 bg-black/70 text-white px-2 py-1 rounded-full text-xs">
+                            {currentImageIndex + 1} / {images.length}
+                        </div>
+                    </>
+                ) : (
+                    <img src={`data:image/${images[0].Image};base64,${images[0].Image}`} alt="Item image" className="w-full h-full object-cover" />
+                )}
             </div>
 
             {/* Item Details */}
-            <div className="flex flex-col flex-grow ml-4">
+            <div className="flex flex-col flex-grow ml-0 md:ml-4 mt-4 md:mt-0">
                 <h2 className="text-lg font-semibold">{title}</h2>
                 <p className="text-sm text-gray-600">{seller}</p>
                 <p className="text-sm text-gray-700 mt-1">{description}</p>
-
 
                 {/* Dynamic Labels */}
                 {labels.length > 0 && (
@@ -37,7 +61,7 @@ const ItemListing = ({
 
             {/* Buttons Section */}
             {buttons.length > 0 && (
-                <div className="flex flex-col space-y-2 ml-4">
+                <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 ml-0 md:ml-4 mt-4 md:mt-0">
                     {buttons.map(({ text, onClick, style }, index) => (
                         <button
                             key={index}
