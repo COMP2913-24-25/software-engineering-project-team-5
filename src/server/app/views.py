@@ -731,6 +731,7 @@ def get_listings():
         print("Error: ", e)
         return jsonify({"Error": "Failed to retrieve items"}), 401
 
+
 @app.route("/api/get-bids", methods=["GET"])
 def get_bids():
     """
@@ -750,7 +751,6 @@ def get_bids():
             Bidding_history.query
             .join(Items, Bidding_history.Item_id == Items.Item_id)  # Join Items table
             .join(User, Items.Seller_id == User.User_id)  # Join User table to get seller info
-            .outerjoin(Images, Items.Item_id == Images.Item_id)  # Outer join Images table to get item image
             .filter(
                 Bidding_history.Bidder_id == current_user.User_id,
                 Items.Available_until > datetime.datetime.now()  # Only valid bids
@@ -766,8 +766,6 @@ def get_bids():
                 Items.Current_bid,
                 Items.Available_until,
                 User.Username,
-                Images.Image,
-                Images.Image_description,
                 Items.Min_price
             )
             .order_by(Items.Item_id, Bidding_history.Bid_price.desc())  # Order by Item and Bid Price (descending)
@@ -776,15 +774,16 @@ def get_bids():
 
         if not bid_data:
             return jsonify({"message": "No current bids"}), 400
-        
+
         # Create a dictionary to store the highest bid per item
         unique_bids = {}
-        
+
         for item in bid_data:
             if item.Item_id not in unique_bids:
+                # Fetch all images for the item (Same as get-history)
                 images = Images.query.filter_by(Item_id=item.Item_id).all()
                 image_list = []
-                
+
                 for image in images:
                     image_data = image.Image
                     image_base64 = base64.b64encode(image_data).decode('utf-8') if image_data else None
@@ -804,8 +803,7 @@ def get_bids():
                     "Current_bid": item.Current_bid,
                     "Available_until": item.Available_until,
                     "Seller_name": item.Username,
-                    "Image": image_list,
-                    "Image_description": item.Image_description or "No Image",
+                    "Images": image_list,
                     "Min_price": item.Min_price
                 }
 
@@ -813,7 +811,7 @@ def get_bids():
         current_bids = list(unique_bids.values())
 
         return jsonify({"bids": current_bids}), 200
-    
+
     else:
         return jsonify({"message": "No user logged in"}), 401
 

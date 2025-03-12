@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import ItemListing from "../components/itemlisting";
 import { useUser, useCSRF } from "../App";
+import { useNavigate } from "react-router-dom";
+
 
 
 const CurrentBids = () => {
@@ -14,6 +16,7 @@ const CurrentBids = () => {
 
     // Variable to store the bids stored and bidding history
     const [bids, setBids] = useState([]);
+    const navigate = useNavigate();
 
     const { csrfToken } = useCSRF();
 
@@ -36,15 +39,15 @@ const CurrentBids = () => {
             const data = await response.json();
 
             if (response.ok) {
-                if (Array.isArray(data.history)) {
+                if (Array.isArray(data.bids)) {
                     setBids(
                         data.bids.map((item) => ({
                             ...item,
                             timeRemaining: calculate_time_remaining(item.Available_until),
                         }))
                     );
-                } else {
-                    console.log(response.status)
+                }
+                else {
                     console.log("No items currently bidded");
                 }
             }
@@ -101,8 +104,8 @@ const CurrentBids = () => {
             <h1 className="text-3xl font-bold mb-6">Current Bids</h1>
             {user ? (
                 bids.length > 0 ? (
-                    <div className="space-y-4">
-                        {bids.map((item, index) => (
+                    <div className="space-y-6">
+                        {bids.map((item) => (
                             <ItemListing
                                 key={item.Bid_id}
                                 title={item.Listing_name}
