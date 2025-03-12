@@ -36,12 +36,16 @@ const CurrentBids = () => {
             const data = await response.json();
 
             if (response.ok) {
-                setBids(
-                    data.bids.map((item) => ({
-                        ...item,
-                        timeRemaining: calculate_time_remaining(item.Available_until),
-                    }))
-                );
+                if (Array.isArray(data.history)) {
+                    setBids(
+                        data.bids.map((item) => ({
+                            ...item,
+                            timeRemaining: calculate_time_remaining(item.Available_until),
+                        }))
+                    );
+                } else {
+                    console.log("No items currently bidded");
+                }
             }
         } catch (error) {
             console.error("Error fetching bids:", error);

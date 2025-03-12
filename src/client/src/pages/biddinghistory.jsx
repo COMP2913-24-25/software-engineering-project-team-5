@@ -36,7 +36,12 @@ const BiddingHistory = () => {
             const data = await response.json();
 
             if (response.ok) {
-                setHistory(data.history);
+                if (Array.isArray(data.history)) {
+                    setHistory(data.history);
+                }
+                else {
+                    console.log("No items in history");
+                }
             }
         } catch (error) {
             console.error("Error fetching history:", error);

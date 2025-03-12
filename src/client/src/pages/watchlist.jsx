@@ -24,13 +24,18 @@ const Watchlist = () => {
 
             const data = await response.json();
 
-            if (response.ok && Array.isArray(data.watchlist)) {
-                setWatchlist(
-                    data.watchlist.map((item) => ({
-                        ...item,
-                        timeRemaining: calculate_time_remaining(item.Available_until),
-                    }))
-                );
+            if (response.ok) {
+                if (Array.isArray(data.watchlist)) {
+                    setWatchlist(
+                        data.watchlist.map((item) => ({
+                            ...item,
+                            timeRemaining: calculate_time_remaining(item.Available_until),
+                        }))
+                    );
+                }
+                else {
+                    console.log("No items in watchlist");
+                }
             } else {
                 console.error("Invalid watchlist data:", data);
             }
