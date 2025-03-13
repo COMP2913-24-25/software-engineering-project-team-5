@@ -104,7 +104,7 @@ const Listing_item = (props) => {
 
             {[...Array(1)].map((_, index) => (
 
-                <div className="w-[220px] border border-gray-300 rounded-lg overflow-hidden bg-gray-100 transition-transform transform hover:scale-105 cursor-pointer flex flex-col items-center" key={index}>
+                <div className="w-[300px] border border-gray-300 rounded-lg overflow-hidden bg-gray-100 transition-transform transform hover:scale-105 cursor-pointer flex flex-col items-center" key={index}>
 
                     <div className="w-full h-[180px] bg-gray-200 flex items-center justify-center overflow-hidden relative">
                         {user && (<span className={`absolute top-2 right-2 cursor-pointer text-xl ${wishlist ? "text-red-600" : "text-white"}`} onClick={() => toggle_wishlist(item.Item_id)}>♥</span>)}

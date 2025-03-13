@@ -113,7 +113,7 @@ const HomePage = () => {
                             {unverified_items
                                 .slice(unverified_index, unverified_index + items_per_page)
                                 .map((item, index) => (
-                                    <div className="min-w-[70%] sm:min-w-0 sm:w-auto">
+                                    <div className="min-w-[40%] sm:min-w-0 sm:w-auto">
                                         <Listing_item key={index} item={item} />
                                     </div>
                                 ))}
@@ -143,7 +143,7 @@ const HomePage = () => {
                             {verified_items
                                 .slice(verified_index, verified_index + items_per_page)
                                 .map((item, index) => (
-                                    <div className="min-w-[70%] sm:min-w-0 sm:w-auto">
+                                    <div className="min-w-[40%] sm:min-w-0 sm:w-auto">
                                         <Listing_item key={index} item={item} />
                                     </div>
                                 ))}
