@@ -114,7 +114,7 @@ const Login = () => {
 
     // Where the actual html for the web page is described.
     return (
-        <div className="relative min-h-screen bg-gray-100 flex justify-center">
+        <div className="relative min-h-screen bg-gray-100 flex px-4 py-8 justify-center">
             <form
                 onSubmit={handle_submit}
                 className="absolute top-10 w-full max-w-xs sm:max-w-md px-6 space-y-4"
@@ -129,8 +129,13 @@ const Login = () => {
                     ))}
 
                 {[
-                    { name: "email_or_username", type: "text", placeholder: "Email or Username", required: true },
-                    { name: "password", type: "password", placeholder: "Password", required: true }
+                    {
+                        name: "email_or_username",
+                        type: "text",
+                        placeholder: "Email or Username",
+                        required: true,
+                    },
+                    { name: "password", type: "password", placeholder: "Password", required: true },
                 ].map(({ name, type, placeholder, required }) => (
                     <div key={name}>
                         <input
@@ -144,7 +149,9 @@ const Login = () => {
                         />
                         {errors[name] &&
                             errors[name].map((error, index) => (
-                                <p key={index} className="text-red-500 text-sm mt-1">{error}</p>
+                                <p key={index} className="text-red-500 text-sm mt-1">
+                                    {error}
+                                </p>
                             ))}
                     </div>
                 ))}

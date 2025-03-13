@@ -3,7 +3,6 @@ import ItemListing from "../components/itemlisting";
 import { useNavigate } from "react-router-dom";
 import { useUser, useCSRF } from "../App"; // Calls the user
 
-
 const Watchlist = () => {
     const { user } = useUser();
     const [watchlist, setWatchlist] = useState([]);
@@ -32,8 +31,7 @@ const Watchlist = () => {
                             timeRemaining: calculate_time_remaining(item.Available_until),
                         }))
                     );
-                }
-                else {
+                } else {
                     console.log("No items in watchlist");
                 }
             } else {
@@ -53,7 +51,7 @@ const Watchlist = () => {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "X-CSRF-TOKEN": csrfToken // Include CSRF token in header
+                    "X-CSRF-TOKEN": csrfToken, // Include CSRF token in header
                 },
                 credentials: "include",
                 body: JSON.stringify({ item_id }),
@@ -84,16 +82,16 @@ const Watchlist = () => {
         // Calculate hours, minutes, and seconds
         const seconds = Math.floor((diffMs / 1000) % 60);
         const minutes = Math.floor((diffMs / 60000) % 60);
-        const hours = Math.floor((diffMs / 3600000));
+        const hours = Math.floor(diffMs / 3600000);
 
-        return `${hours.toString().padStart(2, "0")}:${minutes
+        return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds
             .toString()
-            .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+            .padStart(2, "0")}`;
     };
 
     useEffect(() => {
         if (user) {
-            get_watchlist();  // Fetch the watchlist only if the user is logged in
+            get_watchlist(); // Fetch the watchlist only if the user is logged in
         }
     }, [user]);
 
@@ -112,7 +110,7 @@ const Watchlist = () => {
     }, []);
 
     return (
-        <div className="container p-6">
+        <div className="relative min-h-screen bg-gray-100 px-[5%] md:px-[10%] py-8">
             <h1 className="text-3xl font-bold mb-6">Watch List</h1>
 
             {user ? (
@@ -128,8 +126,14 @@ const Watchlist = () => {
                                 seller={item.Seller_name}
                                 description={item.Description}
                                 labels={[
-                                    `Current Bid: £ ${(Number(item.Current_bid) > Number(item.Min_price)) ? Number(item.Current_bid).toFixed(2) : Number(item.Min_price).toFixed(2)}`,
-                                    `Time Remaining: ${item.timeRemaining || calculate_time_remaining(item.Available_until)}`,
+                                    `Current Bid: £ ${
+                                        Number(item.Current_bid) > Number(item.Min_price)
+                                            ? Number(item.Current_bid).toFixed(2)
+                                            : Number(item.Min_price).toFixed(2)
+                                    }`,
+                                    `Time Remaining: ${
+                                        item.timeRemaining || calculate_time_remaining(item.Available_until)
+                                    }`,
                                 ]}
                                 buttons={[
                                     {

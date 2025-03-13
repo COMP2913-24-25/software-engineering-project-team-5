@@ -117,7 +117,7 @@ const Signup = () => {
 
     // Where the actual html for the web page is described.
     return (
-        <div className="relative min-h-screen bg-gray-100 flex justify-center">
+        <div className="relative min-h-screen bg-gray-100 flex px-[5%] md:px-[10%] py-8 justify-center">
             <form
                 onSubmit={handle_submit}
                 className="absolute top-10 w-full max-w-xs sm:max-w-md px-6 space-y-4"
@@ -139,7 +139,12 @@ const Signup = () => {
                     { name: "username", type: "text", placeholder: "Username", required: true },
                     { name: "email", type: "email", placeholder: "Email", required: true },
                     { name: "password", type: "password", placeholder: "Password", required: true },
-                    { name: "password_confirmation", type: "password", placeholder: "Confirm Password", required: true }
+                    {
+                        name: "password_confirmation",
+                        type: "password",
+                        placeholder: "Confirm Password",
+                        required: true,
+                    },
                 ].map(({ name, type, placeholder, required }) => (
                     <div key={name}>
                         <input
@@ -153,19 +158,24 @@ const Signup = () => {
                         />
                         {errors[name] &&
                             errors[name].map((error, index) => (
-                                <p key={index} className="text-red-500 text-sm mt-1">{error}</p>
+                                <p key={index} className="text-red-500 text-sm mt-1">
+                                    {error}
+                                </p>
                             ))}
                     </div>
                 ))}
 
-                <button type="submit" className="w-full py-3 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button
+                    type="submit"
+                    className="w-full py-3 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
                     Sign Up
                 </button>
 
                 <div className="text-center mt-4">
                     <p className="text-sm text-gray-600">
                         Already have an account?{" "}
-                        <a href="/login" className="text-blue-600 hover:underline">
+                        <a href="/" className="text-blue-600 hover:underline">
                             Log In
                         </a>
                     </p>

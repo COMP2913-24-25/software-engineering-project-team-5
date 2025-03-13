@@ -3,8 +3,6 @@ import ItemListing from "../components/itemlisting";
 import { useUser, useCSRF } from "../App";
 import { useNavigate } from "react-router-dom";
 
-
-
 const CurrentBids = () => {
     /*  
     Allows user to see items that have bids on currently, it has functionality
@@ -23,17 +21,14 @@ const CurrentBids = () => {
     // Function to fetch bidding history from the server
     const getBids = async () => {
         try {
-            const response = await fetch(
-                "http://localhost:5000/api/get-bids",
-                {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRF-TOKEN": csrfToken,
-                    },
-                    credentials: "include",
-                }
-            );
+            const response = await fetch("http://localhost:5000/api/get-bids", {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
+                },
+                credentials: "include",
+            });
 
             // Waits for the server response
             const data = await response.json();
@@ -46,8 +41,7 @@ const CurrentBids = () => {
                             timeRemaining: calculate_time_remaining(item.Available_until),
                         }))
                     );
-                }
-                else {
+                } else {
                     console.log("No items currently bidded");
                 }
             }
@@ -70,11 +64,11 @@ const CurrentBids = () => {
         // Calculate hours, minutes, and seconds
         const seconds = Math.floor((diffMs / 1000) % 60);
         const minutes = Math.floor((diffMs / 60000) % 60);
-        const hours = Math.floor((diffMs / 3600000));
+        const hours = Math.floor(diffMs / 3600000);
 
-        return `${hours.toString().padStart(2, "0")}:${minutes
+        return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds
             .toString()
-            .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+            .padStart(2, "0")}`;
     };
 
     // Gets bidding history when the page loads for the first time
@@ -98,9 +92,8 @@ const CurrentBids = () => {
         return () => clearInterval(interval); // Cleanup on unmount
     }, []);
 
-
     return (
-        <div className="container p-6">
+        <div className="relative min-h-screen bg-gray-100 px-[5%] md:px-[10%] py-8">
             <h1 className="text-3xl font-bold mb-6">Current Bids</h1>
             {user ? (
                 bids.length > 0 ? (
@@ -114,14 +107,19 @@ const CurrentBids = () => {
                                 images={item.Images}
                                 labels={[`Time Left: ${item.timeRemaining}`]}
                                 buttons={
-                                    item.Successful_bid == 1 ? [
-                                        { text: "Highest Bidder", style: "bg-green-500 text-white" },
-                                        { text: `Your Bid: £${item.Bid_price}`, style: "bg-gray-200 text-black" },
-                                    ] : [
-                                        { text: "Out Bid", style: "bg-red-500 text-white" },
-                                        { text: `Your Bid: £${item.Bid_price}`, style: "bg-gray-200 text-black" },
-                                        { text: `Highest Bid: £${item.Current_bid}`, style: "bg-gray-500 text-white" },
-                                    ]
+                                    item.Successful_bid == 1
+                                        ? [
+                                              { text: "Highest Bidder", style: "bg-green-500 text-white" },
+                                              { text: `Your Bid: £${item.Bid_price}`, style: "bg-gray-200 text-black" },
+                                          ]
+                                        : [
+                                              { text: "Out Bid", style: "bg-red-500 text-white" },
+                                              { text: `Your Bid: £${item.Bid_price}`, style: "bg-gray-200 text-black" },
+                                              {
+                                                  text: `Highest Bid: £${item.Current_bid}`,
+                                                  style: "bg-gray-500 text-white",
+                                              },
+                                          ]
                                 }
                             />
                         ))}

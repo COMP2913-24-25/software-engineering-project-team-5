@@ -2,20 +2,13 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCSRF } from "../App";
 
-const AuthRequestsTable = ({
-    auth_requests,
-    handle_request_update,
-    pending,
-}) => {
+const AuthRequestsTable = ({ auth_requests, handle_request_update, pending }) => {
     /*
     This component renders a table of all authentication requests. The table has
     buttons for accepting and rejecting requests. Upon clicking the accept or reject
     buttons, a POST request is sent to the server to update the request status.
-
-    TODO: View More button - will take expert to an enlarged view of the authentication
-    request, and give them option to accept, reject or give the case to another expert.
-        -> Dependancy on Enlarged Listing page for reuseable components
     */
+
     const navigate = useNavigate();
     const { csrfToken } = useCSRF();
     const [requests, set_requests] = useState([]);
@@ -38,30 +31,25 @@ const AuthRequestsTable = ({
         event.preventDefault();
 
         try {
-            const response = await fetch(
-                "http://localhost:5000/api/update_auth_request",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRF-TOKEN": csrfToken,
-                    },
-                    body: JSON.stringify({
-                        request_id: request_id,
-                        action: action,
-                    }),
-                    credentials: "include",
-                }
-            );
+            const response = await fetch("http://localhost:5000/api/update_auth_request", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
+                },
+                body: JSON.stringify({
+                    request_id: request_id,
+                    action: action,
+                }),
+                credentials: "include",
+            });
 
             // Waits for server response
             const data = await response.json();
 
             if (response.ok) {
                 handle_request_update();
-                set_success_message(
-                    "Successfully " + action + "ed Authentication Request"
-                );
+                set_success_message("Successfully " + action + "ed Authentication Request");
             } else {
                 set_errors({
                     general: ["Unexpected Error. Please Try Again."],
@@ -76,88 +64,92 @@ const AuthRequestsTable = ({
     const handle_view_more = async (event, Item_id, Listing_name) => {
         event.preventDefault();
         set_errors({});
-        let url =
-            "/expert/auth/" + String(Listing_name) + "/" + String(Item_id);
-        console.log(url);
+        let url = "/authrequest/" + String(Listing_name) + "/" + String(Item_id);
         navigate(url);
     };
 
+    // If no requests, show a message
+    if (requests.length === 0) {
+        return (
+            <div className=" p-6 mb-4 text-center">
+                <p className="text-gray-600 text-lg">No authentication requests available.</p>
+            </div>
+        );
+    }
+
     // Component HTML
     return (
-        <div className="relative flex flex-col w-full h-full overflow-scroll text-gray-700 bg-white shadow-md rounded-lg bg-clip-border">
+        <div>
             {success_message && (
-                <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4 mt-4">
+                <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">
                     {success_message}
                 </div>
             )}
 
+            {/* Table for larger screens */}
             <div className="hidden xl:block">
-                <table className="w-full text-left table-auto min-w-max">
+                <table className="w-full text-left">
                     <thead>
-                        <tr className="bg-slate-50">
-                            <th className="p-4 border-b border-slate-300">#</th>
-                            <th className="p-4 border-b border-slate-300">
+                        <tr className="bg-gray-50">
+                            <th className="p-4 border-b border-gray-300 text-sm font-semibold text-gray-700">
+                                #
+                            </th>
+                            <th className="p-4 border-b border-gray-300 text-sm font-semibold text-gray-700">
                                 Listing Title
                             </th>
-                            <th className="p-4 border-b border-slate-300">
+                            <th className="p-4 border-b border-gray-300 text-sm font-semibold text-gray-700">
                                 Seller Name
                             </th>
-                            <th className="p-4 border-b border-slate-300">
+                            <th className="p-4 border-b border-gray-300 text-sm font-semibold text-gray-700">
                                 Request Created
                             </th>
-                            <th className="p-4 border-b border-slate-300">
+                            <th className="p-4 border-b border-gray-300 text-sm font-semibold text-gray-700">
                                 Proposed Price
                             </th>
                             {!pending && (
-                                <th className="p-4 border-b border-slate-300">
+                                <th className="p-4 border-b border-gray-300 text-sm font-semibold text-gray-700">
                                     Status
                                 </th>
                             )}
-                            <th className="p-4 border-b border-slate-300">
+                            <th className="p-4 border-b border-gray-300 text-sm font-semibold text-gray-700">
                                 Actions
                             </th>
                         </tr>
                     </thead>
                     <tbody>
                         {requests.map((request, index) => (
-                            <tr key={index} className="hover:bg-slate-100">
-                                <td className="p-4 border-b border-slate-200">
+                            <tr key={index} className="hover:bg-gray-50">
+                                <td className="p-4 border-b border-gray-200 text-sm text-gray-700">
                                     {index + 1}
                                 </td>
-                                <td className="p-4 border-b border-slate-200">
+                                <td className="p-4 border-b border-gray-200 text-sm text-gray-700">
                                     {request.Listing_name}
                                 </td>
-                                <td className="p-4 border-b border-slate-200">
+                                <td className="p-4 border-b border-gray-200 text-sm text-gray-700">
                                     {request.Seller_name}
                                 </td>
-                                <td className="p-4 border-b border-slate-200">
+                                <td className="p-4 border-b border-gray-200 text-sm text-gray-700">
                                     {request.Upload_datetime}
                                 </td>
-                                <td className="p-4 border-b border-slate-200">
-                                    {request.Min_price}
+                                <td className="p-4 border-b border-gray-200 text-sm text-gray-700">
+                                    ${request.Min_price}
                                 </td>
 
                                 {!pending && (
                                     <td
-                                        className={`p-4 border-b border-slate-200 text-sm font-semibold 
-                                ${
-                                    request.Verified
-                                        ? "text-green-600"
-                                        : "text-red-600"
-                                }`}
+                                        className={`p-4 border-b border-gray-200 text-sm font-semibold 
+                                        ${request.Verified ? "text-green-600" : "text-red-600"}`}
                                     >
-                                        {request.Verified
-                                            ? "Accepted"
-                                            : "Declined"}
+                                        {request.Verified ? "Accepted" : "Declined"}
                                     </td>
                                 )}
 
-                                <td className="p-4 border-b border-slate-200">
-                                    <div className="grid grid-cols-3 gap-2 w-full">
+                                <td className="p-4 border-b border-gray-200">
+                                    <div className="flex gap-2">
                                         {pending ? (
                                             <>
                                                 <button
-                                                    className="bg-green-600 text-white py-2 px-3 rounded-lg hover:bg-green-700 transition duration-300"
+                                                    className="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition duration-300 text-sm"
                                                     onClick={(event) =>
                                                         handle_update(
                                                             event,
@@ -170,7 +162,7 @@ const AuthRequestsTable = ({
                                                 </button>
 
                                                 <button
-                                                    className="bg-red-600 text-white py-2 px-3 rounded-lg hover:bg-red-700 transition duration-300"
+                                                    className="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition duration-300 text-sm"
                                                     onClick={(event) =>
                                                         handle_update(
                                                             event,
@@ -183,7 +175,7 @@ const AuthRequestsTable = ({
                                                 </button>
 
                                                 <button
-                                                    className="bg-blue-600 text-white py-2 px-3 rounded-lg hover:bg-blue-700 transition duration-300"
+                                                    className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300 text-sm"
                                                     onClick={(event) =>
                                                         handle_view_more(
                                                             event,
@@ -197,7 +189,7 @@ const AuthRequestsTable = ({
                                             </>
                                         ) : (
                                             <button
-                                                className="bg-blue-600 text-white py-2 px-3 rounded-lg hover:bg-blue-700 transition duration-300 col-span-3"
+                                                className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300 text-sm"
                                                 onClick={(event) =>
                                                     handle_view_more(
                                                         event,
@@ -217,71 +209,52 @@ const AuthRequestsTable = ({
                 </table>
             </div>
 
+            {/* Cards for smaller screens */}
             <div className="xl:hidden flex flex-col gap-4">
                 {requests.map((request, index) => (
-                    <div
-                        key={index}
-                        className="border border-slate-200 rounded-lg p-4 shadow-sm bg-white"
-                    >
-                        <p className="text-sm text-gray-600">
-                            Request #{index + 1}
-                        </p>
-                        <p className="font-semibold text-lg">
+                    <div key={index}>
+                        <p className="text-sm text-gray-600">Request #{index + 1}</p>
+                        <p className="font-semibold text-lg text-gray-800">
                             {request.Listing_name}
                         </p>
+                        <p className="text-sm text-gray-700">Seller: {request.Seller_name}</p>
+                        <p className="text-sm text-gray-700">Created: {request.Upload_datetime}</p>
                         <p className="text-sm text-gray-700">
-                            Seller: {request.Seller_name}
-                        </p>
-                        <p className="text-sm text-gray-700">
-                            Created: {request.Upload_datetime}
-                        </p>
-                        <p className="text-sm text-gray-700">
-                            Proposed Price: {request.Min_price}
+                            Proposed Price: ${request.Min_price}
                         </p>
 
                         {!pending && (
                             <p
                                 className={`text-sm font-semibold mt-2 
-                        ${
-                            request.Verified ? "text-green-600" : "text-red-600"
-                        }`}
+                                ${request.Verified ? "text-green-600" : "text-red-600"}`}
                             >
-                                Status:{" "}
-                                {request.Verified ? "Accepted" : "Declined"}
+                                Status: {request.Verified ? "Accepted" : "Declined"}
                             </p>
                         )}
 
-                        <div className="grid grid-cols-3 gap-2 w-full mt-3">
+                        <div className="flex gap-2 mt-3">
                             {pending ? (
                                 <>
                                     <button
-                                        className="bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition duration-300"
+                                        className="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition duration-300 text-sm"
                                         onClick={(event) =>
-                                            handle_update(
-                                                event,
-                                                request.Item_id,
-                                                "accept"
-                                            )
+                                            handle_update(event, request.Item_id, "accept")
                                         }
                                     >
                                         Accept
                                     </button>
 
                                     <button
-                                        className="bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition duration-300"
+                                        className="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition duration-300 text-sm"
                                         onClick={(event) =>
-                                            handle_update(
-                                                event,
-                                                request.Item_id,
-                                                "declin"
-                                            )
+                                            handle_update(event, request.Item_id, "declin")
                                         }
                                     >
                                         Decline
                                     </button>
 
                                     <button
-                                        className="bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition duration-300"
+                                        className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300 text-sm"
                                         onClick={(event) =>
                                             handle_view_more(
                                                 event,
@@ -295,7 +268,7 @@ const AuthRequestsTable = ({
                                 </>
                             ) : (
                                 <button
-                                    className="bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition duration-300 col-span-3"
+                                    className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300 text-sm"
                                     onClick={(event) =>
                                         handle_view_more(
                                             event,
