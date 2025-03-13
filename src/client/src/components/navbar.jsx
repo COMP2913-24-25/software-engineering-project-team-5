@@ -33,10 +33,6 @@ const Navbar = ({}) => { //parse in whether search will be filtering user, item 
                     <Link to="/home-page" className="hover:text-gray-300">
                         <Home size={24} />
                     </Link>
-
-                    {/* Center - Search Bar (flex-grow to occupy space) */}
-                    {/* can search for user XOR expert */}
-                    {/* <Search_component user = {user_check} item={item} handle_filter_Ids = {handle_filter_Ids} /> */}
                     <div className="flex-grow flex ml-2">
                         <input
                             type="text"
