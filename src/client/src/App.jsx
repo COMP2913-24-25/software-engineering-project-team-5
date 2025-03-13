@@ -115,12 +115,15 @@ function App() {
         <UserProvider>
             <Router>
                 <NotificationProvider>
-                    <div className="navbar">
-                      <Navbar 
-                        searchQuery={searchQuery} setSearchQuery={setSearchQuery} 
-                      /> 
+                    {/* Add Navbar in each page and parse in required values */}
+                    {/* Different handle_search functions if they need to redirect or simply filter the stuff in current page */}
+                
+                     <div className="navbar">
+                        <Navbar 
+                        // searchQuery={searchQuery} setSearchQuery={setSearchQuery} 
+                        />
 
-                    </div>
+                    </div> 
 
                     {/* Expert View Sub Navbar */}
                     {activeSubMenu === "expert" && (
@@ -192,7 +195,9 @@ function App() {
                         />
                         <Route
                         path="/current_listings"
-                        element={<CurrentListings searchQuery={searchQuery} />}
+                        element={<CurrentListings 
+                            // searchQuery={searchQuery}
+                             />}
                     />
                         <Route path="/current-bids" element={<CurrentBids />} />
                         <Route
