@@ -144,14 +144,18 @@ const EnlargedAuthRequest = () => {
 
     // Doesn't load HTML until item has been retrieved
     if (!item) {
-        return;
+        return (
+            <div className="bg-gray-100 min-h-screen flex items-center justify-center">
+                <p className="text-gray-600 text-lg">Loading...</p>
+            </div>
+        );
     }
 
     // Only corresponding user can view their own listing
     if (user?.level_of_access == 1) {
         if (item.Seller_id != user?.user_id) {
             navigate("/home-page");
-            return;
+            return null;
         }
     }
 
@@ -159,45 +163,112 @@ const EnlargedAuthRequest = () => {
     if (user?.level_of_access == 2) {
         if (item.Expert_id != user?.user_id) {
             navigate("/home-page");
-            return;
+            return null;
         }
     }
 
     // Manager can't view auth request
     if (user?.level_of_access == 3) {
         navigate("/home-page");
-        return;
+        return null;
     }
 
     return (
-        <div className="pl-[10%] pr-[10%]">
-            {successMessage && (
-                <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">
-                    {successMessage}
+        <div className="bg-gray-100 min-h-screen py-12 px-4">
+            <div className="container mx-auto bg-white shadow-lg rounded-lg p-6">
+                {successMessage && (
+                    <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">
+                        {successMessage}
+                    </div>
+                )}
+
+                {errors.general && (
+                    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+                        {errors.general.map((error, index) => (
+                            <p key={index}>{error}</p>
+                        ))}
+                    </div>
+                )}
+
+                {/* Title and Authentication Status */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div className="md:col-span-2">
+                        <h1 className="text-3xl font-bold text-gray-800 mb-2">
+                            {item.Listing_name}
+                        </h1>
+                        <p className="text-gray-600 mb-1">Seller: {item.Seller_username}</p>
+                        <p className="text-gray-600">Username: {item.Seller_name}</p>
+                    </div>
+
+                    <div className="md:col-span-1">
+                        {user.level_of_access === 2 && item.Approved !== null && (
+                            <div>
+                                <h2 className="text-2xl font-semibold mb-4">
+                                    Authentication Status
+                                </h2>
+                                <div
+                                    className={`w-full text-white py-3 px-4 rounded-lg font-medium text-center ${getAuthStatusColor()}`}
+                                >
+                                    {getAuthStatusText()}
+                                </div>
+                            </div>
+                        )}
+
+                        {user.level_of_access === 1 && (
+                            <div>
+                                <h2 className="text-2xl font-semibold mb-4">
+                                    Authentication Status
+                                </h2>
+                                <div
+                                    className={`w-full text-white py-3 px-4 rounded-lg font-medium text-center ${getAuthStatusColor()}`}
+                                >
+                                    {getAuthStatusText()}
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
-            )}
 
-            {errors.general && (
-                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
-                    {errors.general.map((error, index) => (
-                        <p key={index}>{error}</p>
-                    ))}
+                {/* Authentication buttons */}
+                <div className="w-full">
+                    {user.level_of_access === 2 && item.Approved === null && (
+                        <div className="mb-8">
+                            <h2 className="text-2xl font-semibold mb-4">Authentication Actions</h2>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <button
+                                    className="bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition duration-300 font-medium"
+                                    onClick={() => handle_update("accept")}
+                                >
+                                    Approve Authentication
+                                </button>
+
+                                <button
+                                    className="bg-red-600 text-white py-3 px-4 rounded-lg hover:bg-red-700 transition duration-300 font-medium"
+                                    onClick={() => handle_update("declin")}
+                                >
+                                    Decline Authentication
+                                </button>
+
+                                {!item.Second_opinion && (
+                                    <button
+                                        className="bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition duration-300 font-medium"
+                                        onClick={handle_second_opinion}
+                                    >
+                                        Request Second Opinion
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
-            )}
 
-            <div className="mb-6">
-                <h1 className="text-3xl font-bold text-gray-800">{item.Listing_name}</h1>
-                <p className="text-lg text-gray-600">Seller Full Name: {item.Seller_username}</p>
-                <p className="text-lg text-gray-600">Seller Username: {item.Seller_name}</p>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2">
-                    <div className="relative rounded-lg overflow-hidden bg-gray-100 h-96">
+                {/* Image and product description */}
+                <div className="w-full mb-8">
+                    <div className="relative rounded-lg overflow-hidden bg-gray-100 h-96 mb-8">
                         {item.Images && image_count > 0 ? (
                             <>
                                 <img
-                                    src={`data:image/${item.Images[current_image_index]};base64,${item.Images[current_image_index]}`}
+                                    src={`data:image/jpeg;base64,${item.Images[current_image_index]}`}
                                     alt={`${item.Listing_name} - Image ${current_image_index + 1}`}
                                     className="w-full h-full object-contain"
                                 />
@@ -230,26 +301,23 @@ const EnlargedAuthRequest = () => {
                         )}
                     </div>
 
-                    <div className="mt-8">
-                        <h2 className="text-xl font-semibold mb-4">Product Description</h2>
-                        <div className="prose max-w-none">
-                            <p className="text-gray-700">
-                                {item.Description || "No description available."}
-                            </p>
-                        </div>
+                    <div>
+                        <h2 className="text-2xl font-semibold mb-4">Product Description</h2>
+                        <p className="text-gray-700">
+                            {item.Description || "No description available."}
+                        </p>
 
-                        <div>
-                            <h3 className="text-lg font-medium mb-2 mt-">Listing Details</h3>
+                        <div className="mt-6">
+                            <h3 className="text-lg font-medium mb-2">Listing Details</h3>
                             <ul className="space-y-2">
-                                <li className="flex justify-left">
-                                    <span className="text-gray-600">Listed:</span>
+                                <li className="text-gray-600">
+                                    Listed:{" "}
                                     <span className="font-medium">
                                         {item.Upload_datetime || "N/A"}
                                     </span>
                                 </li>
-
-                                <li className="flex justify-left">
-                                    <span className="text-gray-600">Proposed Price:</span>
+                                <li className="text-gray-600">
+                                    Proposed Price:{" "}
                                     <span className="font-medium">${item.Min_price || "0.00"}</span>
                                 </li>
                             </ul>
@@ -257,68 +325,13 @@ const EnlargedAuthRequest = () => {
                     </div>
                 </div>
 
-                <div className="lg:col-span-1">
-                    {/* Authentication section based on user.level_of_access */}
-                    {user.level_of_access === 2 && (
-                        <div>
-                            {item.Approved === true || item.Approved === false ? (
-                                <div>
-                                    <h2 className="text-xl font-semibold mb-6">
-                                        Authentication Status
-                                    </h2>
-                                    <div
-                                        className={`w-full text-white py-3 px-4 rounded-lg font-medium ${getAuthStatusColor()}`}
-                                    >
-                                        {getAuthStatusText()}
-                                    </div>
-                                </div>
-                            ) : (
-                                <div>
-                                    <h2 className="text-xl font-semibold mb-6">
-                                        Authentication Actions
-                                    </h2>
-                                    <div className="space-y-4">
-                                        <button
-                                            className="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition duration-300 font-medium"
-                                            onClick={() => handle_update("accept")}
-                                        >
-                                            Approve Authentication
-                                        </button>
-
-                                        <button
-                                            className="w-full bg-red-600 text-white py-3 px-4 rounded-lg hover:bg-red-700 transition duration-300 font-medium"
-                                            onClick={() => handle_update("declin")}
-                                        >
-                                            Decline Authentication
-                                        </button>
-
-                                        {!item.Second_opinion && (
-                                            <button
-                                                className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition duration-300 font-medium"
-                                                onClick={handle_second_opinion}
-                                            >
-                                                Request Second Opinion
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
+                {/* Chat window */}
+                <div className="w-full">
+                    <h2 className="text-2xl font-semibold mb-4">Communication</h2>
+                    <div className="bg-blue-50 p-6 rounded-lg">
+                        <div className="text-center">
+                            <p className="text-gray-700 mb-4">chat to be added here</p>
                         </div>
-                    )}
-
-                    {user.level_of_access === 1 && (
-                        <div>
-                            <h2 className="text-xl font-semibold mb-6">Authentication Status</h2>
-                            <div
-                                className={`w-full text-white py-3 px-4 rounded-lg font-medium ${getAuthStatusColor()}`}
-                            >
-                                {getAuthStatusText()}
-                            </div>
-                        </div>
-                    )}
-
-                    <div className="mt-8">
-                        <h2 className="text-xl font-semibold mb-6">Chat ?</h2>
                     </div>
                 </div>
             </div>

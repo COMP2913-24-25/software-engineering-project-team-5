@@ -752,9 +752,6 @@ def get_bids():
             .join(
                 User, Items.Seller_id == User.User_id
             )  # Join User table to get seller info
-            .outerjoin(
-                Images, Items.Item_id == Images.Item_id
-            )  # Outer join Images table to get item image
             .filter(
                 Bidding_history.Bidder_id == current_user.User_id,
                 Items.Available_until > datetime.datetime.now(),  # Only valid bids
@@ -770,8 +767,6 @@ def get_bids():
                 Items.Current_bid,
                 Items.Available_until,
                 User.Username,
-                Images.Image,
-                Images.Image_description,
                 Items.Min_price,
             )
             .order_by(
@@ -788,12 +783,27 @@ def get_bids():
 
         for item in bid_data:
             if item.Item_id not in unique_bids:
-                # Save the first bid for this item (the highest one, because of ordering)
-                image_data = item.Image
-                image_base64 = None
-                if image_data:
-                    # Base64 encode the image if it exists
-                    image_base64 = base64.b64encode(image_data).decode("utf-8")
+                # Fetch all images for the item (Same as get-history)
+                images = Images.query.filter_by(Item_id=item.Item_id).all()
+                image_list = []
+
+                for image in images:
+                    image_data = image.Image
+                    image_base64 = (
+                        base64.b64encode(image_data).decode("utf-8")
+                        if image_data
+                        else None
+                    )
+                    image_list.append(
+                        {
+                            "Image": image_base64,
+                            "Image_description": (
+                                image.Image_description
+                                if image.Image_description
+                                else "No description available"
+                            ),
+                        }
+                    )
 
                 unique_bids[item.Item_id] = {
                     "Bid_id": item.Bid_id,
@@ -806,8 +816,7 @@ def get_bids():
                     "Current_bid": item.Current_bid,
                     "Available_until": item.Available_until,
                     "Seller_name": item.Username,
-                    "Image": image_base64,
-                    "Image_description": item.Image_description or "No Image",
+                    "Images": image_list,
                     "Min_price": item.Min_price,
                 }
 
@@ -878,12 +887,26 @@ def get_history():
 
         for item in bid_data:
             if item.Item_id not in unique_bids:
-                # Save the first bid for this item (the highest one, because of ordering)
-                image_data = item.Image
-                image_base64 = None
-                if image_data:
-                    # Base64 encode the image if it exists
-                    image_base64 = base64.b64encode(image_data).decode("utf-8")
+                images = Images.query.filter_by(Item_id=item.Item_id).all()
+                image_list = []
+
+                for image in images:
+                    image_data = image.Image
+                    image_base64 = (
+                        base64.b64encode(image_data).decode("utf-8")
+                        if image_data
+                        else None
+                    )
+                    image_list.append(
+                        {
+                            "Image": image_base64,
+                            "Image_description": (
+                                image.Image_description
+                                if image.Image_description
+                                else "No description available"
+                            ),
+                        }
+                    )
 
                 unique_bids[item.Item_id] = {
                     "Bid_id": item.Bid_id,
@@ -896,7 +919,7 @@ def get_history():
                     "Current_bid": item.Current_bid,
                     "Available_until": item.Available_until,
                     "Seller_name": item.Username,
-                    "Image": image_base64,
+                    "Images": image_list,
                     "Image_description": item.Image_description or "No Image",
                     "Min_price": item.Min_price,
                 }
@@ -926,9 +949,6 @@ def get_pending_auth():
                 Items.query.join(
                     User, Items.Seller_id == User.User_id
                 )  # Join Users table to get seller info
-                .outerjoin(
-                    Images, Items.Item_id == Images.Item_id
-                )  # Join Images table to get images
                 .filter(Items.Authentication_request == True, Items.Expert_id.is_(None))
                 .with_entities(
                     Items.Item_id,
@@ -937,8 +957,6 @@ def get_pending_auth():
                     Items.Current_bid,
                     Items.Available_until,
                     User.Username,
-                    Images.Image,
-                    Images.Image_description,
                 )
                 .all()
             )
@@ -949,9 +967,27 @@ def get_pending_auth():
             # Convert query results to JSON
             unassigned_data = []
             for item in unassigned_items:
-                image_base64 = None
-                if item.Image:
-                    image_base64 = base64.b64encode(item.Image).decode("utf-8")
+                # Fetch all images for the current item
+                images = Images.query.filter_by(Item_id=item.Item_id).all()
+                image_list = []
+
+                for image in images:
+                    image_data = image.Image
+                    image_base64 = (
+                        base64.b64encode(image_data).decode("utf-8")
+                        if image_data
+                        else None
+                    )
+                    image_list.append(
+                        {
+                            "Image": image_base64,
+                            "Image_description": (
+                                image.Image_description
+                                if image.Image_description
+                                else "No description available"
+                            ),
+                        }
+                    )
                 unassigned_data.append(
                     {
                         "Item_id": item.Item_id,
@@ -960,12 +996,7 @@ def get_pending_auth():
                         "Current_bid": item.Current_bid,
                         "Available_until": item.Available_until,
                         "Username": item.Username,
-                        "Image": image_base64,
-                        "Image_description": (
-                            item.Image_description
-                            if item.Image_description
-                            else "No description available"
-                        ),
+                        "Images": image_list,
                     }
                 )
 
@@ -1301,14 +1332,12 @@ def get_watchlist():
         status_code: HTTP status code (200 for success, 401 for unauthorized access)
     """
     if current_user.is_authenticated:
-
         # Fetch all watchlist items in one query
         watchlist_items = (
             Watchlist.query.join(
                 Items, Watchlist.Item_id == Items.Item_id
             )  # Join Items table
             .join(User, Items.Seller_id == User.User_id)  # Join Users table
-            .outerjoin(Images, Items.Item_id == Images.Item_id)  # Join Images table
             .filter(Watchlist.User_id == current_user.User_id)
             .with_entities(
                 Items.Item_id,
@@ -1317,8 +1346,6 @@ def get_watchlist():
                 Items.Current_bid,
                 Items.Available_until,
                 User.Username.label("Seller_name"),
-                Images.Image,
-                Images.Image_description,
                 Items.Min_price,
             )
             .all()
@@ -1330,11 +1357,25 @@ def get_watchlist():
         # Convert query results to JSON
         watchlist_data = []
         for item in watchlist_items:
-            image_data = item.Image
-            image_base64 = None
-            if image_data:
-                # Base64 encode the image if it exists
-                image_base64 = base64.b64encode(image_data).decode("utf-8")
+            # Fetch all images for the current item
+            images = Images.query.filter_by(Item_id=item.Item_id).all()
+            image_list = []
+
+            for image in images:
+                image_data = image.Image
+                image_base64 = (
+                    base64.b64encode(image_data).decode("utf-8") if image_data else None
+                )
+                image_list.append(
+                    {
+                        "Image": image_base64,
+                        "Image_description": (
+                            image.Image_description
+                            if image.Image_description
+                            else "No description available"
+                        ),
+                    }
+                )
 
             watchlist_data.append(
                 {
@@ -1345,12 +1386,7 @@ def get_watchlist():
                     "Min_price": item.Min_price if item.Min_price is not None else 0,
                     "Available_until": item.Available_until,
                     "Seller_name": item.Seller_name,
-                    "Image": image_base64,
-                    "Image_description": (
-                        item.Image_description
-                        if item.Image_description
-                        else "No description available"
-                    ),
+                    "Images": image_list,
                 }
             )
 
