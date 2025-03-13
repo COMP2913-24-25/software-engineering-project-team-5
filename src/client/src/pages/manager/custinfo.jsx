@@ -1,13 +1,13 @@
 import React, { useState } from "react";
-import "./custinfo.css"; // Initial imports needed
 
-const initialData = [ // Test data for customers
+const initialData = [
+    // Test data for customers
     { id: 1, name: "Adam", email: "adam@example.com", level: "Manager" },
     { id: 2, name: "Ali", email: "ali@example.com", level: "Expert" },
     { id: 3, name: "Mila", email: "mile@example.com", level: "User" },
     { id: 4, name: "Kavisha", email: "kav@example.com", level: "User" },
     { id: 5, name: "Tahmid", email: "tahmid@example.com", level: "User" },
-    { id: 6, name: "Hassan", email: "hassan@example.com", level: "Expert" }
+    { id: 6, name: "Hassan", email: "hassan@example.com", level: "Expert" },
 ];
 
 export default function CustomerTable() {
@@ -42,9 +42,7 @@ export default function CustomerTable() {
     // Handle updating level
     const handleSave = () => {
         if (!newLevel) return;
-        const updatedData = data.map((user) =>
-            selectedUsers.includes(user.id) ? { ...user, level: newLevel } : user
-        );
+        const updatedData = data.map((user) => (selectedUsers.includes(user.id) ? { ...user, level: newLevel } : user));
         setData(updatedData);
         setSelectedUsers([]); // Clear selection after update
     };
