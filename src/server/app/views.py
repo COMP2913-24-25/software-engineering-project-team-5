@@ -373,6 +373,112 @@ def update_user_details():
 
     return jsonify({"message": "No user logged in"}), 401
 
+
+@app.route("/api/get_search_filter", methods =["POST"])
+def get_search_filter():
+    """
+    This endpoint handles filtering of items based on the search query provided by the user. 
+    It can filter either by user or item based on the input flags (`user` or `item`) and search query.
+
+    Request Body (JSON):
+    - user (bool): Indicates whether to filter by users (not implemented in this version).
+    - item (bool): Indicates whether to filter by items (required for this version).
+    - searchQuery (str): The search term used to filter item names and item tags.
+
+    Response Body:
+    - A list of dictionaries containing filtered item details, including the item ID, listing name, 
+      seller ID, availability, verification status, minimum price, current bid, and item image (if available).
+
+    Returns:
+        JSON: A list of filtered item details (based on the search query).
+    """
+    
+    data = request.json
+    user = data.get("user","")
+    item = data.get("item", "")
+    searchQuery = (data.get("searchQuery", "")).strip().lower()
+    print("SEARCH QUERY IN BACKEND", searchQuery)
+    print("ITEM", item)
+    filtered_ids = []
+    if user == True:
+        print("user : true")
+    elif item == True:
+        print("item :true")
+    else :
+        print("both false")
+    
+    filtered_items = []
+    
+    if not searchQuery:
+    # Return all items
+        print("Empty search Query")
+        filtered_items = db.session.query(Items).all()
+        print(filtered_items)
+
+    elif item:
+        print("in item bool")
+        # filter by item name, works with space seperated strings
+        item_names_and_Ids = (db.session.query(Items.Listing_name,Items.Item_id).all())
+        for name, item_id in item_names_and_Ids :
+            name_tokens = name.split()
+            search_tokens = searchQuery.split()
+
+            print(name_tokens)
+            for i in range(len(name_tokens) - len(search_tokens) + 1):
+                if all(name_tokens[i + j].startswith(search_tokens[j]) for j in range(len(search_tokens))): 
+                    filtered_ids.append(item_id)
+        
+        # filter by item_tags, works for tags that have more than one word
+        type_names = (db.session.query(Types.Type_name, Items.Item_id).join(Middle_type, Middle_type.Item_id == Items.Item_id).join(Types, Types.Type_id == Middle_type.Type_id).all())
+        
+        for tag_name, item_id in type_names:
+            tag_name_tokens = tag_name.split()
+            for i in range(len(tag_name_tokens) - len(search_tokens) + 1):
+                # print("Search tags",search_tokens)
+                if all(tag_name_tokens[i + j].startswith(search_tokens[j]) for j in range(len(search_tokens))):
+                # ensure no duplicates of item_ids
+                    if item_id not in filtered_ids: 
+                        filtered_ids.append(item_id)
+                        
+        # print("Item Ids",filtered_ids) 
+        #get items from filtered Ids
+        filtered_items = db.session.query(Items).filter(Items.Item_id.in_(filtered_ids)).all()
+        # Ensure Items model has a to_dict() method
+
+        # return jsonify(result)
+    
+    elif user :
+        #for now just returns all
+        filtered_items = db.session.query(User).all()
+        print(filtered_items)
+
+    # Turn into dict
+    items_list = []
+    for item in filtered_items:
+        image = Images.query.filter(Images.Item_id == item.Item_id).first()
+
+        item_details_dict = {
+            "Item_id": item.Item_id,
+            "Listing_name": item.Listing_name,
+            "Seller_id": item.Seller_id,
+            "Available_until": item.Available_until,
+            "Verified": item.Verified,
+            "Min_price": item.Min_price,
+            "Current_bid": item.Current_bid,
+            "Image": base64.b64encode(image.Image).decode("utf-8") if image else None,
+        }
+
+        items_list.append(item_details_dict)                
+        
+    return jsonify(items_list), 200
+                
+            
+    # print([item_id for item_id, in db.session.query(Items.Item_id).all()])
+    # all_items = db.session.query(Items).all()
+    # return jsonify([item.to_dict() for item in all_items])
+
+
+        
 @app.route("/api/get_filtered_listings", methods =["POST"])
 def get_filtered_listings():
    
