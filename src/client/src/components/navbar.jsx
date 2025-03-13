@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom"; //to create a navigation link in UI
 import { Home, User, Heart, ShoppingCart, Bell } from "lucide-react"; // Import icons from lucide-react
-
 import { useUser } from "../App"; // Calls the user
-import Search_component from "./Search_component";
+import {useCSRF } from "../App"; // Calls the user
 import { useNavigate } from "react-router-dom"; //React hook to navigate between routes without user interaction
 
-const Navbar = ({ searchQuery, setSearchQuery }) => {
+const Navbar = ({}) => { //parse in whether search will be filtering user, item and the dictionary it is filtering
     const [activeSubMenu, setActiveSubMenu] = useState(null);
     const { user } = useUser();
-    console.log(user);
+    const { csrfToken } = useCSRF();
+    const [searchQuery, setSearchQuery] = useState("");
+
 
     const toggleSubMenu = (menu) => {
         setActiveSubMenu(activeSubMenu === menu ? null : menu);
@@ -18,8 +19,11 @@ const Navbar = ({ searchQuery, setSearchQuery }) => {
 
     const handleSearch = () => {
         const queryParam = encodeURIComponent(searchQuery); // Encode the search query  to safely parse
+        console.log("SEARCH", searchQuery);
         navigate("/current_listings", { state: { searchQuery } }); // Navigate to the current listings page with the search query
     };
+
+
 
     return (
         <nav className="bg-gray-800 text-white p-4 relative">
@@ -32,8 +36,8 @@ const Navbar = ({ searchQuery, setSearchQuery }) => {
 
                     {/* Center - Search Bar (flex-grow to occupy space) */}
                     {/* can search for user XOR expert */}
-                    <Search_component user = {false} item={true} searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
-                    {/* <div className="flex-grow flex ml-2">
+                    {/* <Search_component user = {user_check} item={item} handle_filter_Ids = {handle_filter_Ids} /> */}
+                    <div className="flex-grow flex ml-2">
                         <input
                             type="text"
                             placeholder="Search..."
@@ -48,7 +52,7 @@ const Navbar = ({ searchQuery, setSearchQuery }) => {
                         >
                             Search
                         </button>
-                    </div> */}
+                    </div>
                     {user?.level_of_access === 1 && (
                         <>
                             {/* Temporarily here, to be moved to account summary page */}
