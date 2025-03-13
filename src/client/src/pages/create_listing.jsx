@@ -35,7 +35,7 @@ const CreateListing = () => {
     const [errors, setErrors] = useState({});
 
     const [selected_tags, set_selected_tags] = useState([]);
-    
+
     useEffect(() => {
         if (user) {
             setFormData((prevData) => ({
@@ -180,143 +180,147 @@ const CreateListing = () => {
 
     // Where the actual html for the web page is described.
     return (
-        <div className="container">
-            {showForm && (
-                <>
-                    {errors.general &&
-                        errors.general.map((error, index) => (
-                            <div
-                                key={index}
-                                className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"
-                            >
-                                {error}
-                            </div>
+        <div className="relative min-h-screen bg-gray-100 flex justify-center">
+            <form
+                onSubmit={handle_submit}
+                className="absolute top-10 w-full max-w-xs sm:max-w-md px-6 space-y-4"
+            >
+                <h2 className="text-2xl font-semibold text-center text-gray-800 mb-4">
+                    Create a New Listing
+                </h2>
+
+                {errors.general &&
+                    errors.general.map((error, index) => (
+                        <div key={index} className="text-red-600 text-center mb-2">
+                            {error}
+                        </div>
+                    ))
+                }
+
+                {/* Listing Name */}
+                <div>
+                    <input
+                        className="bg-white w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        type="text"
+                        name="listing_name"
+                        placeholder="Listing Name"
+                        value={formData.listing_name}
+                        onChange={handleChange}
+                        required
+                    />
+                    {errors.listing_name &&
+                        errors.listing_name.map((error, index) => (
+                            <p key={index} className="text-red-500 text-sm mt-1">{error}</p>
                         ))}
-                    <form onSubmit={handle_submit} className="space-y-4">
-                        <div>
-                            <input
-                                className="form-control"
-                                type="text"
-                                name="listing_name"
-                                placeholder="Listing Name"
-                                value={formData.listing_name}
-                                onChange={handleChange}
-                                required
-                            />
-                            {errors.listing_name &&
-                                errors.listing_name.map((error, index) => (
-                                    <p
-                                        key={index}
-                                        className="text-red-500 text-sm mt-1"
-                                    >
-                                        {error}
-                                    </p>
-                                ))}
-                        </div>
-                        <div>
-                            <textarea
-                                className="form-control"
-                                type="text"
-                                rows="4"
-                                cols="50"
-                                name="listing_description"
-                                placeholder="Description"
-                                value={formData.listing_description}
-                                onChange={handleChange}
-                            ></textarea>
-                            {errors.listing_description &&
-                                errors.listing_description.map(
-                                    (error, index) => (
-                                        <p
-                                            key={index}
-                                            className="text-red-500 text-sm mt-1"
-                                        >
-                                            {error}
-                                        </p>
-                                    )
-                                )}
-                        </div>
+                </div>
 
-                        <div>
-                            <Tag_selector selected_tags={selected_tags} set_selected_tags={set_selected_tags} />
-                        </div>
+                {/* Listing Description */}
+                <div>
+                    <textarea
+                        className="bg-white w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        rows="4"
+                        name="listing_description"
+                        placeholder="Description"
+                        value={formData.listing_description}
+                        onChange={handleChange}
+                        required
+                    />
+                    {errors.listing_description &&
+                        errors.listing_description.map((error, index) => (
+                            <p key={index} className="text-red-500 text-sm mt-1">{error}</p>
+                        ))}
+                </div>
 
-                        <div>
-                            <input
-                                className="form-control"
-                                type="number"
-                                name="minimum_price"
-                                min="0"
-                                step="0.01"
-                                placeholder="Price"
-                                value={formData.minimum_price}
-                                onChange={handleChange}
-                                required
-                            />
-                            {errors.minimum_price &&
-                                errors.minimum_price.map((error, index) => (
-                                    <p
-                                        key={index}
-                                        className="text-red-500 text-sm mt-1"
-                                    >
-                                        {error}
-                                    </p>
-                                ))}
-                        </div>
-                        <div>
-                            <input
-                                className="form-control"
-                                type="number"
-                                name="days_available"
-                                placeholder="How long do you want to list?"
-                                min="1"
-                                max="5"
-                                step="1"
-                                value={formData.days_available}
-                                onChange={handleChange}
-                                required
-                            />
-                            {errors.days_available &&
-                                errors.days_available.map((error, index) => (
-                                    <p
-                                        key={index}
-                                        className="text-red-500 text-sm mt-1"
-                                    >
-                                        {error}
-                                    </p>
-                                ))}
-                        </div>
-                        <div>
-                            <label>
-                                Authentication Request(fee is 5% of the winning
-                                bid if authentication request is approved)
-                            </label>
-                            <label className="flex items-center space-x-2">
-                                <input
-                                    type="checkbox"
-                                    name="authentication_request"
-                                    checked={formData.authentication_request}
-                                    onChange={handleChange}
-                                />
-                            </label>
-                        </div>
+                {/* Tag Selector */}
+                <div>
+                    <Tag_selector selected_tags={selected_tags} set_selected_tags={set_selected_tags} />
+                </div>
+
+                {/* Minimum Price */}
+                <div>
+                    <input
+                        className="bg-white w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        type="number"
+                        name="minimum_price"
+                        min="0"
+                        step="0.01"
+                        placeholder="Price"
+                        value={formData.minimum_price}
+                        onChange={handleChange}
+                        required
+                    />
+                    {errors.minimum_price &&
+                        errors.minimum_price.map((error, index) => (
+                            <p key={index} className="text-red-500 text-sm mt-1">{error}</p>
+                        ))}
+                </div>
+
+                {/* Days Available */}
+                <div>
+                    <input
+                        className="bg-white w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        type="number"
+                        name="days_available"
+                        min="1"
+                        max="5"
+                        step="1"
+                        placeholder="How long do you want to list?"
+                        value={formData.days_available}
+                        onChange={handleChange}
+                        required
+                    />
+                    {errors.days_available &&
+                        errors.days_available.map((error, index) => (
+                            <p key={index} className="text-red-500 text-sm mt-1">{error}</p>
+                        ))}
+                </div>
+
+                {/* Authentication Request */}
+                <div>
+                    <label className="block text-gray-800 font-medium">
+                        Authentication Request (5% fee of winning bid if approved)
+                    </label>
+                    <label className="flex items-center space-x-2">
                         <input
-                            className="form-control"
-                            type="file"
-                            name="images"
-                            accept="image/*"
-                            multiple
-                            onChange={handle_file_change}
-                            required
+                            type="checkbox"
+                            name="authentication_request"
+                            checked={formData.authentication_request}
+                            onChange={handleChange}
+                            className="focus:ring-blue-500"
                         />
-                        <button type="submit" className="btn btn-primary">
-                            Create Listing
-                        </button>
-                    </form>
-                </>
-            )}
+                        <span className="text-gray-600">Enable Authentication Request</span>
+                    </label>
+                </div>
+
+                {/* File Upload */}
+                <div>
+                    <input
+                        className="bg-white w-full py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        type="file"
+                        name="images"
+                        accept="image/*"
+                        multiple
+                        onChange={handle_file_change}
+                        required
+                    />
+                    {errors.images && errors.images.map((error, index) => (
+                        <p key={index} className="text-red-500 text-sm mt-1">{error}</p>
+                    ))}
+                </div>
+
+                {/* Submit Button */}
+                <div className="flex justify-center">
+                    <button
+                        type="submit"
+                        className="w-full py-3 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        Create Listing
+                    </button>
+                </div>
+            </form>
         </div>
     );
+
 };
 
 export default CreateListing;
