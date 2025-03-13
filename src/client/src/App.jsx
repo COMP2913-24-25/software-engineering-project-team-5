@@ -13,6 +13,7 @@ import CurrentBids from "./pages/currentbids";
 import CreateListing from "./pages/create_listing";
 import AccountSummary from "./pages/accountsummary";
 import CurrentListings from "./pages/current_listings";
+import EnlargedListingPage from "./components/enlargedlisting"
 
 import WeeklyProfits from "./pages/manager/profits";
 import CustomerTable from "./pages/manager/custinfo";
@@ -116,9 +117,9 @@ function App() {
             <Router>
                 <NotificationProvider>
                     <div className="navbar">
-                      <Navbar 
-                        searchQuery={searchQuery} setSearchQuery={setSearchQuery} 
-                      /> 
+                        <Navbar
+                            searchQuery={searchQuery} setSearchQuery={setSearchQuery}
+                        />
 
                     </div>
 
@@ -155,7 +156,7 @@ function App() {
                             >
                                 CustomerInfo
                             </Link>
-                                                <Route path="/current_listings" element={<CurrentListings />} />
+                            <Route path="/current_listings" element={<CurrentListings />} />
 
                             <Link
                                 to="/manager/auth"
@@ -191,9 +192,9 @@ function App() {
                             element={<BiddingHistory />}
                         />
                         <Route
-                        path="/current_listings"
-                        element={<CurrentListings searchQuery={searchQuery} />}
-                    />
+                            path="/current_listings"
+                            element={<CurrentListings searchQuery={searchQuery} />}
+                        />
                         <Route path="/current-bids" element={<CurrentBids />} />
                         <Route
                             path="/create-listing"
@@ -221,6 +222,10 @@ function App() {
                         <Route
                             path="/expert/auth/:Listing_name/:Item_id"
                             element={<EnlargedExpertAuthRequest />}
+                        />
+                        <Route
+                            path="/item/:Listing_name/:Item_id"
+                            element={<EnlargedListingPage />}
                         />
                         <Route path="/expert/profile" element={<Profile />} />
                     </Routes>
