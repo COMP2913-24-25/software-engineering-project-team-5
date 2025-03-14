@@ -1819,3 +1819,37 @@ def set_availability():
         db.session.rollback()
         print(f"Error: {e}")
         return jsonify({"error": "Failed to set availability"}), 500
+
+
+@app.route('/api/get-availabilities', methods=["POST"])
+def get_availabilites():
+    """
+    Gets all the availabilities for a certain expert for a certain week.
+
+    Returns:
+        json_object: A list of all the availabilities
+        status_code: HTTP status code (200 for success, 400 for bad request)
+    """
+
+    try:
+        data = request.get_json()
+        week_start_date = data.get('week_start_date')
+
+        availabilities = Availabilities.query.filter_by(Expert_id = current_user.User_id, Week_start_date = week_start_date).all()
+
+        availability_data = []
+        for availability in availabilities:
+            print(availability)
+            availability_data.append({
+                'Availability_id': availability.Availability_id,
+                'Expert_id': availability.Expert_id,
+                'Day_of_week': availability.Day_of_week,
+                'Start_time': availability.Start_time.strftime('%H:%M'),
+                'End_time': availability.End_time.strftime('%H:%M'),
+                'Week_start_date': availability.Week_start_date.strftime('%Y-%m-%d')
+            })
+    
+        return jsonify(availability_data), 200
+    except Exception as e:
+        print("Error: ", e)
+        return jsonify({"Error: Failed to retrieve availabilities"}), 400

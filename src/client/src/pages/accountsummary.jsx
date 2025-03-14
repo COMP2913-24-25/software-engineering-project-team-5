@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import UserDetailsForm from "../components/user_details_form";
 import AddressForm from "../components/address_form";
 import { useUser, useCSRF } from "../App"; // Access the user
-import Availabilty_calendar from "../components/availability_calendar";
+import Availabilty_calendar_set from "../components/availability_calendar";
+import Availability_calendar_view from "../components/availability_calendar_view";
 
 const AccountSummary = () => {
     /*
@@ -195,11 +196,17 @@ const AccountSummary = () => {
                 <p className="text-gray-500">To do: After bidding system is completed.</p>
             </div>
 
+            {/* Expert View Availability Section (Visible only for experts)*/}
+            {is_expert && (            
+                <div className="p-6 mb-8">
+                    <Availability_calendar_view/>
+                </div>)}
+
             {/* Expert Availability Section (Visible only for experts on Sunday) */}
             {is_expert && is_sunday && (
                 <div className="p-6 mb-8">
                     <h2 className="text-2xl font-semibold text-gray-800 mb-4">Set Your Availability</h2>
-                    <Availabilty_calendar onSubmit={handle_submit} />
+                    <Availabilty_calendar_set onSubmit={handle_submit} />
                 </div>
             )}
 
