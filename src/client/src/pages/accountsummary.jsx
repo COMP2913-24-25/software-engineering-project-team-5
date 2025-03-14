@@ -5,6 +5,22 @@ import AddressForm from "../components/address_form";
 import { useUser, useCSRF } from "../App"; // Access the user
 import Availabilty_calendar from "../components/availability_calendar";
 
+import PaymentForm from "../components/card_details";
+
+// React Imports
+
+import {PaymentElement} from '@stripe/react-stripe-js'; // Stripe payment element
+import ReactDOM from 'react-dom';
+import {Elements} from '@stripe/react-stripe-js';
+import {loadStripe} from '@stripe/stripe-js';
+
+
+// Make sure to call `loadStripe` outside of a component's render to avoid
+// recreating the `Stripe` object on every render.
+const stripePromise = loadStripe('pk_test_51QvN8MIrwvA3VrIBHvYeaTFzCczDtKl3HreakQojXK15LGrI0y0Yx2ZKGlpzGWSwUMUpsTLHTUH22kHZXLgNllLO00pHk35jaT');
+
+
+
 const AccountSummary = () => {
     /*
     Allows a logged in user to view their account summary and edit their details (e.g.,
@@ -151,7 +167,7 @@ const AccountSummary = () => {
     const is_expert = user?.level_of_access === 2;
     const is_sunday = new Date().getDay() === 0; // 0 is representing Sunday in this case
     //const is_sunday = true; // For testing purposes
-
+   
     return (
         <div className="pl-[10%] pr-[10%]">
             <h1 className="text-2xl font-display font-semibold text-left px-[0.5em] pt-[1em]">
@@ -198,17 +214,29 @@ const AccountSummary = () => {
                 />
             ))}
 
-            <h1 className="text-2xl font-display font-semibold text-left px-[0.5em] pt-[1em]">
-                Card Details
-            </h1>
 
-            <h3 className="text-2xl font-display font-semibold text-left px-[0.5em] pt-[1em]">
-                To do: After bidding system completed
-            </h3>
 
+            <div id="payment-form">
+                <h1 className="text-2xl font-display font-semibold text-left px-[0.5em] pt-[1em]">
+                    Card Details
+                </h1>
+                {/* Card details form to be added here */}
+                {/* should I remove if user is manager/expert */}
+
+                <h3 className="text-2xl font-display font-semibold text-left px-[0.5em] pt-[1em]">
+                    To do: After bidding system completed
+                </h3>
+                <div id="card-element">
+                    {/* A Stripe Element will be inserted here. */}
+                    <Elements stripe={stripePromise} >
+                        <PaymentForm userId={user?.User_id}/>
+                    </Elements>
+                </div>
+                <div id="card-errors" role="alert"></div>
+                <button id="submit">Submit Payment</button>
+            </div>
             {is_expert && is_sunday && (<Availabilty_calendar onSubmit={handle_submit}/>)}
             {/* Only displays the availability calendar if the user is an expert and it is a sunday */}
-        
         </div>
     );
 };

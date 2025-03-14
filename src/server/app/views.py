@@ -44,6 +44,10 @@ import stripe
 stripe.api_key = 'sk_test_51QvN8MIrwvA3VrIBU92sndiPG7ZWIgYImzVxVP2ofd1xEDLpwPgF4fgWNsWpVm46klGLfcfbjTvbec7Vfi11p9vk00ODQbcday'
 
 import traceback
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # Admin mode accessed using "http://<url>/admin"
 # Used to view database on website instead of app.db
 admin.add_view(ModelView(User, db.session))
@@ -188,16 +192,6 @@ def create_stripe_customer():
     try:
         # Checks if the user is logged in
         if current_user.is_authenticated:
-            # data = request.json
-            # form = update_user_form(data=data)
-            # errors = {}
-
-            # if not form.validate():
-            #     for field, messages in form.errors.items():
-            #         errors[field] = messages
-
-            # if errors:
-            #     return jsonify({"errors": errors}), 400
             
             # gets user's name, and email
             
@@ -212,8 +206,7 @@ def create_stripe_customer():
 
             new_customer = stripe.Customer.create(
                 name = f_name + " " + s_name,
-                email = user_email,
-            )
+                email = user_email,)
             # Adds the customer ID to the user in the local database
 
             user = User.query.get(user_id)
@@ -229,6 +222,93 @@ def create_stripe_customer():
         print(traceback.format_exc())
         return jsonify({"error": "Failed to create Stripe customer"}), 500
     
+@app.route("/api/create-setup-intent", methods=["POST"])
+def create_setup_intent():
+    """
+    Creates a new setup intent in the Stripe database using the provided data.
+    Then adds the setup intent ID to the user in the local database.
+
+    Returns:
+        json_object: message to the user saying success
+        status_code: HTTP status code (200 for success,
+                                       400 for validation errors)
+    """
+    try:
+        # Checks if the user is logged in
+        if current_user.is_authenticated:
+            data = request.json
+            payment_method_id = data.get('payment_method_id')
+            user_id = current_user.User_id
+            user_details = User.query.filter_by(User_id=user_id).first()
+            customer_id = user_details.Customer_ID
+
+            # Creates a new setup intent in the Stripe database
+            setup_intent = stripe.SetupIntent.create(
+                confirm=True,
+                customer = customer_id,
+                #currency = 'gbp',
+                payment_method=payment_method_id,
+                payment_method_types = ['card'],
+                # receipt_email = user_details.Email,
+                usage = 'off_session'
+            )
+            #setup_future_usage, receipt_email, currency
+
+            # Adds the setup intent ID to the user in the local database
+            user = User.query.get(user_id)
+            user.Setup_intent_ID = setup_intent.id
+
+            db.session.commit()
+
+            return jsonify(id=setup_intent.id, client_secret=setup_intent.client_secret), 200
+
+        return jsonify({"message": "No user logged in, unable to create stripe setup intent"}), 401
+    except Exception as e:
+        logger.error(f"Error: {e}")
+        logger.error(traceback.format_exc())
+        return jsonify({"error": e}), 400
+
+
+# #may not work mila or Isnt needed??
+# @app.route("/api/save-card", methods=["POST"])
+# @login_required
+# def save_card():
+#     try:
+#         data = request.get_json()
+#         # token = data.get('token')
+#         user_id = data.get('userId')
+#         payment_method_id = data.get('payment_method_id')
+
+        
+#         # Check for missing payment method or user ID
+#         if not payment_method_id or not user_id:
+#             return jsonify({"error": "Missing payment method ID or user ID"}), 400
+#         user = User.query.get(user_id)
+#         if not user:
+#             return jsonify({"error": "User not found"}), 404
+
+#         payment_method = stripe.PaymentMethod.retrieve(payment_method_id)
+#         print("are they the same: ", payment_method_id == payment_method.id)
+#         stripe.PaymentMethod.attach(
+#             payment_method_id,
+#             customer=user.Customer_ID  
+#         )
+#         # Set the payment method as the default for future payments
+#         stripe.Customer.modify(
+#             user.Customer_ID,
+#             invoice_settings={"default_payment_method": payment_method_id},
+#         )
+#         return jsonify({"success": True}), 200
+
+#     except Exception as e:
+#         print(f"Error: {e}")
+#         return jsonify({"error": "Failed to save card"}), 400
+
+
+
+
+
+
 
 
 
