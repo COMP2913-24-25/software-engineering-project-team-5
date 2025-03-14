@@ -13,6 +13,8 @@ import CurrentBids from "./pages/currentbids";
 import CreateListing from "./pages/create_listing";
 import AccountSummary from "./pages/accountsummary";
 import CurrentListings from "./pages/current_listings";
+import EnlargedListingPage from "./components/enlargedlisting";
+import ChatWindow from "./pages/chatwindow";
 
 import WeeklyProfits from "./pages/manager/profits";
 import CustomerTable from "./pages/manager/custinfo";
@@ -20,7 +22,7 @@ import MAuthReq from "./pages/manager/authreq";
 import SearchExperts from "./pages/manager/searchexp";
 
 import EAuthRequests from "./pages/expert/expertauthreq";
-import EnlargedExpertAuthRequest from "./pages/expert/enlargedexpertauthrequest";
+import EnlargedAuthRequest from "./components/enlargedauthrequest";
 import Profile from "./pages/expert/profile";
 import Navbar from "./components/navbar";
 
@@ -36,13 +38,10 @@ export const useCSRF = () => useContext(CSRFContext);
 // Global function to fetch CSRF token from backend
 export const fetchCSRFToken = async () => {
     try {
-        const response = await fetch(
-            "http://localhost:5000/api/get-csrf-token",
-            {
-                method: "GET",
-                credentials: "include",
-            }
-        );
+        const response = await fetch("http://localhost:5000/api/get-csrf-token", {
+            method: "GET",
+            credentials: "include",
+        });
         const data = await response.json();
         return data.csrf_token;
     } catch (error) {
@@ -67,12 +66,9 @@ export const UserProvider = ({ children }) => {
                 if (token) setCsrfToken(token);
 
                 // Fetch current user
-                const response = await fetch(
-                    "http://localhost:5000/api/get_current_user",
-                    {
-                        credentials: "include",
-                    }
-                );
+                const response = await fetch("http://localhost:5000/api/get_current_user", {
+                    credentials: "include",
+                });
 
                 if (response.ok) {
                     const userData = await response.json();
@@ -115,29 +111,20 @@ function App() {
         <UserProvider>
             <Router>
                 <NotificationProvider>
-                    {/* Add Navbar in each page and parse in required values */}
-                    {/* Different handle_search functions if they need to redirect or simply filter the stuff in current page */}
-                
+
                      <div className="navbar">
                         <Navbar 
-                        // searchQuery={searchQuery} setSearchQuery={setSearchQuery} 
                         />
-
                     </div> 
+
 
                     {/* Expert View Sub Navbar */}
                     {activeSubMenu === "expert" && (
                         <div className="sub-navbar">
-                            <Link
-                                to="/expert/auth"
-                                onClick={() => setActiveSubMenu(null)}
-                            >
+                            <Link to="/expert/auth" onClick={() => setActiveSubMenu(null)}>
                                 AuthReq
                             </Link>
-                            <Link
-                                to="/expert/profile"
-                                onClick={() => setActiveSubMenu(null)}
-                            >
+                            <Link to="/expert/profile" onClick={() => setActiveSubMenu(null)}>
                                 Profile
                             </Link>
                         </div>
@@ -146,30 +133,18 @@ function App() {
                     {/* Manager View Sub Navbar */}
                     {activeSubMenu === "manager" && (
                         <div className="sub-navbar">
-                            <Link
-                                to="/manager/profits"
-                                onClick={() => setActiveSubMenu(null)}
-                            >
+                            <Link to="/manager/profits" onClick={() => setActiveSubMenu(null)}>
                                 Weekly Profits
                             </Link>
-                            <Link
-                                to="/manager/customer"
-                                onClick={() => setActiveSubMenu(null)}
-                            >
+                            <Link to="/manager/customer" onClick={() => setActiveSubMenu(null)}>
                                 CustomerInfo
                             </Link>
-                                                <Route path="/current_listings" element={<CurrentListings />} />
+                            <Route path="/current_listings" element={<CurrentListings />} />
 
-                            <Link
-                                to="/manager/auth"
-                                onClick={() => setActiveSubMenu(null)}
-                            >
+                            <Link to="/manager/auth" onClick={() => setActiveSubMenu(null)}>
                                 AuthReq
                             </Link>
-                            <Link
-                                to="/manager/expertSearch"
-                                onClick={() => setActiveSubMenu(null)}
-                            >
+                            <Link to="/manager/expertSearch" onClick={() => setActiveSubMenu(null)}>
                                 SearchExperts
                             </Link>
                         </div>
@@ -179,16 +154,11 @@ function App() {
                         <Route path="/" element={<Login />} />
                         <Route path="/signup" element={<Signup />} />
                         <Route path="/logout" element={<LogOut />} />
-                        <Route
-                            path="/accountsummary"
-                            element={<AccountSummary />}
-                        />
+                        <Route path="/accountsummary" element={<AccountSummary />} />
                         <Route path="/home-page" element={<HomePage />} />
-                        <Route
-                            path="/seller-dash"
-                            element={<SellerDashboard />}
-                        />
+                        <Route path="/seller-dash" element={<SellerDashboard />} />
                         <Route path="/watchlist" element={<WatchList />} />
+                        <Route path="/chatwindow" element={<ChatWindow />} />
                         <Route
                             path="/bidding-history"
                             element={<BiddingHistory />}
@@ -196,36 +166,25 @@ function App() {
                         <Route
                         path="/current_listings"
                         element={<CurrentListings 
-                            // searchQuery={searchQuery}
                              />}
                     />
+
                         <Route path="/current-bids" element={<CurrentBids />} />
-                        <Route
-                            path="/create-listing"
-                            element={<CreateListing />}
-                        />
+                        <Route path="/create-listing" element={<CreateListing />} />
 
-                        <Route
-                            path="/manager/profits"
-                            element={<WeeklyProfits />}
-                        />
-                        <Route
-                            path="/manager/customer"
-                            element={<CustomerTable />}
-                        />
+                        <Route path="/manager/profits" element={<WeeklyProfits />} />
+                        <Route path="/manager/customer" element={<CustomerTable />} />
                         <Route path="/manager/auth" element={<MAuthReq />} />
-                        <Route
-                            path="/manager/expertSearch"
-                            element={<SearchExperts />}
-                        />
+                        <Route path="/manager/expertSearch" element={<SearchExperts />} />
 
+                        <Route path="/expert/auth" element={<EAuthRequests />} />
                         <Route
-                            path="/expert/auth"
-                            element={<EAuthRequests />}
+                            path="/authrequest/:Listing_name/:Item_id"
+                            element={<EnlargedAuthRequest />}
                         />
                         <Route
-                            path="/expert/auth/:Listing_name/:Item_id"
-                            element={<EnlargedExpertAuthRequest />}
+                            path="/item/:Listing_name/:Item_id"
+                            element={<EnlargedListingPage />}
                         />
                         <Route path="/expert/profile" element={<Profile />} />
                     </Routes>
