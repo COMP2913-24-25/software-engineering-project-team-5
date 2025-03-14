@@ -195,6 +195,36 @@ def get_current_user():
     return jsonify({"message": "No user logged in"}), 401
 
 
+@app.route("/api/get_all_users", methods=["POST"])
+def get_all_users():
+    print("Wuery reached")
+
+    users = User.query.all()
+    print("USERS:",users)
+    user_details_list = []
+    
+    if not users:
+        return jsonify({"message": "No users found"}), 404
+    
+    
+    for user in users:
+        
+        user_details_dict = {
+            "User_id": user.User_id,
+            "First_name": user.First_name,
+            "Middle_name": user.Middle_name,
+            "Surname": user.Surname,
+            "DOB": user.DOB.strftime("%Y-%m-%d"),
+            "Email": user.Email,
+            "Username": user.Username,
+            "Level_of_access": user.Level_of_access,
+            "is_expert": user.Is_expert,
+        }
+        user_details_list.append(user_details_dict)
+    print(user_details_list)
+    
+    return jsonify(user_details_list), 200 
+ 
 @app.route("/api/get-user-details", methods=["POST"])
 def get_user_details():
     """
@@ -218,6 +248,7 @@ def get_user_details():
             "DOB": user_details.DOB.strftime("%Y-%m-%d"),
             "Email": user_details.Email,
             "Username": user_details.Username,
+            "Level_of_access" : user_details.Level_of_access,
             "is_expert": user_details.Is_expert,
         }
 
@@ -397,80 +428,165 @@ def get_search_filter():
     user = data.get("user","")
     item = data.get("item", "")
     searchQuery = (data.get("searchQuery", "")).strip().lower()
-    print("SEARCH QUERY IN BACKEND", searchQuery)
-    print("ITEM", item)
+    # print("SEARCH QUERY IN BACKEND", searchQuery)
+    # print("ITEM", item)
     filtered_ids = []
-    if user == True:
-        print("user : true")
-    elif item == True:
-        print("item :true")
-    else :
-        print("both false")
+    # if user == True:
+    #     print("user : true")
+    # elif item == True:
+    #     print("item :true")
+    # else :
+    #     print("both false")
     
     filtered_items = []
-    
-    if not searchQuery:
-    # Return all items
-        print("Empty search Query")
-        filtered_items = db.session.query(Items).all()
-        print(filtered_items)
+    filtered_users =[]
+   
 
-    elif item:
-        print("in item bool")
+    if item:
+        # print("in item bool")
+        if not searchQuery:
+                # Return all items
+            # print("Empty search Query")
+            filtered_items = db.session.query(Items).all()
+            # print(filtered_items)
+        else:     
         # filter by item name, works with space seperated strings
-        item_names_and_Ids = (db.session.query(Items.Listing_name,Items.Item_id).all())
-        for name, item_id in item_names_and_Ids :
-            name_tokens = name.split()
-            search_tokens = searchQuery.split()
+            item_names_and_Ids = (db.session.query(Items.Listing_name,Items.Item_id).all())
+            for name, item_id in item_names_and_Ids :
+                name_tokens = name.split()
+                search_tokens = searchQuery.split()
 
-            print(name_tokens)
-            for i in range(len(name_tokens) - len(search_tokens) + 1):
-                if all(name_tokens[i + j].startswith(search_tokens[j]) for j in range(len(search_tokens))): 
-                    filtered_ids.append(item_id)
-        
-        # filter by item_tags, works for tags that have more than one word
-        type_names = (db.session.query(Types.Type_name, Items.Item_id).join(Middle_type, Middle_type.Item_id == Items.Item_id).join(Types, Types.Type_id == Middle_type.Type_id).all())
-        
-        for tag_name, item_id in type_names:
-            tag_name_tokens = tag_name.split()
-            for i in range(len(tag_name_tokens) - len(search_tokens) + 1):
-                # print("Search tags",search_tokens)
-                if all(tag_name_tokens[i + j].startswith(search_tokens[j]) for j in range(len(search_tokens))):
-                # ensure no duplicates of item_ids
-                    if item_id not in filtered_ids: 
+                print(name_tokens)
+                for i in range(len(name_tokens) - len(search_tokens) + 1):
+                    if all(name_tokens[i + j].startswith(search_tokens[j]) for j in range(len(search_tokens))): 
                         filtered_ids.append(item_id)
-                        
-        # print("Item Ids",filtered_ids) 
-        #get items from filtered Ids
-        filtered_items = db.session.query(Items).filter(Items.Item_id.in_(filtered_ids)).all()
-        # Ensure Items model has a to_dict() method
+            
+            # filter by item_tags, works for tags that have more than one word
+            type_names = (db.session.query(Types.Type_name, Items.Item_id).join(Middle_type, Middle_type.Item_id == Items.Item_id).join(Types, Types.Type_id == Middle_type.Type_id).all())
+            
+            for tag_name, item_id in type_names:
+                tag_name_tokens = tag_name.split()
+                for i in range(len(tag_name_tokens) - len(search_tokens) + 1):
+                    # print("Search tags",search_tokens)
+                    if all(tag_name_tokens[i + j].startswith(search_tokens[j]) for j in range(len(search_tokens))):
+                    # ensure no duplicates of item_ids
+                        if item_id not in filtered_ids: 
+                            filtered_ids.append(item_id)
+                            
+            # print("Item Ids",filtered_ids) 
+            #get items from filtered Ids
+            filtered_items = db.session.query(Items).filter(Items.Item_id.in_(filtered_ids)).all()
+            
+        # Turn into dict
+        items_list = []
+        for item in filtered_items:
+            image = Images.query.filter(Images.Item_id == item.Item_id).first()
 
-        # return jsonify(result)
-    
+            item_details_dict = {
+                "Item_id": item.Item_id,
+                "Listing_name": item.Listing_name,
+                "Seller_id": item.Seller_id,
+                "Available_until": item.Available_until,
+                "Verified": item.Verified,
+                "Min_price": item.Min_price,
+                "Current_bid": item.Current_bid,
+                "Image": base64.b64encode(image.Image).decode("utf-8") if image else None,
+            }
+
+            items_list.append(item_details_dict)                
+            
+        return jsonify(items_list), 200
+        # Ensure Items model has a to_dict() method
     elif user :
         #for now just returns all
-        filtered_items = db.session.query(User).all()
-        print(filtered_items)
-
-    # Turn into dict
-    items_list = []
-    for item in filtered_items:
-        image = Images.query.filter(Images.Item_id == item.Item_id).first()
-
-        item_details_dict = {
-            "Item_id": item.Item_id,
-            "Listing_name": item.Listing_name,
-            "Seller_id": item.Seller_id,
-            "Available_until": item.Available_until,
-            "Verified": item.Verified,
-            "Min_price": item.Min_price,
-            "Current_bid": item.Current_bid,
-            "Image": base64.b64encode(image.Image).decode("utf-8") if image else None,
-        }
-
-        items_list.append(item_details_dict)                
+        if not searchQuery:
+            filtered_users = db.session.query(User).all()
+            print(filtered_users)
+            
+        else:
+            # print("Searching users")
+            filtered_user_ids = []
+            
+            # filtering by first, middle, last name
+            user_names_and_Ids = db.session.query(User.First_name, User.Middle_name, User.Surname, User.User_id).all()
+            for first, middle, last, user_id in user_names_and_Ids:
+                name_tokens = [first.lower(), middle.lower(), last.lower()]
+                # print("NAME", name_tokens)
+                search_tokens = searchQuery.lower().split()
         
-    return jsonify(items_list), 200
+                # if searchQuery has two tokens, it matches both in the same sequence to the name token
+                if len(search_tokens) > 1 :
+                    # print("SEARCH", search_tokens)
+                    matched = False
+                    if len(search_tokens) <= len(name_tokens): 
+                        # if name_tokens is greater than two, it matches first search_token to first name,
+                        # second to middle name, third to last
+                        if name_tokens[1] != "" :
+                            for i in range(len(search_tokens)):
+                                if not name_tokens[i].lower().startswith(search_tokens[i]):
+                                    matched = False
+                                    # print("NOT MATCHED : comparing name_toke", name_tokens[i], " with search query token ", search_tokens[i])
+                                    break
+                                else:
+                                    # print("MATCHED : comparing name_toke", name_tokens[i], " with search query token ", search_tokens[i])
+                                    matched = True
+            
+                        else:
+                            #  if name has no middle name, then second search token should match with last name not middle name
+                            if name_tokens[0] == search_tokens[0]:
+                                # print("MATCHED : comparing name", name_tokens[0], " with search query token ", search_tokens[0])
+                                if name_tokens[2].startswith(search_tokens[1]):
+                                    # print("MATCHED : comparing name", name_tokens[2], " with search query token ", search_tokens[1])
+                                    matched = True
+                                else :
+                                    matched = False
+                                    # print("NOT MATCHED : comparing name_toke", name_tokens[2], " with search query token ", search_tokens[1])
+                            else :
+                                matched = False
+                                # print("NOT MATCHED : comparing name_toke", name_tokens[0], " with search query token ", search_tokens[0])
+
+                            
+                    if matched:
+                        filtered_user_ids.append(user_id)
+                        # print("ID added", user_id)
+                        
+                        
+                elif len(search_tokens) == 1 :
+                    for i in range(len(name_tokens)):
+                        if name_tokens[i].lower().startswith(search_tokens[0]):
+                            filtered_user_ids.append(user_id)
+
+                        
+                            
+            
+            filtered_users = db.session.query(User).filter(User.User_id.in_(filtered_user_ids)).all()
+            print(filtered_users)
+            
+            #filtering by expert tags, not yet implemnetd in db
+            # if user.Is_expert : filter by tags
+        users_list = []
+        for user in filtered_users:
+
+            user_details_dict = {
+                "User_id": user.User_id,
+                "Username": user.Username,
+                "Password" : user.Password,
+                "Email": user.Email, 
+                "First_name": user.First_name,
+                "Middle_name": user.Middle_name,
+                "Surname": user.Surname,
+                "DOB": user.DOB,
+                "Level_of_access": user.Level_of_access,
+                "Is_expert": user.Is_expert
+            }
+
+            users_list.append(user_details_dict)                
+
+        return jsonify(users_list), 200
+
+
+
+    
                 
             
     # print([item_id for item_id, in db.session.query(Items.Item_id).all()])
