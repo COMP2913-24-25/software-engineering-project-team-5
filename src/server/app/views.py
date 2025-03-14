@@ -412,7 +412,7 @@ def update_level():
         new_levels = data.get("level_of_access", "")
         for i in range(len(user_ids)) :
             user = User.query.filter_by(User_id = user_ids[i]).first()
-            print(f"will update user_id {user_ids[i]} to level : {new_levels[i]}")
+            # print(f"will update user_id {user_ids[i]} to level : {new_levels[i]}")
 
             if not user :
                 return jsonify({"error" : "User no found"}), 404
