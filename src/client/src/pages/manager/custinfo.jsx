@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import {useCSRF} from "../../App"; // Calls the user
 import Search_Component from "../../components/Search_component"
-import React, { useState } from "react";
 
 const initialData = [
     // Test data for customers
