@@ -248,15 +248,21 @@ def create_setup_intent():
                 customer = customer_id,
                 #currency = 'gbp',
                 payment_method=payment_method_id,
-                payment_method_types = ['card'],
+                # payment_method_types = ['card'],
                 # receipt_email = user_details.Email,
-                usage = 'off_session'
+                usage = 'off_session',
+                automatic_payment_methods={
+                    "enabled": True,
+                    "allow_redirects": "never"
+                }
+                
             )
             #setup_future_usage, receipt_email, currency
 
             # Adds the setup intent ID to the user in the local database
             user = User.query.get(user_id)
             user.Setup_intent_ID = setup_intent.id
+            user.Payment_method_ID = payment_method_id
 
             db.session.commit()
 
@@ -268,7 +274,7 @@ def create_setup_intent():
         logger.error(traceback.format_exc())
         return jsonify({"error": e}), 400
 
-
+# so this will be needed if we want multiple cards linked to the same person??
 # #may not work mila or Isnt needed??
 # @app.route("/api/save-card", methods=["POST"])
 # @login_required
@@ -306,8 +312,44 @@ def create_setup_intent():
 
 
 
+@app.route("/api/charge-user", methods=["POST"])
+def charge_user():
+    """
+    Charges the user for an auction item
 
+    Returns:
+        json_object: message to the user saying success"""
+    # currently will just do user who is logged in
+    # later will use item id of finished auction and the user id to charge the correct user
+    # use item id to find most recent bid and get:
+    # -bidder id
+    # -bid price
+    # -if successful bid
+    # bidder_id = None # user id to be charged
+    try:
+        bidders_id = current_user.User_id
+        bid_price = 5000 # price to be charged 
+        setup_intent_id = current_user.Setup_intent_ID
+        customer_id=current_user.Customer_ID
 
+        payment_intent = stripe.PaymentIntent.create(
+            amount=bid_price,
+            currency='gbp',
+            confirm=True,
+            customer=current_user.Customer_ID,
+            payment_method=current_user.Payment_method_ID,
+            receipt_email=current_user.Email,
+            #off_session=True
+        )
+        return jsonify({
+            "payment_intent_id": payment_intent.id,
+            "client_secret": payment_intent.client_secret,
+            "status": payment_intent.status,
+        }), 200
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({"error": "Failed to charge user"}), 400
+    
 
 
 

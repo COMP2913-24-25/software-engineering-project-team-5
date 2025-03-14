@@ -11,6 +11,7 @@ class User(UserMixin, db.Model):
     Email = db.Column(db.String(50), nullable=False)
     Customer_ID = db.Column(db.String(100), nullable=True) #this will be used to link to the stripe customer ID
     Setup_intent_ID = db.Column(db.String(100), nullable=True) #this will be used to link to the stripe setup intent ID
+    Payment_method_ID = db.Column(db.String(100), nullable=True) #this will be used to link to the stripe payment method ID
     First_name = db.Column(db.String(50), nullable=False)
     Middle_name = db.Column(db.String(50), nullable=True)
     Surname = db.Column(db.String(50), nullable=False)
@@ -55,7 +56,8 @@ class Items(db.Model):
     #Columns
     Item_id = db.Column(db.Integer, primary_key=True)
     Listing_name = db.Column(db.String(50), nullable=False)
-    Seller_id = db.Column(db.Integer, db.ForeignKey('user.User_id'), nullable=False)
+    Seller_id = db.Column(db.Integer, db.ForeignKey('user.User_id'), nullable=True) #just for testing
+    #Seller_id = db.Column(db.Integer, db.ForeignKey('user.User_id'), nullable=False)
     Upload_datetime = db.Column(db.DateTime, default=datetime.datetime.now(datetime.UTC))
     Available_until = db.Column(db.DateTime, nullable=False)
     Min_price = db.Column(db.Float, nullable=False)
