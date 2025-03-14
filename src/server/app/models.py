@@ -171,3 +171,9 @@ class ChatMessages(db.Model):
 
     # Relationships
     Sender = db.relationship("User", foreign_keys=[Sender_id], backref="sent_messages")
+
+class Middle_expertise(db.Model):
+    # Columns
+    Middle_expertise_id = db.Column(db.Integer, primary_key=True)
+    Expert_id = db.Column(db.Integer, db.ForeignKey("user.User_id"), nullable=False)
+    Type_id = db.Column(db.Integer, db.ForeignKey("types.Type_id"), nullable=False)
