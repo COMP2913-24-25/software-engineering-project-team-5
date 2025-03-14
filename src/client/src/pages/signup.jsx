@@ -111,7 +111,27 @@ const Signup = () => {
             }
         } else {
             alert("Signup successful!");
-            navigate("/");
+            navigate("/accountsummary");
+             // create customer for stripe
+             const stripe_response = await fetch("http://localhost:5000/api/create-stripe-customer", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
+                },
+                credentials: "include",
+            });
+            if (stripe_response.ok) {
+                // Successful creation of Stripe customer
+                const stripe_responseData = await stripe_response.json();
+                console.log(stripe_responseData.message); // Log the success message
+                alert("Customer creation successful!");
+
+            } else {
+                // Handle errors, e.g., user not logged in
+                const errorData = await stripe_response.json();
+                console.log(errorData.message); // Log the error message
+            }
         }
     };
 

@@ -46,7 +46,7 @@ echo "Starting Flask server..."
 echo ""
 echo -e "${F_BOLD}${C_CYAN1}Setup complete! Flask running on http://localhost:5000${NO_FORMAT}"
 echo -e "${F_BOLD}${C_CYAN1}To view the database: http://localhost:5000/admin${NO_FORMAT}"
-echo -e "${F_BOLD}${C_YELLOW}Open React client (npm start) on another terminal.${NO_FORMAT}"
+echo -e "${F_BOLD}${C_YELLOW}Open React client (npm run dev) on another terminal.${NO_FORMAT}"
 
 cd src/server
 flask run 
