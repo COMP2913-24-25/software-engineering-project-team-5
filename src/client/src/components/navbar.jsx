@@ -1,21 +1,27 @@
+
+
 import React, { useState, useCallback, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Home, User, Heart, ShoppingCart, Bell, History, Menu, X } from "lucide-react";
 import { useUser } from "../App";
 
-const Navbar = ({ searchQuery, setSearchQuery }) => {
+const Navbar = ({}) => {
     const [menuOpen, setMenuOpen] = useState(false);
     const { user } = useUser();
     const navigate = useNavigate();
     const location = useLocation(); // Track page changes
+    const [searchQuery, setSearchQuery] = useState("");
 
     // Auto-collapse menu when route changes
     useEffect(() => {
         setMenuOpen(false);  // Automatically close the mobile menu on page change
     }, [location.pathname]);
 
+
     const handleSearch = useCallback(() => {
         if (searchQuery.trim()) {
+            const queryParam = encodeURIComponent(searchQuery); // Encode the search query  to safely parse
+            console.log("SEARCH", searchQuery);
             navigate("/current_listings", { state: { searchQuery } });
         }
     }, [searchQuery, navigate]);
@@ -49,9 +55,11 @@ const Navbar = ({ searchQuery, setSearchQuery }) => {
     // Get the links based on user access level
     const links = menuItems[user?.level_of_access] || [];
 
+
     return (
         <nav className="bg-gray-800 text-white p-4">
             <div className="flex items-center justify-between">
+
                 {/* Left - Home Icon */}
                 <Link to="/home-page" className="hover:text-gray-300">
                     <Home size={24} />
@@ -120,6 +128,7 @@ const Navbar = ({ searchQuery, setSearchQuery }) => {
             <div className={`sm:hidden transition-all duration-300 ease-in-out ${menuOpen ? "max-h-screen opacity-100" : "max-h-0 opacity-0 overflow-hidden"}`}>
                 <div className="flex flex-col items-center gap-y-3 mt-3">
                     <div className="w-full px-4">
+
                         <input
                             type="text"
                             placeholder="Search..."

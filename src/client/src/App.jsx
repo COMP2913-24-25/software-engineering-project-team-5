@@ -108,9 +108,12 @@ function App() {
         <UserProvider>
             <Router>
                 <NotificationProvider>
-                    <div className="navbar">
-                        <Navbar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
-                    </div>
+
+                     <div className="navbar">
+                        <Navbar 
+                        />
+                    </div> 
+
 
                     {/* Expert View Sub Navbar */}
                     {activeSubMenu === "expert" && (
@@ -152,8 +155,17 @@ function App() {
                         <Route path="/home-page" element={<HomePage />} />
                         <Route path="/seller-dash" element={<SellerDashboard />} />
                         <Route path="/watchlist" element={<WatchList />} />
-                        <Route path="/bidding-history" element={<BiddingHistory />} />
-                        <Route path="/current_listings" element={<CurrentListings searchQuery={searchQuery} />} />
+
+                        <Route
+                            path="/bidding-history"
+                            element={<BiddingHistory />}
+                        />
+                        <Route
+                        path="/current_listings"
+                        element={<CurrentListings 
+                             />}
+                    />
+
                         <Route path="/current-bids" element={<CurrentBids />} />
                         <Route path="/create-listing" element={<CreateListing />} />
 

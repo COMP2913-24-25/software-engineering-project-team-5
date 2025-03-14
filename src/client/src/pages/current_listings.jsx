@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react"; 
 //useState : to create and update state variables like searchQuery here
 //useEffect : to render data/ execute "side effects" in the component
+import { useLocation } from "react-router-dom";
+
 import { useNavigate } from "react-router-dom"; 
 import {useCSRF } from "../App"; // Calls the user
 import Listing_item from "../components/listing_items";
@@ -8,43 +10,58 @@ import "../App.css";
 // import ItemListing from "../components/itemlisting";
 import { ChevronRight } from "lucide-react";
 import Filter_component from "../components/Filter_Sidebar";
-
+// import Navbar from "../components/navbar";
 export default function CurrentListings({searchQuery}) {
     const [listings, set_listings] = useState([]);
     const [price_filtered_listings, setprice_filtered_listings] = useState([]); // Stores price-filtered data
     // const [minPrice, setMinPrice] = useState(4);
     // const [maxPrice, setMaxPrice] = useState(100000); 
     // max min will be used when price filtering is through sliding convention
-
     const navigate = useNavigate();
-    const [middle_type, set_middletype] = useState([]);
-    const [types, set_types] = useState([]);
+    // console.log("Listings Recieved :", listings_recieved);
+// console.log("SEARCH QUERY", searchQuery);
+    // const [middle_type, set_middletype] = useState([]);
+    // const [types, set_types] = useState([]);
     const { csrfToken } = useCSRF();
+    // useEffect(() => {
+    //     set_listings(listings_recieved);
+    // },[listings_recieved]);
+    const location = useLocation();
+    const searchQuery_current = location.state?.searchQuery || "";
 
+    // useEffect(() => {
+    //     // console.log("Listings Recieved :", listings_recieved);
+    //     // console.log("Listings Set :", listings);
+    //     console.log("Updated Listings:", listings);
+    // }, [listings]); // This effect runs whenever `listings` changes
 
 
     useEffect(() => {
         const fetchListings = async () => 
-        {
+        {  console.log("SEARCH IN CURRENT LISTING", searchQuery_current);
             try {
-                const listings_response = await fetch(
-                    "http://localhost:5000/api/get-items",
+                const search_filter_response = await fetch(
+                    "http://localhost:5000/api/get_search_filter",
                     {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",
                             "X-CSRF-TOKEN": csrfToken,
                         },
+                        body: JSON.stringify({item: true, user: false, searchQuery: searchQuery_current}),
                         credentials: "include",
                     }
                 );
 
+
                
 
-                const listings_data = await listings_response.json();
+                const filtered_items = await search_filter_response.json();
+                // console.log("FILTERED ID RESPONSE", filtered_Ids);
+                // const filteredListings_search = listings.filter(listing => filtered_Ids.includes(listing.Item_id));
+                console.log("Filtered items", filtered_items);
 
-
-                if (listings_response.ok) {
+                if (search_filter_response.ok) {
                     
 
                        
@@ -55,22 +72,22 @@ export default function CurrentListings({searchQuery}) {
                     // works for : adi, a, adidas, s, sho, shoe
                     // does not work for : did, ho, adidas shoe
                     // should work for : adidas shoe
-                    const filteredListings_search = searchQuery 
-                    ? listings_data.filter((listings) =>{
-                        if (!listings?.Listing_name) return false;
+                //     const filteredListings_search = searchQuery 
+                //     ? listings_data.filter((listings) =>{
+                //         if (!listings?.Listing_name) return false;
                             
-                            const name_tokens = listings.Listing_name.toLowerCase().split(/\s+/); // Tokenize name
-                            const search = searchQuery.toLowerCase().trim();
-                            console.log("tokens ", name_tokens);
-                            return name_tokens.some(token => token.startsWith(search)); 
+                //             const name_tokens = listings.Listing_name.toLowerCase().split(/\s+/); // Tokenize name
+                //             const search = searchQuery.toLowerCase().trim();
+                //             console.log("tokens ", name_tokens);
+                //             return name_tokens.some(token => token.startsWith(search)); 
                             
-                })
-                    : listings_data;
+                // })
+                //     : listings_data;
                    
                 // set only by search Query
-                set_listings(filteredListings_search);
-                setprice_filtered_listings(filteredListings_search)
-                // console.log("Fetched Listings: ", filteredListings); 
+                set_listings(filtered_items);
+                setprice_filtered_listings(filtered_items)
+                console.log("Fetched Listings: ", listings); 
 
                 } else {
                     console.error("Failed to fetch listings");
@@ -80,7 +97,7 @@ export default function CurrentListings({searchQuery}) {
             }
         };
         fetchListings();
-    }, [searchQuery]);
+    }, [searchQuery_current]);
 
 
 
@@ -136,6 +153,10 @@ export default function CurrentListings({searchQuery}) {
         setprice_filtered_listings(filtered_listings);
 
     };
+    const handle_listings_Searchfilter = ({filtered_listings}) => {
+        // const queryParam = encodeURIComponent(searchQuery); // Encode the search query  to safely parse
+        set_listings(filtered_listings);
+    };
 
     // useEffect(() => {
     //     console.log("Filtered after set", price_filtered_listings);
@@ -160,7 +181,7 @@ export default function CurrentListings({searchQuery}) {
                 onChange={(e) => setMaxPrice(e.target.value)}
             />
         </div> */}
-
+            {/* <Navbar user={false} item={true} to_be_filtered={listings} handle_set_filtered={handle_listings_Searchfilter} /> */}
             <Filter_component update_listings={handle_filtered_listings} listings = {listings} />
             {/* <h3 className="text-lg mb-4">Search Query: {searchQuery}</h3> */}
             <h1 className="text-3xl font-bold mb-6">Current Listings</h1>
