@@ -1259,6 +1259,7 @@ def update_profit_structure():
                 new_profit_structure = Profit_structure(
                     Expert_split=expert_split,
                     Manager_split=manager_split,
+                    Enforced_datetime=datetime.datetime.now(datetime.UTC)
                 )
 
                 db.session.add(new_profit_structure)

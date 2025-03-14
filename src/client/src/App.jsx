@@ -14,6 +14,7 @@ import CreateListing from "./pages/create_listing";
 import AccountSummary from "./pages/accountsummary";
 import CurrentListings from "./pages/current_listings";
 import EnlargedListingPage from "./components/enlargedlisting";
+import ChatWindow from "./pages/chatwindow";
 
 import WeeklyProfits from "./pages/manager/profits";
 import CustomerTable from "./pages/manager/custinfo";
@@ -89,7 +90,9 @@ export const UserProvider = ({ children }) => {
 
     return (
         <UserContext.Provider value={{ user, setUser }}>
-            <CSRFContext.Provider value={{ csrfToken, setCsrfToken }}>{children}</CSRFContext.Provider>
+            <CSRFContext.Provider value={{ csrfToken, setCsrfToken }}>
+                {children}
+            </CSRFContext.Provider>
         </UserContext.Provider>
     );
 };
@@ -155,7 +158,7 @@ function App() {
                         <Route path="/home-page" element={<HomePage />} />
                         <Route path="/seller-dash" element={<SellerDashboard />} />
                         <Route path="/watchlist" element={<WatchList />} />
-
+                        <Route path="/chatwindow" element={<ChatWindow />} />
                         <Route
                             path="/bidding-history"
                             element={<BiddingHistory />}
@@ -175,8 +178,14 @@ function App() {
                         <Route path="/manager/expertSearch" element={<SearchExperts />} />
 
                         <Route path="/expert/auth" element={<EAuthRequests />} />
-                        <Route path="/authrequest/:Listing_name/:Item_id" element={<EnlargedAuthRequest />} />
-                        <Route path="/item/:Listing_name/:Item_id" element={<EnlargedListingPage />} />
+                        <Route
+                            path="/authrequest/:Listing_name/:Item_id"
+                            element={<EnlargedAuthRequest />}
+                        />
+                        <Route
+                            path="/item/:Listing_name/:Item_id"
+                            element={<EnlargedListingPage />}
+                        />
                         <Route path="/expert/profile" element={<Profile />} />
                     </Routes>
                 </NotificationProvider>
