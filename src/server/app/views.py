@@ -403,6 +403,28 @@ def update_user_details():
 
     return jsonify({"message": "No user logged in"}), 401
 
+@app.route("/api/update_level", methods = ["POST"])
+def update_level():
+    print("REACHED update_level")
+    try :
+        data = request.json
+        user_ids = data.get("user_id", "")
+        new_levels = data.get("level_of_access", "")
+        for i in range(len(user_ids)) :
+            user = User.query.filter_by(User_id = user_ids[i]).first()
+            print(f"will update user_id {user_ids[i]} to level : {new_levels[i]}")
+
+            if not user :
+                return jsonify({"error" : "User no found"}), 404
+            
+            user.Level_of_access = new_levels[i]
+            db.session.commit()
+        
+        return jsonify({"message": "Levels updated successfully"}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 @app.route("/api/get_search_filter", methods =["POST"])
 def get_search_filter():
@@ -455,7 +477,7 @@ def get_search_filter():
                 name_tokens = name.split()
                 search_tokens = searchQuery.split()
 
-                print(name_tokens)
+                # print(name_tokens)
                 for i in range(len(name_tokens) - len(search_tokens) + 1):
                     if all(name_tokens[i + j].startswith(search_tokens[j]) for j in range(len(search_tokens))): 
                         filtered_ids.append(item_id)
@@ -559,7 +581,7 @@ def get_search_filter():
                             
             
             filtered_users = db.session.query(User).filter(User.User_id.in_(filtered_user_ids)).all()
-            print(filtered_users)
+            # print(filtered_users)
             
             #filtering by expert tags, not yet implemnetd in db
             # if user.Is_expert : filter by tags
