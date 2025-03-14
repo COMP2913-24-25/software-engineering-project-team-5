@@ -7,6 +7,7 @@ from flask_login import LoginManager
 from flask_bootstrap import Bootstrap
 from flask_wtf.csrf import CSRFProtect, generate_csrf
 from flask_cors import CORS
+from flask_socketio import SocketIO
 
 
 def get_locale():
@@ -48,6 +49,11 @@ login_manager = LoginManager()
 login_manager.session_protection = "strong"
 login_manager.login_view = "/"
 login_manager.init_app(app)
+
+# Initialize SocketIO
+from app.messaging import socketio
+
+socketio.init_app(app, cors_allowed_origins="http://localhost:5173")
 
 
 @app.route("/api/get-csrf-token", methods=["GET"])
