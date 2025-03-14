@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useUser, useCSRF } from "../App"; // Access the user
 
 const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -68,8 +68,10 @@ const Availability_calendar_view = ({ onSubmit }) => {
         data.forEach((avail) => {
             const day = days[avail.day_of_week - 1];
             formatted_data[day].push(`${avail.Start_time} - ${avail.End_time}`);
-        })
-    }
+        });
+
+        return formatted_data;
+    };
 
     // Return the html needed to create the component.
     return (
