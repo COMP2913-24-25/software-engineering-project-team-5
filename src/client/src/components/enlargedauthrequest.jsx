@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useCSRF, useUser } from "../App";
 import { useParams, useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import ChatWindow from "../pages/chatwindow";
 
 const EnlargedAuthRequest = () => {
     const { csrfToken } = useCSRF();
@@ -19,7 +20,7 @@ const EnlargedAuthRequest = () => {
 
     // Success and error messages
     const [errors, setErrors] = useState({});
-    const [successMessage, setSuccessMessage] = useState("");
+    const [success_message, set_success_message] = useState("");
 
     const get_listing_information = async () => {
         try {
@@ -70,7 +71,7 @@ const EnlargedAuthRequest = () => {
         const data = await response.json();
 
         if (response.ok) {
-            setSuccessMessage("Successfully " + action + "ed Authentication Request");
+            set_success_message("Successfully " + action + "ed Authentication Request");
             // Reload item data
             set_item(null);
             get_listing_information();
@@ -98,7 +99,7 @@ const EnlargedAuthRequest = () => {
         const data = await response.json();
 
         if (response.ok) {
-            setSuccessMessage("Successfully Asked for Second Opinion");
+            set_success_message("Successfully Asked for Second Opinion");
             navigate("/expert/auth");
         } else {
             setErrors({
@@ -173,12 +174,22 @@ const EnlargedAuthRequest = () => {
         return null;
     }
 
+    // Determine chat participants based on user role
+    let senderId = user?.user_id;
+    let recipientId; // Declare variable first
+
+    if (item.Seller_id == senderId) {
+        recipientId = item.Expert_id; // Assign value, don't redeclare
+    } else {
+        recipientId = item.Seller_id; // Assign value, don't redeclare
+    }
+
     return (
         <div className="bg-gray-100 min-h-screen py-12 px-4">
             <div className="container mx-auto bg-white shadow-lg rounded-lg p-6">
-                {successMessage && (
+                {success_message && (
                     <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">
-                        {successMessage}
+                        {success_message}
                     </div>
                 )}
 
@@ -328,11 +339,13 @@ const EnlargedAuthRequest = () => {
                 {/* Chat window */}
                 <div className="w-full">
                     <h2 className="text-2xl font-semibold mb-4">Communication</h2>
-                    <div className="bg-blue-50 p-6 rounded-lg">
-                        <div className="text-center">
-                            <p className="text-gray-700 mb-4">chat to be added here</p>
-                        </div>
-                    </div>
+                    {item && senderId && recipientId && (
+                        <ChatWindow
+                            senderId={senderId}
+                            recipientId={recipientId}
+                            itemId={item.Item_id}
+                        />
+                    )}
                 </div>
             </div>
         </div>
