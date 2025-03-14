@@ -20,6 +20,8 @@ const Navbar = ({}) => {
 
     const handleSearch = useCallback(() => {
         if (searchQuery.trim()) {
+            const queryParam = encodeURIComponent(searchQuery); // Encode the search query  to safely parse
+            console.log("SEARCH", searchQuery);
             navigate("/current_listings", { state: { searchQuery } });
         }
     }, [searchQuery, navigate]);
@@ -28,12 +30,6 @@ const Navbar = ({}) => {
         if (e.key === "Enter") handleSearch();
     };
 
-
-    const handleSearch = () => {
-        const queryParam = encodeURIComponent(searchQuery); // Encode the search query  to safely parse
-        console.log("SEARCH", searchQuery);
-        navigate("/current_listings", { state: { searchQuery } }); // Navigate to the current listings page with the search query
-    };
     // Define menu items for each access level
     const menuItems = {
         1: [
