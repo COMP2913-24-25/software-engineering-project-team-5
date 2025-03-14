@@ -23,20 +23,21 @@ const Availability_calendar_view = ({ onSubmit }) => {
         Sunday: [],
     });
 
-    const user = useUser();
-    const csrfToken = useCSRF();
+    const {user} = useUser();
+    const {csrfToken} = useCSRF();
 
     useEffect(() => {
         const fetch_availabilities = async () => {
             const week_start_date = get_start_of_week();
             try {
-                const response = await fetch('/api/get-availabilities', {
+                const response = await fetch('http://localhost:5000/api/get-availabilities', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRFToken': csrfToken,
+                        'X-CSRF-TOKEN': csrfToken,
                     },
                     body: JSON.stringify({week_start_date: week_start_date}),
+                    credentials: "include",
                 });
                 if (response.ok) {
                     const data = await response.json();
@@ -66,7 +67,7 @@ const Availability_calendar_view = ({ onSubmit }) => {
         };
 
         data.forEach((avail) => {
-            const day = days[avail.day_of_week - 1];
+            const day = days[avail.Day_of_week - 1];
             formatted_data[day].push(`${avail.Start_time} - ${avail.End_time}`);
         });
 
