@@ -1,11 +1,59 @@
+import React, { useState, useEffect } from "react";
+import {useCSRF } from "../App"; // Calls the user
 
-const Search_component = ({user, item, searchQuery, setSearchQuery}) => { // remove search query from navbar component and App.js since 
-                                                                        // it does not need to be global anymore (remove from current_listings too)
+const Search_component = ({user, item,  update_search}) => { //Filtering is done in all available users or items hence only set_filtered IDs is needed
+    // set_filtered_Ids updates the filtered_Ids in navbar, for it to get corresponding filtered items OR users and set those to update in original pages
+    const [searchQuery, setSearchQuery] = useState(""); // Tracks user search input
+
+    const { csrfToken } = useCSRF();
+
 
     const handleSearch = () => {
-        const queryParam = encodeURIComponent(searchQuery); // Encode the search query  to safely parse
-        navigate("/current_listings", { state: { searchQuery } }); // Navigate to the current listings page with the search query
+        if(searchQuery != null){
+            setSearchQuery(searchQuery.trim()); // Set final search query for API call
+        }
     };
+        
+    useEffect(() => {
+        const fetchListings = async () => 
+        {
+            try {
+                const search_filter_response = await fetch(
+                    "http://localhost:5000/api/get_search_filter",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRF-TOKEN": csrfToken,
+                        },
+                        body: JSON.stringify({item: item, user: user, searchQuery: searchQuery}),
+                        credentials: "include",
+                    }
+                );
+
+                
+
+                const filtered_data = await search_filter_response.json();
+
+
+                if (search_filter_response.ok) {
+                    
+                
+                update_search(filtered_data);
+                console.log(filtered_data);
+                // console.log("Fetched Listings: ", filteredListings); 
+
+                } else {
+                    console.error("Failed to fetch listings");
+                }
+            } catch (error) {
+                console.error("Network error: ", error);
+            }
+        };
+        fetchListings();
+    }, [searchQuery]);
+
+    
 
     return (
         <div className="flex-grow flex ml-2">
