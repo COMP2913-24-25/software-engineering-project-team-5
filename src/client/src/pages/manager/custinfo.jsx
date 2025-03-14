@@ -1,22 +1,55 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./custinfo.css"; // Initial imports needed
-
-const initialData = [ // Test data for customers
-    { id: 1, name: "Adam", email: "adam@example.com", level: "Manager" },
-    { id: 2, name: "Ali", email: "ali@example.com", level: "Expert" },
-    { id: 3, name: "Mila", email: "mile@example.com", level: "User" },
-    { id: 4, name: "Kavisha", email: "kav@example.com", level: "User" },
-    { id: 5, name: "Tahmid", email: "tahmid@example.com", level: "User" },
-    { id: 6, name: "Hassan", email: "hassan@example.com", level: "Expert" }
-];
+import {useCSRF} from "../../App"; // Calls the user
+import Search_Component from "../../components/Search_component"
+// const initialData = [ // Test data for customers
+//     { id: 1, name: "Adam", email: "adam@example.com", level: "Manager" },
+//     { id: 2, name: "Ali", email: "ali@example.com", level: "Expert" },
+//     { id: 3, name: "Mila", email: "mile@example.com", level: "User" },
+//     { id: 4, name: "Kavisha", email: "kav@example.com", level: "User" },
+//     { id: 5, name: "Tahmid", email: "tahmid@example.com", level: "User" },
+//     { id: 6, name: "Hassan", email: "hassan@example.com", level: "Expert" }
+// ];
 
 export default function CustomerTable() {
-    const [data, setData] = useState(initialData);
+    const [data, setData] = useState("");
     const [sortField, setSortField] = useState(null);
     const [sortOrder, setSortOrder] = useState("asc");
     const [selectedUsers, setSelectedUsers] = useState([]);
     const [newLevel, setNewLevel] = useState("");
+    const { csrfToken } = useCSRF();
 
+    useEffect(() =>{
+        const get_user_details = async () => {
+            try {
+                const all_users_response = await fetch(
+                    "http://localhost:5000/api/get_all_users",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRF-TOKEN": csrfToken,
+                        },
+                        credentials: "include",
+                    }
+                );
+                if (!all_users_response.ok) {
+                    throw new Error("Failed to fetch user details");
+                }
+                const all_users = await all_users_response.json();
+                console.log("Got users", all_users);
+                setData(all_users);
+            } catch (error) {
+                console.error("Error fetching users:", error);
+            }
+        };
+        get_user_details();
+    }, []);
+
+
+    useEffect(() => {
+        console.log("Updated user details:", data);
+    }, [data]);
     // Handle sorting
     const handleSort = (field) => {
         const order = sortField === field && sortOrder === "asc" ? "desc" : "asc";
@@ -38,7 +71,9 @@ export default function CustomerTable() {
             prevSelected.includes(id) ? prevSelected.filter((userId) => userId !== id) : [...prevSelected, id]
         );
     };
-
+    const handle_search = (search_data) => {
+        setData(search_data);
+    }
     // Handle updating level
     const handleSave = () => {
         if (!newLevel) return;
@@ -52,6 +87,8 @@ export default function CustomerTable() {
     return (
         <div className="customer-table">
             <h2>Customer Information</h2>
+
+            <Search_Component user = {true} item = {false} update_search={handle_search} />
             <table>
                 <thead>
                     <tr>
@@ -62,6 +99,28 @@ export default function CustomerTable() {
                     </tr>
                 </thead>
                 <tbody>
+                    {data.length > 0 ? (
+                        data.map((user) => (
+                            <tr key={user.User_id}>
+                                <td>
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedUsers.includes(user.User_id)}
+                                        onChange={() => toggleSelect(user.User_id)}
+                                    />
+                                </td>
+                                <td>{`${user.First_name} ${user.Middle_name} ${user.Surname}`}</td>
+                                <td>{user.Email}</td>
+                                <td>{user.Level_of_access}</td>
+                            </tr>
+                        ))
+                    ) : (
+                        <tr>
+                            <td colSpan="4">Loading...</td>
+                        </tr>
+                    )}
+                </tbody>
+                {/* <tbody>
                     {data.map((user) => (
                         <tr key={user.id}>
                             <td>
@@ -76,7 +135,7 @@ export default function CustomerTable() {
                             <td>{user.level}</td>
                         </tr>
                     ))}
-                </tbody>
+                </tbody> */}
             </table>
 
             <div>
