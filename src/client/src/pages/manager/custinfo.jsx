@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect } from "react";
-import "./custinfo.css"; // Initial imports needed
 import {useCSRF} from "../../App"; // Calls the user
 import Search_Component from "../../components/Search_component"
 // const initialData = [ // Test data for customers
