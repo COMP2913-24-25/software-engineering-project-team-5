@@ -309,6 +309,66 @@ def create_setup_intent():
 #         print(f"Error: {e}")
 #         return jsonify({"error": "Failed to save card"}), 400
 
+def update_item_bid(item_id, bid_amount, user_id):
+    """
+    Updates the current bid of an item in the database.
+
+    Args:
+    - item_id (int): The ID of the item to update.
+    - bid_amount (float): The new bid amount.
+    - user_id (int): The ID of the user placing the bid.
+    """
+    try:
+        item = Items.query.filter_by(Item_id=item_id).first()
+        item.Current_bid = bid_amount
+        db.session.commit()
+        new_bid = Bidding_history(
+            Item_id = item_id,
+            Bidder_id = user_id,
+            Successful_bid = True,
+           # Bid_datetime = datetime.datetime.now(datetime.UTC),
+            Bid_price = bid_amount,
+        )
+
+        # Adds the user to the database and commits the changes
+        db.session.add(new_bid)
+        db.session.commit()
+    except Exception as e:
+        logger.error(f"Error: {e}")
+        logger.error(traceback.format_exc())
+        print(f"Error: {e}")
+
+
+
+@app.route('/api/place-bid', methods=['POST'])
+def place_bid():
+    """
+    Places a bid on an auction item.
+    Args: Item_id: item_id, Bid_amount: bidAmount, User_id: user.User_id
+    """
+    data = request.json
+    item_id = data.get("Item_id")
+    bid_amount = data.get("Bid_amount")
+    user_id = data.get("User_id")
+    try: 
+        item = Items.query.filter_by(Item_id=item_id).first()
+        if not item:
+            return jsonify({"message": "Item not found"}), 404
+        
+        # Validate bid (check if the bid is higher than the current minimum price)
+        
+        if float(bid_amount) <= float(item.Min_price):
+            return jsonify({"message": "Bid must be higher than the minimum price"}), 400
+        if float(bid_amount) <= float(item.Current_bid):
+            return jsonify({"message": "Bid must be higher than the current bid"}), 400
+        
+        # Place the bid and update the item price
+        update_item_bid(item_id, bid_amount, user_id)
+
+        return jsonify({"message": "Bid placed successfully"}), 200
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({"error": "Failed to place bid"}), 400
 
 
 @app.route("/api/charge-user", methods=["POST"])
@@ -1706,6 +1766,7 @@ def get_single_listing():
             "Min_price": item.Min_price,
             "Approved": item.Authentication_request_approved,
             "Second_opinion": item.Second_opinion,
+            "Current_bid": item.Current_bid,
             "Images": [
                 base64.b64encode(image.Image).decode("utf-8") for image in images
             ],
