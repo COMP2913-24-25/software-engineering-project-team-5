@@ -108,58 +108,70 @@ const Login = () => {
         else {
             alert("Login successful!");
             setUser(data.user);
-            navigate("/signup");
+            navigate("/home-page");
         }
 
     };
 
     // Where the actual html for the web page is described.
     return (
-        <div className="container">
-            <h2>Log In</h2>
-            {errors.general &&
-                errors.general.map((error) => (
-                    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                        {error}
+        <div className="relative min-h-screen bg-gray-100 flex px-4 py-8 justify-center">
+            <form
+                onSubmit={handle_submit}
+                className="absolute top-10 w-full max-w-xs sm:max-w-md px-6 space-y-4"
+            >
+                <h2 className="text-2xl font-semibold text-center text-gray-800 mb-2">Log In</h2>
+
+                {errors.general &&
+                    errors.general.map((error, index) => (
+                        <div key={index} className="text-red-600 text-center">
+                            {error}
+                        </div>
+                    ))}
+
+                {[
+                    {
+                        name: "email_or_username",
+                        type: "text",
+                        placeholder: "Email or Username",
+                        required: true,
+                    },
+                    { name: "password", type: "password", placeholder: "Password", required: true },
+                ].map(({ name, type, placeholder, required }) => (
+                    <div key={name}>
+                        <input
+                            className="bg-white w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            type={type}
+                            name={name}
+                            placeholder={placeholder}
+                            value={form_data[name]}
+                            onChange={handle_change}
+                            required={required}
+                        />
+                        {errors[name] &&
+                            errors[name].map((error, index) => (
+                                <p key={index} className="text-red-500 text-sm mt-1">
+                                    {error}
+                                </p>
+                            ))}
                     </div>
                 ))}
 
-            <form onSubmit={handle_submit} className="space-y-4">
-                <div>
-                    <input
-                        className="form-control"
-                        type="text"
-                        name="email_or_username"
-                        placeholder="Email"
-                        value={form_data.email_or_username}
-                        onChange={handle_change}
-                        required
-                    />
-                    {errors.email_or_username &&
-                        errors.email_or_username.map((error) => (
-                            <p className="text-red-500 text-sm mt-1">{error}</p>
-                        ))}
-                </div>
-
-                <div>
-                    <input
-                        className="form-control"
-                        type="password"
-                        name="password"
-                        placeholder="Password"
-                        value={form_data.password}
-                        onChange={handle_change}
-                        required
-                    />
-                    {errors.password &&
-                        errors.password.map((error) => (
-                            <p className="text-red-500 text-sm mt-1">{error}</p>
-                        ))}
-                </div>
-
-                <button type="submit" className="btn btn-primary">
+                <button
+                    type="submit"
+                    className="w-full py-3 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
                     Log In
                 </button>
+
+                <div className="text-center mt-4">
+                    <p className="text-sm text-gray-600">
+                        Don't have an account?{" "}
+                        <a href="/signup" className="text-blue-600 hover:underline">
+                            Sign Up
+                        </a>
+                    </p>
+                </div>
             </form>
      
         </div>

@@ -53,12 +53,12 @@ const EAuthReq = () => {
                 set_pending_auth_requests(data.pending_auth_requests);
                 set_past_auth_requests(data.past_auth_requests);
 
-                if (
-                    data.pending_auth_requests.length > prevPendingCount.current
-                ) {
+                if (data.pending_auth_requests.length > prevPendingCount.current) {
                     // notify("New expert authentication request received! click here", "/expert/auth");
                 }
                 prevPendingCount.current = data.pending_auth_requests.length;
+            } else {
+                console.error("Error fetching authentication requests:", data.error);
             }
         } catch (error) {
             console.error("Error fetching authentication requests:", error);
@@ -79,8 +79,8 @@ const EAuthReq = () => {
     }, [user]);
 
     return (
-        <div className="pl-[10%] pr-[10%]">
-            <h1 className="text-2xl font-display font-semibold text-left px-[0.5em] pt-[1em]">
+        <div className="bg-gray-100 min-h-screen py-8 px-[5%] md:px-[10%]">
+            <h1 className="text-2xl font-semibold text-gray-800 mb-6">
                 Pending Authentication Requests
             </h1>
             <AuthRequestsTable
@@ -88,7 +88,8 @@ const EAuthReq = () => {
                 handle_request_update={handle_request_update}
                 pending={true}
             />
-            <h1 className="text-2xl font-display font-semibold text-left px-[0.5em] pt-[1em]">
+
+            <h1 className="text-2xl font-semibold text-gray-800 mt-8 mb-6">
                 Past Authentication Requests
             </h1>
             <AuthRequestsTable

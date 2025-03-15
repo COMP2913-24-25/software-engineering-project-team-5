@@ -11,7 +11,7 @@ from flask import (
     Flask,
     jsonify,
     session,
-    json
+    json,
 )
 from flask_admin.contrib.sqla import ModelView
 from flask_login import login_user, login_required, logout_user, current_user
@@ -29,8 +29,7 @@ from .models import (
     Watchlist,
     Bidding_history,
     Profit_structure,
-    Availabilities
-
+    Availabilities,
 )
 from .forms import login_form, sign_up_form, Create_listing_form, update_user_form
 
@@ -379,6 +378,36 @@ def get_current_user():
     return jsonify({"message": "No user logged in"}), 401
 
 
+@app.route("/api/get_all_users", methods=["POST"])
+def get_all_users():
+    print("Wuery reached")
+
+    users = User.query.all()
+    print("USERS:",users)
+    user_details_list = []
+    
+    if not users:
+        return jsonify({"message": "No users found"}), 404
+    
+    
+    for user in users:
+        
+        user_details_dict = {
+            "User_id": user.User_id,
+            "First_name": user.First_name,
+            "Middle_name": user.Middle_name,
+            "Surname": user.Surname,
+            "DOB": user.DOB.strftime("%Y-%m-%d"),
+            "Email": user.Email,
+            "Username": user.Username,
+            "Level_of_access": user.Level_of_access,
+            "is_expert": user.Is_expert,
+        }
+        user_details_list.append(user_details_dict)
+    print(user_details_list)
+    
+    return jsonify(user_details_list), 200 
+ 
 @app.route("/api/get-user-details", methods=["POST"])
 def get_user_details():
     """
@@ -402,6 +431,7 @@ def get_user_details():
             "DOB": user_details.DOB.strftime("%Y-%m-%d"),
             "Email": user_details.Email,
             "Username": user_details.Username,
+            "Level_of_access" : user_details.Level_of_access,
             "is_expert": user_details.Is_expert,
         }
 
@@ -557,9 +587,219 @@ def update_user_details():
 
     return jsonify({"message": "No user logged in"}), 401
 
-@app.route("/api/get_filtered_listings", methods =["POST"])
-def get_filtered_listings():
+@app.route("/api/update_level", methods = ["POST"])
+def update_level():
+    print("REACHED update_level")
+    try :
+        data = request.json
+        user_ids = data.get("user_id", "")
+        new_levels = data.get("level_of_access", "")
+        for i in range(len(user_ids)) :
+            user = User.query.filter_by(User_id = user_ids[i]).first()
+            # print(f"will update user_id {user_ids[i]} to level : {new_levels[i]}")
+
+            if not user :
+                return jsonify({"error" : "User no found"}), 404
+            
+            user.Level_of_access = new_levels[i]
+            db.session.commit()
+        
+        return jsonify({"message": "Levels updated successfully"}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/get_search_filter", methods =["POST"])
+def get_search_filter():
+    """
+    This endpoint handles filtering of items based on the search query provided by the user. 
+    It can filter either by user or item based on the input flags (`user` or `item`) and search query.
+
+    Request Body (JSON):
+    - user (bool): Indicates whether to filter by users (not implemented in this version).
+    - item (bool): Indicates whether to filter by items (required for this version).
+    - searchQuery (str): The search term used to filter item names and item tags.
+
+    Response Body:
+    - A list of dictionaries containing filtered item details, including the item ID, listing name, 
+      seller ID, availability, verification status, minimum price, current bid, and item image (if available).
+
+    Returns:
+        JSON: A list of filtered item details (based on the search query).
+    """
+    
+    data = request.json
+    user = data.get("user","")
+    item = data.get("item", "")
+    searchQuery = (data.get("searchQuery", "")).strip().lower()
+    # print("SEARCH QUERY IN BACKEND", searchQuery)
+    # print("ITEM", item)
+    filtered_ids = []
+    # if user == True:
+    #     print("user : true")
+    # elif item == True:
+    #     print("item :true")
+    # else :
+    #     print("both false")
+    
+    filtered_items = []
+    filtered_users =[]
    
+
+    if item:
+        # print("in item bool")
+        if not searchQuery:
+                # Return all items
+            # print("Empty search Query")
+            filtered_items = db.session.query(Items).all()
+            # print(filtered_items)
+        else:     
+        # filter by item name, works with space seperated strings
+            item_names_and_Ids = (db.session.query(Items.Listing_name,Items.Item_id).all())
+            for name, item_id in item_names_and_Ids :
+                name_tokens = name.split()
+                search_tokens = searchQuery.split()
+
+                # print(name_tokens)
+                for i in range(len(name_tokens) - len(search_tokens) + 1):
+                    if all(name_tokens[i + j].startswith(search_tokens[j]) for j in range(len(search_tokens))): 
+                        filtered_ids.append(item_id)
+            
+            # filter by item_tags, works for tags that have more than one word
+            type_names = (db.session.query(Types.Type_name, Items.Item_id).join(Middle_type, Middle_type.Item_id == Items.Item_id).join(Types, Types.Type_id == Middle_type.Type_id).all())
+            
+            for tag_name, item_id in type_names:
+                tag_name_tokens = tag_name.split()
+                for i in range(len(tag_name_tokens) - len(search_tokens) + 1):
+                    # print("Search tags",search_tokens)
+                    if all(tag_name_tokens[i + j].startswith(search_tokens[j]) for j in range(len(search_tokens))):
+                    # ensure no duplicates of item_ids
+                        if item_id not in filtered_ids: 
+                            filtered_ids.append(item_id)
+                            
+            # print("Item Ids",filtered_ids) 
+            #get items from filtered Ids
+            filtered_items = db.session.query(Items).filter(Items.Item_id.in_(filtered_ids)).all()
+            
+        # Turn into dict
+        items_list = []
+        for item in filtered_items:
+            image = Images.query.filter(Images.Item_id == item.Item_id).first()
+
+            item_details_dict = {
+                "Item_id": item.Item_id,
+                "Listing_name": item.Listing_name,
+                "Seller_id": item.Seller_id,
+                "Available_until": item.Available_until,
+                "Verified": item.Verified,
+                "Min_price": item.Min_price,
+                "Current_bid": item.Current_bid,
+                "Image": base64.b64encode(image.Image).decode("utf-8") if image else None,
+            }
+
+            items_list.append(item_details_dict)                
+            
+        return jsonify(items_list), 200
+        # Ensure Items model has a to_dict() method
+    elif user :
+        #for now just returns all
+        if not searchQuery:
+            filtered_users = db.session.query(User).all()
+            print(filtered_users)
+            
+        else:
+            # print("Searching users")
+            filtered_user_ids = []
+            
+            # filtering by first, middle, last name
+            user_names_and_Ids = db.session.query(User.First_name, User.Middle_name, User.Surname, User.User_id).all()
+            for first, middle, last, user_id in user_names_and_Ids:
+                name_tokens = [first.lower(), middle.lower(), last.lower()]
+                # print("NAME", name_tokens)
+                search_tokens = searchQuery.lower().split()
+        
+                # if searchQuery has two tokens, it matches both in the same sequence to the name token
+                if len(search_tokens) > 1 :
+                    # print("SEARCH", search_tokens)
+                    matched = False
+                    if len(search_tokens) <= len(name_tokens): 
+                        # if name_tokens is greater than two, it matches first search_token to first name,
+                        # second to middle name, third to last
+                        if name_tokens[1] != "" :
+                            for i in range(len(search_tokens)):
+                                if not name_tokens[i].lower().startswith(search_tokens[i]):
+                                    matched = False
+                                    # print("NOT MATCHED : comparing name_toke", name_tokens[i], " with search query token ", search_tokens[i])
+                                    break
+                                else:
+                                    # print("MATCHED : comparing name_toke", name_tokens[i], " with search query token ", search_tokens[i])
+                                    matched = True
+            
+                        else:
+                            #  if name has no middle name, then second search token should match with last name not middle name
+                            if name_tokens[0] == search_tokens[0]:
+                                # print("MATCHED : comparing name", name_tokens[0], " with search query token ", search_tokens[0])
+                                if name_tokens[2].startswith(search_tokens[1]):
+                                    # print("MATCHED : comparing name", name_tokens[2], " with search query token ", search_tokens[1])
+                                    matched = True
+                                else :
+                                    matched = False
+                                    # print("NOT MATCHED : comparing name_toke", name_tokens[2], " with search query token ", search_tokens[1])
+                            else :
+                                matched = False
+                                # print("NOT MATCHED : comparing name_toke", name_tokens[0], " with search query token ", search_tokens[0])
+
+                            
+                    if matched:
+                        filtered_user_ids.append(user_id)
+                        # print("ID added", user_id)
+                        
+                        
+                elif len(search_tokens) == 1 :
+                    for i in range(len(name_tokens)):
+                        if name_tokens[i].lower().startswith(search_tokens[0]):
+                            filtered_user_ids.append(user_id)
+
+                        
+                            
+            
+            filtered_users = db.session.query(User).filter(User.User_id.in_(filtered_user_ids)).all()
+            # print(filtered_users)
+            
+            #filtering by expert tags, not yet implemnetd in db
+            # if user.Is_expert : filter by tags
+        users_list = []
+        for user in filtered_users:
+
+            user_details_dict = {
+                "User_id": user.User_id,
+                "Username": user.Username,
+                "Password" : user.Password,
+                "Email": user.Email, 
+                "First_name": user.First_name,
+                "Middle_name": user.Middle_name,
+                "Surname": user.Surname,
+                "DOB": user.DOB,
+                "Level_of_access": user.Level_of_access,
+                "Is_expert": user.Is_expert
+            }
+
+            users_list.append(user_details_dict)                
+
+        return jsonify(users_list), 200
+
+
+
+    
+                
+            
+    # print([item_id for item_id, in db.session.query(Items.Item_id).all()])
+    # all_items = db.session.query(Items).all()
+    # return jsonify([item.to_dict() for item in all_items])
+
+@app.route("/api/get_filtered_listings", methods=["POST"])
+def get_filtered_listings():
     """Filters listings based on the selected price range. (will be implementing more categories)
 
     Receives a JSON payload containing:
@@ -570,10 +810,10 @@ def get_filtered_listings():
     - JSON response with a list of filtered listing IDs that match the price range.
     - Returns an error response if an exception occurs.
     """
-    # Intakes all filter data 
+    # Intakes all filter data
     # filter_price, filter_searchQuery, filter_bid_status
     # These are NULL if filter is not applied or have the filter type parsed through
-    
+
     try:
         data = request.json
         price_range = data.get("price_range", "")
@@ -581,28 +821,31 @@ def get_filtered_listings():
         listing_Ids = list(map(int, listing_Ids))
         filtered_listing_Ids = []
         # print("DATAAAA", data)
-        if( price_range != ""):
-            for Id in listing_Ids :
-                item = Items.query.filter_by(Item_id = Id).first()
+        if price_range != "":
+            for Id in listing_Ids:
+                item = Items.query.filter_by(Item_id=Id).first()
                 print(item.Listing_name)
                 if price_range == "less_than_50":
                     if get_listing_price(item) < 50:
                         filtered_listing_Ids.append(Id)
-                elif price_range == "50_200" :
+                elif price_range == "50_200":
                     if get_listing_price(item) >= 50 and get_listing_price(item) < 200:
                         filtered_listing_Ids.append(Id)
                 elif price_range == "200_500":
-                    if get_listing_price(item) >= 200 and get_listing_price(item) <= 500:
+                    if (
+                        get_listing_price(item) >= 200
+                        and get_listing_price(item) <= 500
+                    ):
                         filtered_listing_Ids.append(Id)
                 elif price_range == "more_than_500":
                     if get_listing_price(item) > 500:
                         filtered_listing_Ids.append(Id)
-                    
+
         return jsonify(filtered_listing_Ids)
-    
+
     except Exception as e:
         print(f"Error : {e}")
-        return jsonify({"error" : "Interal Server Error"}), 500
+        return jsonify({"error": "Interal Server Error"}), 500
 
 
 def get_listing_price(listing):
@@ -611,19 +854,19 @@ def get_listing_price(listing):
 
     If the current bid is lower than the minimum price, the function returns the minimum price.
     Otherwise, it returns the current bid.
-    
+
     Args:
     - listing (object): An item object containing 'Current_bid' and 'Min_price' attributes.
-    
+
     Returns:
     - int: The listing's current price.
     """
-    if listing.Current_bid < listing.Min_price :
+    if listing.Current_bid < listing.Min_price:
         return listing.Min_price
-    else :
+    else:
         return listing.Current_bid
-        
-        
+
+
 @app.route("/api/update-address", methods=["POST"])
 def update_address():
     """
@@ -638,7 +881,7 @@ def update_address():
     """
     # Checks if user is logged in
     if current_user.is_authenticated:
-        data = request.json 
+        data = request.json
         """ gets form_data from frontend"""
         user_id = current_user.User_id
 
@@ -834,14 +1077,10 @@ def Create_listing():
         if saved_images:
             db.session.bulk_save_objects(saved_images)
 
-
         # Adds the tags in.
         tags = json.loads(request.form.get("tags", "[]"))
         for tag in tags:
-            middle_type_record = Middle_type(
-                Item_id = listing.Item_id,
-                Type_id = tag
-            )
+            middle_type_record = Middle_type(Item_id=listing.Item_id, Type_id=tag)
             db.session.add(middle_type_record)
 
         # Commits to complete the transaction
@@ -924,7 +1163,7 @@ def get_bids():
 
     Returns:
         json_object: dictionary containing the user's highest bid per item
-        status_code: HTTP status code (200 for success, 
+        status_code: HTTP status code (200 for success,
                                        401 for unauthorized access,
                                        400 for no bidding information)
     """
@@ -932,13 +1171,15 @@ def get_bids():
     # Checks if user is logged in
     if current_user.is_authenticated:
         bid_data = (
-            Bidding_history.query
-            .join(Items, Bidding_history.Item_id == Items.Item_id)  # Join Items table
-            .join(User, Items.Seller_id == User.User_id)  # Join User table to get seller info
-            .outerjoin(Images, Items.Item_id == Images.Item_id)  # Outer join Images table to get item image
+            Bidding_history.query.join(
+                Items, Bidding_history.Item_id == Items.Item_id
+            )  # Join Items table
+            .join(
+                User, Items.Seller_id == User.User_id
+            )  # Join User table to get seller info
             .filter(
                 Bidding_history.Bidder_id == current_user.User_id,
-                Items.Available_until > datetime.datetime.now()  # Only valid bids
+                Items.Available_until > datetime.datetime.now(),  # Only valid bids
             )
             .with_entities(
                 Bidding_history.Bid_id,
@@ -951,28 +1192,43 @@ def get_bids():
                 Items.Current_bid,
                 Items.Available_until,
                 User.Username,
-                Images.Image,
-                Images.Image_description,
-                Items.Min_price
+                Items.Min_price,
             )
-            .order_by(Items.Item_id, Bidding_history.Bid_price.desc())  # Order by Item and Bid Price (descending)
+            .order_by(
+                Items.Item_id, Bidding_history.Bid_price.desc()
+            )  # Order by Item and Bid Price (descending)
             .all()
         )
 
         if not bid_data:
             return jsonify({"message": "No current bids"}), 400
-        
+
         # Create a dictionary to store the highest bid per item
         unique_bids = {}
-        
+
         for item in bid_data:
             if item.Item_id not in unique_bids:
-                # Save the first bid for this item (the highest one, because of ordering)
-                image_data = item.Image
-                image_base64 = None
-                if image_data:
-                    # Base64 encode the image if it exists
-                    image_base64 = base64.b64encode(image_data).decode('utf-8')
+                # Fetch all images for the item (Same as get-history)
+                images = Images.query.filter_by(Item_id=item.Item_id).all()
+                image_list = []
+
+                for image in images:
+                    image_data = image.Image
+                    image_base64 = (
+                        base64.b64encode(image_data).decode("utf-8")
+                        if image_data
+                        else None
+                    )
+                    image_list.append(
+                        {
+                            "Image": image_base64,
+                            "Image_description": (
+                                image.Image_description
+                                if image.Image_description
+                                else "No description available"
+                            ),
+                        }
+                    )
 
                 unique_bids[item.Item_id] = {
                     "Bid_id": item.Bid_id,
@@ -985,16 +1241,15 @@ def get_bids():
                     "Current_bid": item.Current_bid,
                     "Available_until": item.Available_until,
                     "Seller_name": item.Username,
-                    "Image": image_base64,
-                    "Image_description": item.Image_description or "No Image",
-                    "Min_price": item.Min_price
+                    "Images": image_list,
+                    "Min_price": item.Min_price,
                 }
 
         # Convert dictionary to list for JSON response
         current_bids = list(unique_bids.values())
 
         return jsonify({"bids": current_bids}), 200
-    
+
     else:
         return jsonify({"message": "No user logged in"}), 401
 
@@ -1007,7 +1262,7 @@ def get_history():
 
     Returns:
         json_object: dictionary containing the user's highest bid per item
-        status_code: HTTP status code (200 for success, 
+        status_code: HTTP status code (200 for success,
                                        401 for unauthorized access,
                                        400 for no bidding information)
     """
@@ -1015,13 +1270,18 @@ def get_history():
     # Checks if user is logged in
     if current_user.is_authenticated:
         bid_data = (
-            Bidding_history.query
-            .join(Items, Bidding_history.Item_id == Items.Item_id)  # Join Items table
-            .join(User, Items.Seller_id == User.User_id)  # Join User table to get seller info
-            .outerjoin(Images, Items.Item_id == Images.Item_id)  # Outer join Images table to get item image
+            Bidding_history.query.join(
+                Items, Bidding_history.Item_id == Items.Item_id
+            )  # Join Items table
+            .join(
+                User, Items.Seller_id == User.User_id
+            )  # Join User table to get seller info
+            .outerjoin(
+                Images, Items.Item_id == Images.Item_id
+            )  # Outer join Images table to get item image
             .filter(
                 Bidding_history.Bidder_id == current_user.User_id,
-                Items.Available_until < datetime.datetime.now()  # Only expired bids
+                Items.Available_until < datetime.datetime.now(),  # Only expired bids
             )
             .with_entities(
                 Bidding_history.Bid_id,
@@ -1036,26 +1296,42 @@ def get_history():
                 User.Username,
                 Images.Image,
                 Images.Image_description,
-                Items.Min_price
+                Items.Min_price,
             )
-            .order_by(Items.Item_id, Bidding_history.Bid_price.desc())  # Order by Item and Bid Price (descending)
+            .order_by(
+                Items.Item_id, Bidding_history.Bid_price.desc()
+            )  # Order by Item and Bid Price (descending)
             .all()
         )
 
         if not bid_data:
             return jsonify({"message": "No expired bids"}), 400
-        
+
         # Create a dictionary to store the highest bid per item
         unique_bids = {}
-        
+
         for item in bid_data:
             if item.Item_id not in unique_bids:
-                # Save the first bid for this item (the highest one, because of ordering)
-                image_data = item.Image
-                image_base64 = None
-                if image_data:
-                    # Base64 encode the image if it exists
-                    image_base64 = base64.b64encode(image_data).decode('utf-8')
+                images = Images.query.filter_by(Item_id=item.Item_id).all()
+                image_list = []
+
+                for image in images:
+                    image_data = image.Image
+                    image_base64 = (
+                        base64.b64encode(image_data).decode("utf-8")
+                        if image_data
+                        else None
+                    )
+                    image_list.append(
+                        {
+                            "Image": image_base64,
+                            "Image_description": (
+                                image.Image_description
+                                if image.Image_description
+                                else "No description available"
+                            ),
+                        }
+                    )
 
                 unique_bids[item.Item_id] = {
                     "Bid_id": item.Bid_id,
@@ -1068,16 +1344,16 @@ def get_history():
                     "Current_bid": item.Current_bid,
                     "Available_until": item.Available_until,
                     "Seller_name": item.Username,
-                    "Image": image_base64,
+                    "Images": image_list,
                     "Image_description": item.Image_description or "No Image",
-                    "Min_price": item.Min_price
+                    "Min_price": item.Min_price,
                 }
 
         # Convert dictionary to list for JSON response
         history = list(unique_bids.values())
 
         return jsonify({"history": history}), 200
-    
+
     else:
         return jsonify({"message": "No user logged in"}), 401
 
@@ -1098,9 +1374,6 @@ def get_pending_auth():
                 Items.query.join(
                     User, Items.Seller_id == User.User_id
                 )  # Join Users table to get seller info
-                .outerjoin(
-                    Images, Items.Item_id == Images.Item_id
-                )  # Join Images table to get images
                 .filter(Items.Authentication_request == True, Items.Expert_id.is_(None))
                 .with_entities(
                     Items.Item_id,
@@ -1109,8 +1382,6 @@ def get_pending_auth():
                     Items.Current_bid,
                     Items.Available_until,
                     User.Username,
-                    Images.Image,
-                    Images.Image_description,
                 )
                 .all()
             )
@@ -1121,9 +1392,27 @@ def get_pending_auth():
             # Convert query results to JSON
             unassigned_data = []
             for item in unassigned_items:
-                image_base64 = None
-                if item.Image:
-                    image_base64 = base64.b64encode(item.Image).decode("utf-8")
+                # Fetch all images for the current item
+                images = Images.query.filter_by(Item_id=item.Item_id).all()
+                image_list = []
+
+                for image in images:
+                    image_data = image.Image
+                    image_base64 = (
+                        base64.b64encode(image_data).decode("utf-8")
+                        if image_data
+                        else None
+                    )
+                    image_list.append(
+                        {
+                            "Image": image_base64,
+                            "Image_description": (
+                                image.Image_description
+                                if image.Image_description
+                                else "No description available"
+                            ),
+                        }
+                    )
                 unassigned_data.append(
                     {
                         "Item_id": item.Item_id,
@@ -1132,12 +1421,7 @@ def get_pending_auth():
                         "Current_bid": item.Current_bid,
                         "Available_until": item.Available_until,
                         "Username": item.Username,
-                        "Image": image_base64,
-                        "Image_description": (
-                            item.Image_description
-                            if item.Image_description
-                            else "No description available"
-                        ),
+                        "Images": image_list,
                     }
                 )
 
@@ -1224,7 +1508,6 @@ def update_item_auth():
     return jsonify({"message": "User has invalid access level"}), 401
 
 
-
 @app.route("/api/get-profit-structure", methods=["GET"])
 def get_profit_structure():
     """
@@ -1235,10 +1518,12 @@ def get_profit_structure():
         status_code: HTTP status code (200 for success, 404 for incorrect level of access / no user, 500 for server error)
     """
     if current_user.is_authenticated:
-        if current_user.Level_of_access == 3:  
+        if current_user.Level_of_access == 3:
             try:
                 # Fetch the most recent profit structure, ordering by enforced_datetime descending
-                prof_struct = Profit_structure.query.order_by(Profit_structure.Enforced_datetime.desc()).first()
+                prof_struct = Profit_structure.query.order_by(
+                    Profit_structure.Enforced_datetime.desc()
+                ).first()
 
                 if prof_struct:
                     # Create a dictionary to return the profit structure details
@@ -1246,59 +1531,70 @@ def get_profit_structure():
                         "structure_id": prof_struct.Structure_id,
                         "expert_split": prof_struct.Expert_split,
                         "manager_split": prof_struct.Manager_split,
-                        "enforced_datetime": prof_struct.Enforced_datetime
+                        "enforced_datetime": prof_struct.Enforced_datetime,
                     }
 
                     return jsonify({"profit_data": profit_data}), 200
                 else:
                     return jsonify({"message": "no profit structures reccorded"}), 200
 
-
             except Exception as e:
                 import traceback
-                print("Error retrieving profit structure:", traceback.format_exc())  # Print full error stack
+
+                print(
+                    "Error retrieving profit structure:", traceback.format_exc()
+                )  # Print full error stack
                 return jsonify({"Error": "Failed to retrieve profit structure"}), 500
         else:
             return jsonify({"message": "User is not on correct level of access!"}), 401
     else:
-        return jsonify({"message": "No user logged in"}), 401        
+        return jsonify({"message": "No user logged in"}), 401
 
 
 @app.route("/api/update-profit-structure", methods=["POST"])
 def update_profit_structure():
     """
     Appends a new profit structure to the database based on the manager's request.
-    
+
     Returns:
         json_object: status of how the structure update went
         status_code: HTTP status code (200 for success, 400 for validation errors, 401 for incorrect level of access / no user, 500 for server error)
     """
     if current_user.is_authenticated:
-        if current_user.Level_of_access == 3:    
-            try:        
+        if current_user.Level_of_access == 3:
+            try:
                 data = request.get_json()
                 manager_split = data.get("managerSplit")
                 expert_split = data.get("expertSplit")
 
                 if expert_split is None or manager_split is None:
-                    return jsonify({"message": "Expert split and Manager split are required"}), 400
+                    return (
+                        jsonify(
+                            {"message": "Expert split and Manager split are required"}
+                        ),
+                        400,
+                    )
 
                 if not (0 <= expert_split <= 1) or not (0 <= manager_split <= 1):
                     return jsonify({"message": "Splits must be between 0 and 1."}), 400
-                
+
                 new_profit_structure = Profit_structure(
                     Expert_split=expert_split,
                     Manager_split=manager_split,
+                    Enforced_datetime=datetime.datetime.now(datetime.UTC)
                 )
 
                 db.session.add(new_profit_structure)
                 db.session.commit()
 
-                return jsonify({"message": "Profit structure updated successfully!"}), 200
+                return (
+                    jsonify({"message": "Profit structure updated successfully!"}),
+                    200,
+                )
 
             except Exception as e:
                 return jsonify({"error": str(e)}), 500
-        else: 
+        else:
             return jsonify({"message": "User is not on correct level of access!"}), 401
     else:
         return jsonify({"message": "No user logged in"}), 401
@@ -1308,7 +1604,7 @@ def update_profit_structure():
 def get_sold():
     """
     Fetches all the sold items (items that are past their 'available_until' dates) and links with the profit structure.
-    
+
     Returns:
         json_object: details of all the items that were "sold"
         status_code: HTTP status code (200 for success, 401 for incorrect level of access / no user, 500 for server error)
@@ -1317,14 +1613,25 @@ def get_sold():
         if current_user.Level_of_access == 3:
             try:
                 sold_items = (
-                    Items.query
-                    .outerjoin(Profit_structure, Items.Structure_id == Profit_structure.Structure_id)
+                    Items.query.outerjoin(
+                        Profit_structure,
+                        Items.Structure_id == Profit_structure.Structure_id,
+                    )
                     .filter(Items.Available_until < datetime.datetime.now())
                     .with_entities(
-                        Items.Item_id, Items.Listing_name, Items.Seller_id, Items.Upload_datetime,
-                        Items.Available_until, Items.Min_price, Items.Current_bid, Items.Structure_id,
-                        Items.Expert_id, Profit_structure.Expert_split, Profit_structure.Manager_split, 
-                        Profit_structure.Enforced_datetime, Items.Authentication_request_approved
+                        Items.Item_id,
+                        Items.Listing_name,
+                        Items.Seller_id,
+                        Items.Upload_datetime,
+                        Items.Available_until,
+                        Items.Min_price,
+                        Items.Current_bid,
+                        Items.Structure_id,
+                        Items.Expert_id,
+                        Profit_structure.Expert_split,
+                        Profit_structure.Manager_split,
+                        Profit_structure.Enforced_datetime,
+                        Items.Authentication_request_approved,
                     )
                 )
 
@@ -1341,27 +1648,29 @@ def get_sold():
                             eSplit = 0.04
                             mSplit = 0.01
 
-                    sold_items_data.append({
-                        "Item_id": item.Item_id,
-                        "Listing_name": item.Listing_name,
-                        "Seller_id": item.Seller_id,
-                        "Upload_datetime": item.Upload_datetime,
-                        "Available_until": item.Available_until,
-                        "Min_price": item.Min_price,
-                        "Current_bid": item.Current_bid,
-                        "Structure_id": item.Structure_id,
-                        "Expert_id": item.Expert_id,
-                        "Expert_split": eSplit,
-                        "Manager_split": mSplit,
-                        "Enforced_datetime": item.Enforced_datetime,
-                        "Authentication_request_approved": item.Authentication_request_approved
-                    })
+                    sold_items_data.append(
+                        {
+                            "Item_id": item.Item_id,
+                            "Listing_name": item.Listing_name,
+                            "Seller_id": item.Seller_id,
+                            "Upload_datetime": item.Upload_datetime,
+                            "Available_until": item.Available_until,
+                            "Min_price": item.Min_price,
+                            "Current_bid": item.Current_bid,
+                            "Structure_id": item.Structure_id,
+                            "Expert_id": item.Expert_id,
+                            "Expert_split": eSplit,
+                            "Manager_split": mSplit,
+                            "Enforced_datetime": item.Enforced_datetime,
+                            "Authentication_request_approved": item.Authentication_request_approved,
+                        }
+                    )
 
                 return jsonify({"sold_items": sold_items_data}), 200
 
             except Exception as e:
                 return jsonify({"error": f"Server error: {str(e)}"}), 500
-        else: 
+        else:
             return jsonify({"message": "User is not on correct level of access!"}), 401
     else:
         return jsonify({"message": "No user logged in"}), 401
@@ -1389,9 +1698,10 @@ def get_single_listing():
             "Item_id": item.Item_id,
             "Listing_name": item.Listing_name,
             "Description": item.Description,
-            "Seller_name": seller.First_name + " " + seller.Surname,
             "Seller_id": item.Seller_id,
+            "Seller_name": seller.First_name + " " + seller.Surname,
             "Seller_username": seller.Username,
+            "Expert_id": item.Expert_id,
             "Upload_datetime": item.Upload_datetime,
             "Min_price": item.Min_price,
             "Approved": item.Authentication_request_approved,
@@ -1448,18 +1758,21 @@ def get_watchlist():
         status_code: HTTP status code (200 for success, 401 for unauthorized access)
     """
     if current_user.is_authenticated:
-        
         # Fetch all watchlist items in one query
         watchlist_items = (
-            Watchlist.query
-            .join(Items, Watchlist.Item_id == Items.Item_id)  # Join Items table
+            Watchlist.query.join(
+                Items, Watchlist.Item_id == Items.Item_id
+            )  # Join Items table
             .join(User, Items.Seller_id == User.User_id)  # Join Users table
-            .outerjoin(Images, Items.Item_id == Images.Item_id)  # Join Images table
             .filter(Watchlist.User_id == current_user.User_id)
             .with_entities(
-                Items.Item_id, Items.Listing_name, Items.Description, Items.Current_bid, 
-                Items.Available_until, User.Username.label("Seller_name"), 
-                Images.Image, Images.Image_description, Items.Min_price
+                Items.Item_id,
+                Items.Listing_name,
+                Items.Description,
+                Items.Current_bid,
+                Items.Available_until,
+                User.Username.label("Seller_name"),
+                Items.Min_price,
             )
             .all()
         )
@@ -1470,23 +1783,38 @@ def get_watchlist():
         # Convert query results to JSON
         watchlist_data = []
         for item in watchlist_items:
-            image_data = item.Image
-            image_base64 = None
-            if image_data:
-                # Base64 encode the image if it exists
-                image_base64 = base64.b64encode(image_data).decode('utf-8')
+            # Fetch all images for the current item
+            images = Images.query.filter_by(Item_id=item.Item_id).all()
+            image_list = []
 
-            watchlist_data.append({
-                "Item_id": item.Item_id,
-                "Listing_name": item.Listing_name,
-                "Description": item.Description,
-                "Current_bid": item.Current_bid,
-                "Min_price": item.Min_price if item.Min_price is not None else 0,
-                "Available_until": item.Available_until,
-                "Seller_name": item.Seller_name,
-                "Image": image_base64,
-                "Image_description": item.Image_description if item.Image_description else "No description available"
-            })
+            for image in images:
+                image_data = image.Image
+                image_base64 = (
+                    base64.b64encode(image_data).decode("utf-8") if image_data else None
+                )
+                image_list.append(
+                    {
+                        "Image": image_base64,
+                        "Image_description": (
+                            image.Image_description
+                            if image.Image_description
+                            else "No description available"
+                        ),
+                    }
+                )
+
+            watchlist_data.append(
+                {
+                    "Item_id": item.Item_id,
+                    "Listing_name": item.Listing_name,
+                    "Description": item.Description,
+                    "Current_bid": item.Current_bid,
+                    "Min_price": item.Min_price if item.Min_price is not None else 0,
+                    "Available_until": item.Available_until,
+                    "Seller_name": item.Seller_name,
+                    "Images": image_list,
+                }
+            )
 
         return jsonify({"watchlist": watchlist_data}), 200
 
@@ -1512,7 +1840,9 @@ def remove_watchlist():
             return jsonify({"message": "Missing item IDr"}), 400
 
         # Find the watchlist entry
-        watchlist_entry = Watchlist.query.filter_by(User_id=current_user.User_id, Item_id=item_id).first()
+        watchlist_entry = Watchlist.query.filter_by(
+            User_id=current_user.User_id, Item_id=item_id
+        ).first()
 
         if not watchlist_entry:
             return jsonify({"message": "Item not found in watchlist"}), 404
@@ -1524,7 +1854,7 @@ def remove_watchlist():
         return jsonify({"message": "Item removed from watchlist"}), 200
     else:
         return jsonify({"message": "No user logged in"}), 401
-     
+
 
 @app.route("/api/add-watchlist", methods=["POST"])
 def add_watchlist():
@@ -1543,9 +1873,10 @@ def add_watchlist():
         if not item_id:
             return jsonify({"message": "Missing item ID"}), 400
 
-
         # Check if item already exists in the watchlist
-        existing_entry = Watchlist.query.filter_by(User_id=current_user.User_id, Item_id=item_id).first()
+        existing_entry = Watchlist.query.filter_by(
+            User_id=current_user.User_id, Item_id=item_id
+        ).first()
         if existing_entry:
             return jsonify({"message": "Item already in watchlist"}), 405
 
@@ -1555,8 +1886,9 @@ def add_watchlist():
         db.session.commit()
 
         return jsonify({"message": "Item added to watchlist"}), 200
-    else:    
+    else:
         return jsonify({"message": "No user logged in"}), 401
+
 
 @app.route("/api/check-watchlist", methods=["GET"])
 def check_watchlist():
@@ -1573,8 +1905,9 @@ def check_watchlist():
         if not item_id:
             return jsonify({"message": "Missing item ID"}), 400
 
-
-        checking_entry = Watchlist.query.filter_by(User_id=current_user.User_id, Item_id=item_id).first()
+        checking_entry = Watchlist.query.filter_by(
+            User_id=current_user.User_id, Item_id=item_id
+        ).first()
 
         if checking_entry:
             return jsonify({"in_watchlist": True}), 200
@@ -1582,7 +1915,8 @@ def check_watchlist():
             return jsonify({"in_watchlist": False}), 200
     else:
         return jsonify({"message": "No user logged in"}), 401
-    
+
+
 @app.route("/api/get-tags", methods=["GET"])
 def get_tags():
     """
@@ -1595,17 +1929,23 @@ def get_tags():
 
     try:
         # Checks if the types are available
-        available_types = (
-            db.session.query(Types).all()
-        )
+        available_types = db.session.query(Types).all()
 
-        return jsonify([{"Type_id": t.Type_id, "Type_name": t.Type_name} for t in available_types]), 200
+        return (
+            jsonify(
+                [
+                    {"Type_id": t.Type_id, "Type_name": t.Type_name}
+                    for t in available_types
+                ]
+            ),
+            200,
+        )
 
     except Exception as e:
         print("Error: ", e)
         return jsonify({"Error": "Failed to retrieve types"}), 400
 
-    
+
 @app.route("/api/set-availability", methods=["POST"])
 def set_availability():
     """
@@ -1617,30 +1957,40 @@ def set_availability():
         availability = data.get("availability")
         week_start_date = data.get("week_start_date")
 
-
         # Deletes all existing availabilites for the same upcoming week
         existing_availabilities = Availabilities.query.filter(
             Availabilities.Expert_id == current_user.User_id,
-            Availabilities.Week_start_date == datetime.datetime.strptime(week_start_date, "%Y-%m-%d").date()
+            Availabilities.Week_start_date
+            == datetime.datetime.strptime(week_start_date, "%Y-%m-%d").date(),
         ).delete()
-
-
 
         # Goes through each of the days and the time blocks, then add each new block to the availability table.
 
         for day, time_blocks in availability.items():
-            days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].index(day) + 1
+            days = [
+                "Monday",
+                "Tuesday",
+                "Wednesday",
+                "Thursday",
+                "Friday",
+                "Saturday",
+                "Sunday",
+            ].index(day) + 1
             for block in time_blocks:
                 new_availability = Availabilities(
-                    Expert_id = current_user.User_id,
+                    Expert_id=current_user.User_id,
                     Day_of_week=days,
-                    Start_time = datetime.datetime.strptime(block["start_time"], "%H:%M").time(),
-                    End_time = datetime.datetime.strptime(block["end_time"], "%H:%M").time(),
-                    Week_start_date = datetime.datetime.strptime(week_start_date, "%Y-%m-%d").date()
+                    Start_time=datetime.datetime.strptime(
+                        block["start_time"], "%H:%M"
+                    ).time(),
+                    End_time=datetime.datetime.strptime(
+                        block["end_time"], "%H:%M"
+                    ).time(),
+                    Week_start_date=datetime.datetime.strptime(
+                        week_start_date, "%Y-%m-%d"
+                    ).date(),
                 )
                 db.session.add(new_availability)
-
-
 
         # Commits to complete the transaction
         db.session.commit()
@@ -1653,3 +2003,37 @@ def set_availability():
         db.session.rollback()
         print(f"Error: {e}")
         return jsonify({"error": "Failed to set availability"}), 500
+
+
+@app.route('/api/get-availabilities', methods=["POST"])
+def get_availabilites():
+    """
+    Gets all the availabilities for a certain expert for a certain week.
+
+    Returns:
+        json_object: A list of all the availabilities
+        status_code: HTTP status code (200 for success, 400 for bad request)
+    """
+
+    try:
+        data = request.get_json()
+        week_start_date = data.get('week_start_date')
+
+        availabilities = Availabilities.query.filter_by(Expert_id = current_user.User_id, Week_start_date = week_start_date).all()
+
+        availability_data = []
+        for availability in availabilities:
+            print(availability)
+            availability_data.append({
+                'Availability_id': availability.Availability_id,
+                'Expert_id': availability.Expert_id,
+                'Day_of_week': availability.Day_of_week,
+                'Start_time': availability.Start_time.strftime('%H:%M'),
+                'End_time': availability.End_time.strftime('%H:%M'),
+                'Week_start_date': availability.Week_start_date.strftime('%Y-%m-%d')
+            })
+    
+        return jsonify(availability_data), 200
+    except Exception as e:
+        print("Error: ", e)
+        return jsonify({"Error: Failed to retrieve availabilities"}), 400

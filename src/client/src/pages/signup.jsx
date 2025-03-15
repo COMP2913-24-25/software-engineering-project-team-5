@@ -137,145 +137,69 @@ const Signup = () => {
 
     // Where the actual html for the web page is described.
     return (
-        <div className="container">
-            <h2>Sign Up</h2>
-            {errors.general &&
-                errors.general.map((error) => (
-                    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                        {error}
+        <div className="relative min-h-screen bg-gray-100 flex px-[5%] md:px-[10%] py-8 justify-center">
+            <form
+                onSubmit={handle_submit}
+                className="absolute top-10 w-full max-w-xs sm:max-w-md px-6 space-y-4"
+            >
+                <h2 className="text-2xl font-semibold text-center text-gray-800 mb-2">Sign Up</h2>
+
+                {errors.general &&
+                    errors.general.map((error, index) => (
+                        <div key={index} className="text-red-600 text-center">
+                            {error}
+                        </div>
+                    ))}
+
+                {[
+                    { name: "first_name", type: "text", placeholder: "First Name", required: true },
+                    { name: "middle_name", type: "text", placeholder: "Middle Name" },
+                    { name: "surname", type: "text", placeholder: "Surname", required: true },
+                    { name: "DOB", type: "date", required: true },
+                    { name: "username", type: "text", placeholder: "Username", required: true },
+                    { name: "email", type: "email", placeholder: "Email", required: true },
+                    { name: "password", type: "password", placeholder: "Password", required: true },
+                    {
+                        name: "password_confirmation",
+                        type: "password",
+                        placeholder: "Confirm Password",
+                        required: true,
+                    },
+                ].map(({ name, type, placeholder, required }) => (
+                    <div key={name}>
+                        <input
+                            className="bg-white w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            type={type}
+                            name={name}
+                            placeholder={placeholder}
+                            value={form_data[name]}
+                            onChange={handle_change}
+                            required={required}
+                        />
+                        {errors[name] &&
+                            errors[name].map((error, index) => (
+                                <p key={index} className="text-red-500 text-sm mt-1">
+                                    {error}
+                                </p>
+                            ))}
                     </div>
                 ))}
 
-            <form onSubmit={handle_submit} className="space-y-4">
-                <div>
-                    <input
-                        className="form-control"
-                        type="text"
-                        name="first_name"
-                        placeholder="First Name"
-                        value={form_data.first_name}
-                        onChange={handle_change}
-                        required
-                    />
-                    {errors.first_name &&
-                        errors.first_name.map((error) => (
-                            <p className="text-red-500 text-sm mt-1">{error}</p>
-                        ))}
-                </div>
-
-                <div>
-                    <input
-                        className="form-control"
-                        type="text"
-                        name="middle_name"
-                        placeholder="Middle Name"
-                        value={form_data.middle_name}
-                        onChange={handle_change}
-                    />
-                    {errors.middle_name &&
-                        errors.middle_name.map((error) => (
-                            <p className="text-red-500 text-sm mt-1">{error}</p>
-                        ))}
-                </div>
-
-                <div>
-                    <input
-                        className="form-control"
-                        type="text"
-                        name="surname"
-                        placeholder="Surname"
-                        value={form_data.surname}
-                        onChange={handle_change}
-                        required
-                    />
-                    {errors.surname &&
-                        errors.surname.map((error) => (
-                            <p className="text-red-500 text-sm mt-1">{error}</p>
-                        ))}
-                </div>
-
-                <div>
-                    <input
-                        className="form-control"
-                        type="date"
-                        name="DOB"
-                        value={form_data.DOB}
-                        onChange={handle_change}
-                        required
-                    />
-                    {errors.DOB &&
-                        errors.DOB.map((error) => (
-                            <p className="text-red-500 text-sm mt-1">{error}</p>
-                        ))}
-                </div>
-
-                <div>
-                    <input
-                        className="form-control"
-                        type="text"
-                        name="username"
-                        placeholder="Username"
-                        value={form_data.username}
-                        onChange={handle_change}
-                        required
-                    />
-                    {errors.username &&
-                        errors.username.map((error) => (
-                            <p className="text-red-500 text-sm mt-1">{error}</p>
-                        ))}
-                </div>
-
-                <div>
-                    <input
-                        type="email"
-                        name="email"
-                        placeholder="Email"
-                        value={form_data.email}
-                        onChange={handle_change}
-                        className="form-control"
-                        required
-                    />
-                    {errors.email &&
-                        errors.email.map((error) => (
-                            <p className="text-red-500 text-sm mt-1">{error}</p>
-                        ))}
-                </div>
-
-                <div>
-                    <input
-                        type="password"
-                        name="password"
-                        placeholder="Password"
-                        value={form_data.password}
-                        onChange={handle_change}
-                        className="form-control"
-                        required
-                    />
-                    {errors.password &&
-                        errors.password.map((error) => (
-                            <p className="text-red-500 text-sm mt-1">{error}</p>
-                        ))}
-                </div>
-
-                <div>
-                    <input
-                        type="password"
-                        name="password_confirmation"
-                        placeholder="Confirm Password"
-                        value={form_data.password_confirmation}
-                        onChange={handle_change}
-                        className="form-control"
-                        required
-                    />
-                    {errors.password_confirmation &&
-                        errors.password_confirmation.map((error) => (
-                            <p className="text-red-500 text-sm mt-1">{error}</p>
-                        ))}
-                </div>
-
-                <button type="submit" className="btn btn-primary">
+                <button
+                    type="submit"
+                    className="w-full py-3 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
                     Sign Up
                 </button>
+
+                <div className="text-center mt-4">
+                    <p className="text-sm text-gray-600">
+                        Already have an account?{" "}
+                        <a href="/" className="text-blue-600 hover:underline">
+                            Log In
+                        </a>
+                    </p>
+                </div>
             </form>
         </div>
     );

@@ -9,7 +9,7 @@ for (let hour = 8; hour <= 20; hour++) {
 }
 
 // The actual component
-const Availability_calendar = ({ onSubmit }) => {
+const Availability_calendar_set = ({ onSubmit }) => {
     // Allows to set the individual times for each of the days in blocks. I.e 8am to 10am and then 3pm to 4pm on monday.
     const [availability, set_availability] = useState({
         Monday: [],
@@ -105,4 +105,4 @@ const Availability_calendar = ({ onSubmit }) => {
     );
 };
 
-export default Availability_calendar;
+export default Availability_calendar_set;
