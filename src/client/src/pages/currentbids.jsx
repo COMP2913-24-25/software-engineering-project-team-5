@@ -101,6 +101,7 @@ const CurrentBids = () => {
                         {bids.map((item) => (
                             <ItemListing
                                 key={item.Bid_id}
+                                itemId={item.Item_id}
                                 title={item.Listing_name}
                                 seller={item.Seller_name}
                                 description={item.Description}
@@ -109,17 +110,17 @@ const CurrentBids = () => {
                                 buttons={
                                     item.Successful_bid == 1
                                         ? [
-                                              { text: "Highest Bidder", style: "bg-green-500 text-white" },
-                                              { text: `Your Bid: £${item.Bid_price}`, style: "bg-gray-200 text-black" },
-                                          ]
+                                            { text: "Highest Bidder", style: "bg-green-500 text-white" },
+                                            { text: `Your Bid: £${item.Bid_price}`, style: "bg-gray-200 text-black" },
+                                        ]
                                         : [
-                                              { text: "Out Bid", style: "bg-red-500 text-white" },
-                                              { text: `Your Bid: £${item.Bid_price}`, style: "bg-gray-200 text-black" },
-                                              {
-                                                  text: `Highest Bid: £${item.Current_bid}`,
-                                                  style: "bg-gray-500 text-white",
-                                              },
-                                          ]
+                                            { text: "Out Bid", style: "bg-red-500 text-white" },
+                                            { text: `Your Bid: £${item.Bid_price}`, style: "bg-gray-200 text-black" },
+                                            {
+                                                text: `Highest Bid: £${item.Current_bid}`,
+                                                style: "bg-gray-500 text-white",
+                                            },
+                                        ]
                                 }
                             />
                         ))}

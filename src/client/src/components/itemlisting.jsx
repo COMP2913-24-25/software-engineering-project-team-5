@@ -1,7 +1,9 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const ItemListing = ({
+    itemId, // Ensure each listing has a unique identifier
     title,
     seller,
     description,
@@ -10,6 +12,14 @@ const ItemListing = ({
     buttons = []
 }) => {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const navigate = useNavigate();
+
+    // Navigate to EnlargedListingPage when clicking anywhere except buttons
+    const handleNavigation = (e) => {
+        if (!e.target.closest("button")) {
+            navigate(`/item/${encodeURIComponent(title)}/${itemId}`);
+        }
+    };
 
     // Handle next and previous image in carousel
     const nextImage = () => {
@@ -21,16 +31,28 @@ const ItemListing = ({
     };
 
     return (
-        <div className="flex flex-col md:flex-row border rounded-lg p-4 shadow-md bg-white w-full items-center">
+        <div
+            className="flex flex-col md:flex-row border rounded-lg p-4 shadow-md bg-white w-full items-center cursor-pointer hover:shadow-lg transition"
+            onClick={handleNavigation}
+        >
             {/* Item Image / Carousel */}
             <div className="w-70 h-40 bg-gray-200 flex-shrink-0 rounded-lg overflow-hidden flex items-center justify-center relative">
                 {images.length > 1 ? (
                     <>
-                        <button onClick={prevImage} className="absolute left-1 bg-white/80 hover:bg-gray-200 rounded-full p-1 shadow-md">
+                        <button
+                            onClick={(e) => { e.stopPropagation(); prevImage(); }}
+                            className="absolute left-1 bg-white/80 hover:bg-gray-200 rounded-full p-1 shadow-md"
+                        >
                             <ChevronLeft className="h-5 w-5 text-gray-800" />
                         </button>
-                        <img src={`data:image/${images[currentImageIndex].Image};base64,${images[currentImageIndex].Image}`} className="w-full h-full object-cover" />
-                        <button onClick={nextImage} className="absolute right-1 bg-white/80 hover:bg-gray-200 rounded-full p-1 shadow-md">
+                        <img
+                            src={`data:image/${images[currentImageIndex].Image};base64,${images[currentImageIndex].Image}`}
+                            className="w-full h-full object-cover"
+                        />
+                        <button
+                            onClick={(e) => { e.stopPropagation(); nextImage(); }}
+                            className="absolute right-1 bg-white/80 hover:bg-gray-200 rounded-full p-1 shadow-md"
+                        >
                             <ChevronRight className="h-5 w-5 text-gray-800" />
                         </button>
                         {/* Image Counter */}
@@ -39,7 +61,11 @@ const ItemListing = ({
                         </div>
                     </>
                 ) : (
-                    <img src={`data:image/${images[0].Image};base64,${images[0].Image}`} alt="Item image" className="w-full h-full object-cover" />
+                    <img
+                        src={`data:image/${images[0].Image};base64,${images[0].Image}`}
+                        alt="Item image"
+                        className="w-full h-full object-cover"
+                    />
                 )}
             </div>
 
@@ -65,7 +91,7 @@ const ItemListing = ({
                     {buttons.map(({ text, onClick, style }, index) => (
                         <button
                             key={index}
-                            onClick={onClick}
+                            onClick={(e) => { e.stopPropagation(); onClick(); }} // Prevents navigation when clicking a button
                             className={`px-4 py-2 rounded-lg whitespace-nowrap ${style || "bg-blue-500 text-white hover:bg-blue-600"}`}
                         >
                             {text}

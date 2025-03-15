@@ -68,6 +68,7 @@ const BiddingHistory = () => {
                         {history.map((item, index) => (
                             <ItemListing
                                 key={index}
+                                itemId={item.Item_id}
                                 title={item.Listing_name}
                                 seller={item.Seller_name}
                                 description={item.Description}

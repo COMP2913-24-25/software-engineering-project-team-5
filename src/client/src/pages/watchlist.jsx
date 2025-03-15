@@ -121,18 +121,17 @@ const Watchlist = () => {
                         {watchlist.map((item) => (
                             <ItemListing
                                 key={item.Item_id}
+                                itemId={item.Item_id}
                                 images={item.Images}
                                 title={item.Listing_name}
                                 seller={item.Seller_name}
                                 description={item.Description}
                                 labels={[
-                                    `Current Bid: £ ${
-                                        Number(item.Current_bid) > Number(item.Min_price)
-                                            ? Number(item.Current_bid).toFixed(2)
-                                            : Number(item.Min_price).toFixed(2)
+                                    `Current Bid: £ ${Number(item.Current_bid) > Number(item.Min_price)
+                                        ? Number(item.Current_bid).toFixed(2)
+                                        : Number(item.Min_price).toFixed(2)
                                     }`,
-                                    `Time Remaining: ${
-                                        item.timeRemaining || calculate_time_remaining(item.Available_until)
+                                    `Time Remaining: ${item.timeRemaining || calculate_time_remaining(item.Available_until)
                                     }`,
                                 ]}
                                 buttons={[
