@@ -971,6 +971,142 @@ def get_listings():
         return jsonify({"Error": "Failed to retrieve items"}), 401
 
 
+@app.route("/api/get-seller-items", methods=["POST"])
+def get_seller_listings():
+    """
+    Retrieves the item details that were sold by user from the database that are still available.
+
+    Returns:
+        json_object:  containing the items details
+        status_code: HTTP status code (200 for success,
+                                       401 for unauthorized access)
+    """
+
+    try:
+        # Checks if the listing is available and doesn't still need authentication.
+        available_items = (
+            db.session.query(Items, User.Username)
+            .join(User, Items.Seller_id == User.User_id)
+            .filter(
+                Items.Seller_id == current_user.User_id,
+                Items.Available_until > datetime.datetime.now(),
+                db.or_(
+                    db.and_(
+                        Items.Authentication_request == False,
+                        Items.Verified == True,
+                        Items.Authentication_request_approved == True,
+                    ),
+                    db.and_(
+                        Items.Authentication_request == False,
+                        Items.Verified == False,
+                        Items.Authentication_request_approved == None,
+                    ),
+                ),
+            )
+            .all()
+        )
+
+        items_list = []
+        for item, username in available_items:
+
+            image = Images.query.filter(Images.Item_id == item.Item_id).first()
+
+            item_details_dict = {
+                "Item_id": item.Item_id,
+                "Listing_name": item.Listing_name,
+                "Seller_id": item.Seller_id,
+                "Seller_username": username,
+                "Available_until": item.Available_until,
+                "Verified": item.Verified,
+                "Min_price": item.Min_price,
+                "Current_bid": item.Current_bid,
+                "Image": base64.b64encode(image.Image).decode("utf-8"),
+            }
+            items_list.append(item_details_dict)
+
+        return jsonify(items_list), 200
+
+    except Exception as e:
+        print("Error: ", e)
+        return jsonify({"Error": "Failed to retrieve items"}), 401
+
+
+@app.route("/api/get-pending-auth", methods=["GET"])
+def get_seller_pending_auth():
+    """
+    Retrieves all the items that are pending authentication. for this seller 
+    """
+    if not current_user.is_authenticated:
+        return jsonify({"message": "No user logged in"}), 401
+
+    # Only users (level 1) can access this endpoint.
+    if current_user.Level_of_access == 1:
+        try:
+            # Fetch all pending authentication items in one query
+            unassigned_items = (
+                Items.query.join(
+                    User, Items.Seller_id == User.User_id
+                )  # Join Users table to get seller info
+                .filter(Items.Authentication_request == True, Items.Seller_id == current_user.User_id)
+                .with_entities(
+                    Items.Item_id,
+                    Items.Listing_name,
+                    Items.Description,
+                    Items.Current_bid,
+                    Items.Available_until,
+                    User.Username,
+                )
+                .all()
+            )
+
+            if not unassigned_items:
+                return jsonify({"message": "No items require authentication"}), 200
+
+            # Convert query results to JSON
+            unassigned_data = []
+            for item in unassigned_items:
+                # Fetch all images for the current item
+                images = Images.query.filter_by(Item_id=item.Item_id).all()
+                image_list = []
+
+                for image in images:
+                    image_data = image.Image
+                    image_base64 = (
+                        base64.b64encode(image_data).decode("utf-8")
+                        if image_data
+                        else None
+                    )
+                    image_list.append(
+                        {
+                            "Image": image_base64,
+                            "Image_description": (
+                                image.Image_description
+                                if image.Image_description
+                                else "No description available"
+                            ),
+                        }
+                    )
+                unassigned_data.append(
+                    {
+                        "Item_id": item.Item_id,
+                        "Listing_name": item.Listing_name,
+                        "Description": item.Description,
+                        "Current_bid": item.Current_bid,
+                        "Available_until": item.Available_until,
+                        "Username": item.Username,
+                        "Images": image_list,
+                    }
+                )
+
+            return jsonify({"Authentication pending": unassigned_data}), 200
+
+        except Exception as e:
+            print("Error:", e)
+            return jsonify({"Error": "Failed to retrieve items"}), 500
+
+    return jsonify({"message": "User has invalid access level only users (sellers)"}), 401
+
+
 @app.route("/api/get-bids", methods=["GET"])
 def get_bids():
     """
