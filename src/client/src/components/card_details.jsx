@@ -96,7 +96,7 @@ const PaymentForm = ({ userId }) => {
 
   return (
     <form onSubmit={handleSubmit}>
-      <CardElement />
+      <CardElement options={{ hidePostalCode: true }} />
       {error && <div>{error}</div>}
       <button type="submit" disabled={!stripe}>Save Card</button>
     </form>

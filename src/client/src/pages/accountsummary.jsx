@@ -162,7 +162,7 @@ const AccountSummary = () => {
             {/* Account Summary Header */}
             <div className="text-center mb-8">
                 <h1 className="text-2xl font-semibold text-center text-gray-800 mb-4">Account Summary</h1>
-                <p className="text-xl text-gray-500 mt-2">Manage your account, addresses, and more.</p>
+                <p className="text-xl text-gray-500 mt-2">Manage your account, addresses, card details and more.</p>
             </div>
 
             {/* User Details Section */}
@@ -209,7 +209,24 @@ const AccountSummary = () => {
             {/* Card Details Section */}
             <div className="p-6 mb-8">
                 <h2 className="text-2xl font-semibold text-gray-800 mb-4">Card Details</h2>
-                <p className="text-gray-500">To do: After bidding system is completed.</p>
+                <p className="text-gray-500">Please ensure your card details have been entered before placing any bids.</p>
+                <div id="payment-form">
+
+                    {/* Card details form to be added here */}
+                    {/* to do/consider: */}
+                    {/*     remove if user is manager/expert */}
+                    {/*     only allow them to do it once */}
+                    
+                    <div className="mb-4"></div>
+                    <div id="card-element">
+                        {/* A Stripe Element will be inserted here. */}
+                        <Elements stripe={stripePromise} >
+                            <PaymentForm userId={user?.User_id}/>
+                        </Elements>
+                    </div>
+                    <div id="card-errors" role="alert"></div>
+                
+                </div>
             </div>
 
             {/* Expert View Availability Section (Visible only for experts)*/}
@@ -249,27 +266,6 @@ const AccountSummary = () => {
                 />
             ))}
 
-
-
-            <div id="payment-form">
-                <h1 className="text-2xl font-display font-semibold text-left px-[0.5em] pt-[1em]">
-                    Card Details
-                </h1>
-                {/* Card details form to be added here */}
-                {/* should I remove if user is manager/expert */}
-
-                <h3 className="text-2xl font-display font-semibold text-left px-[0.5em] pt-[1em]">
-                    To do: After bidding system completed
-                </h3>
-                <div id="card-element">
-                    {/* A Stripe Element will be inserted here. */}
-                    <Elements stripe={stripePromise} >
-                        <PaymentForm userId={user?.User_id}/>
-                    </Elements>
-                </div>
-                <div id="card-errors" role="alert"></div>
-                <button id="submit">Submit Payment</button>
-            </div>
             {is_expert && is_sunday && (<Availabilty_calendar onSubmit={handle_submit}/>)}
             {/* Only displays the availability calendar if the user is an expert and it is a sunday */}
         </div>
