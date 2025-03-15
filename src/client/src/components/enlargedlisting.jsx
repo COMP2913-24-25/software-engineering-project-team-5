@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { useCSRF } from "../App";
+import { useUser, useCSRF } from "../App"; // changed to include useUser
 import { useParams, useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const EnlargedListingPage = () => {
+    const { user } = useUser();
+    const navigate = useNavigate();
     const { csrfToken } = useCSRF();
     const params = useParams();
     const item_id = params.Item_id;
@@ -11,6 +13,9 @@ const EnlargedListingPage = () => {
     const [item, setItem] = useState(null);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [imageCount, setImageCount] = useState(0);
+    
+    // for bidding
+    const [bidAmount, setBidAmount] = useState(0);
 
     useEffect(() => {
         const fetchListingInformation = async () => {
@@ -45,6 +50,61 @@ const EnlargedListingPage = () => {
     const prevImage = () => {
         if (item && item.Images) {
             setCurrentImageIndex((prev) => (prev - 1 >= 0 ? prev - 1 : imageCount - 1));
+        }
+    };
+
+    // bidding 
+    const handleBidChange = (e) => {
+        setBidAmount(e.target.value);
+    };
+    const handlePlaceBid = async () => {
+        // if (user.Setup_intent_ID === null || user.Setup_intent_ID === undefined) {
+        //     console.log("user? = ", user.User_id);
+        //     console.log("user = ", user.user_id);
+        //     console.log("setup intent = ", user.Setup_intent_ID);
+        //     console.log("Payment_method_ID = ", user.Payment_method_ID);
+        //     console.log("customer = ", user.Customer_ID);
+        //     alert("Please set up your payment method before placing a bid.");
+        //     navigate("/accountsummary");
+        //     return;
+        // }
+        console.log("bid placed = ", bidAmount);
+        console.log("The current minimum price is = ", item.Min_price);
+        console.log("The current bid is = ", item.Current_bid);
+        console.log("The current item is = ", item_id);
+        console.log("The current user is = ", user.user_id );
+        // checks that bid amount is valid and also more than minimum/current bid
+       
+        if (!bidAmount || parseFloat(bidAmount) <= 0) {
+            alert("Please enter a valid bid amount.");
+            return;
+        } else if (parseFloat(bidAmount) <= item.Min_price) {
+            alert("Bid amount must be higher than the minimum price.");
+            return;
+        } else if (parseFloat(bidAmount) <= item.Current_bid) {
+            alert("Bid amount must be higher than the previous bid.");
+            return;
+        }
+
+        try {
+            const response = await fetch("http://localhost:5000/api/place-bid", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
+                },
+                body: JSON.stringify({ Item_id: item_id, Bid_amount: bidAmount, User_id: user.user_id }),
+                credentials: "include",
+            });
+            const data = await response.json();
+            if (response.ok) {
+                alert("Bid placed successfully!");
+                setItem((prev) => ({ ...prev, Current_bid: parseFloat(bidAmount) })); //?
+            } else {
+                alert(`Failed to place bid: ${data.message}`);
+            }
+        } catch (error) {
+            console.error("Error placing bid:", error);
         }
     };
 
@@ -100,13 +160,30 @@ const EnlargedListingPage = () => {
                             <h3 className="text-lg font-medium mb-2">Listing Details</h3>
                             <ul className="space-y-2">
                                 <li className="text-gray-600">Listed: <span className="font-medium">{item.Upload_datetime || "N/A"}</span></li>
-                                <li className="text-gray-600">Proposed Price: <span className="font-medium">${item.Min_price || "0.00"}</span></li>
+                                <li className="text-gray-600">Proposed Price: <span className="font-medium">£{item.Min_price || "0.00"}</span></li>
+                                <li className="text-gray-600">Current bid: <span className="font-medium">£{item.Current_bid || "0.00"}</span></li>
                             </ul>
                         </div>
                     </div>
                 </div>
+
+                {/* Bidding Section */}
+
                 <div className="mt-8 text-center">
-                    <button className="bg-blue-600 text-white py-2 px-6 rounded-lg text-lg hover:bg-blue-700 transition">
+                    <div className="mb-4">
+                        <label htmlFor="bid-amount-input" className="block text-lg font-semibold">Place a Bid: </label>
+                        <input
+                            id="bid-amount-input"
+                            type="number"
+                            placeholder="Enter your bid amount"
+                            //value={parseFloat(item.Min_price) + 0.01}
+                            onChange={handleBidChange}
+                            //className="w-48 py-2 px-4 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
+                            className="px-4 py-2 border border-gray-300 rounded-lg"
+                            //min={parseFloat(item.Min_price) + 0.01}
+                        />
+                    </div>
+                    <button onClick={handlePlaceBid} className="bg-blue-600 text-white py-2 px-6 rounded-lg text-lg hover:bg-blue-700 transition">
                         Place a Bid
                     </button>
                 </div>
