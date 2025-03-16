@@ -937,15 +937,10 @@ def get_listings():
                 Items.Available_until > datetime.datetime.now(),
                 db.or_(
                     db.and_(
-                        Items.Authentication_request == False,
+                        Items.Authentication_request == True,
                         Items.Verified == True,
-                        Items.Authentication_request_approved == True,
                     ),
-                    db.and_(
                         Items.Authentication_request == False,
-                        Items.Verified == False,
-                        Items.Authentication_request_approved == None,
-                    ),
                 ),
             )
             .all()
@@ -1927,7 +1922,6 @@ def get_experts():
 
         experts_data = []
         for expert in experts:
-            print(expert)
 
             is_available = db.session.query(
                 exists().where(
@@ -1939,7 +1933,14 @@ def get_experts():
                 )
             ).scalar()
 
+            all_expertise = []
+
             expertise = Middle_expertise.query.filter_by(Expert_id=expert.User_id).all()
+            for this_expertise in expertise:
+                this_expertise_name = Types.query.filter_by(Type_id=this_expertise.Type_id).first()
+                all_expertise.append([
+                    this_expertise_name.Type_name
+                ])
 
             experts_data.append({
                 'User_id': expert.User_id,
@@ -1949,11 +1950,45 @@ def get_experts():
                 'Email': expert.Email,
                 'DOB': expert.DOB.strftime('%Y-%m-%d'),
                 'is_available': is_available,
-                'Expertise': [exp.Type_name for exp in expertise]
+                'Expertise': all_expertise
             })
 
         return jsonify(experts_data), 200
     
     except Exception as e:
         print("Error: ", e)
-        return jsonify({"Error: Failed to retrieve experts"}), 400
+        return jsonify({"Error": "Failed to retrieve experts"}), 400
+    
+@app.route('/api/add-expertise', methods=["POST"])
+def add_expertise():
+    """    
+    Adds all the tags to the expert.
+
+    Returns:
+        status_code: HTTP status code (200 for success, 400 for bad request)
+    
+    """
+    try:
+        data = request.get_json()
+        expertise_ids = data.get('expertise_ids', [])
+        expert_id = data.get('expert_id')
+
+        print(expertise_ids)
+
+        for type_id in expertise_ids:
+            print(type_id)
+            existing_expertise = Middle_expertise.query.filter_by(
+                Expert_id = expert_id,
+                Type_id = type_id
+            ).first()
+        
+            if not existing_expertise:
+                new_expertise = Middle_expertise(Expert_id = expert_id, Type_id = type_id)
+                db.session.add(new_expertise)
+
+        db.session.commit()
+        return jsonify({"Message": "Expertise added successfully"}), 200
+
+    except Exception as e:
+        print("Error: ", e)
+        return jsonify({"Error": "Failed to add expertise"}), 400

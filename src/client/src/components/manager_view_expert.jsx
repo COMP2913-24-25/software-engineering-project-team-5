@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { useUser, useCSRF } from "../App"; // Calls the user
 import Tag_selector from "./tags_dropdown";
 
 
 const Manager_view_expert = ({ expert }) => {
-    const navigate = useNavigate();
     const { csrfToken } = useCSRF(); // Get the CSRF token
     const [selected_tags, set_selected_tags] = useState([]);
 
@@ -13,7 +11,7 @@ const Manager_view_expert = ({ expert }) => {
         if (selected_tags.length === 0) return;
 
         try {
-            const response = await fetch(`http://localhost:5000/api/add-expertise/`, {
+            const response = await fetch(`http://localhost:5000/api/add-expertise`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -24,8 +22,6 @@ const Manager_view_expert = ({ expert }) => {
           });
 
           if (response.ok){
-            alert("Expertise added successfully");
-            set_new_expertise([]);
           } else {
             console.error("Failed to add expertise");
           }
