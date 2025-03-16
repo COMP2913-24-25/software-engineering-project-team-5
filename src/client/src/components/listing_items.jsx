@@ -14,7 +14,6 @@ const Listing_item = (props) => {
     const handleClick = () => {
         
         {
-            // Assuming `item.Authentication_request` is the property to check if it's under review
             if (item.Authentication_request === true && item.Expert_id !== null) {
                 // Under review item
                 let url = "/authrequest/" + encodeURIComponent(item.Listing_name) + "/" + item.Item_id; 
