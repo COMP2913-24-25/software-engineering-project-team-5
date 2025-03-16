@@ -15,6 +15,7 @@ class User(UserMixin, db.Model):
     Surname = db.Column(db.String(50), nullable=False)
     DOB = db.Column(db.Date, nullable=False)
     Level_of_access = db.Column(db.Integer, nullable=False)
+    Is_expert = db.Column(db.Boolean, nullable=False)
 
     # Relationships
     addresses = db.relationship("Address", backref="user", lazy=True)

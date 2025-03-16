@@ -52,6 +52,9 @@ admin.add_view(ModelView(Types, db.session))
 admin.add_view(ModelView(Watchlist, db.session))
 admin.add_view(ModelView(Bidding_history, db.session))
 admin.add_view(ModelView(Profit_structure, db.session))
+admin.add_view(ModelView(Middle_expertise, db.session))
+admin.add_view(ModelView(Availabilities, db.session))
+
 
 
 @app.route("/api/login", methods=["POST"])
@@ -1946,7 +1949,7 @@ def get_experts():
                 'Email': expert.Email,
                 'DOB': expert.DOB.strftime('%Y-%m-%d'),
                 'is_available': is_available,
-                'Expertise': [exp.Type_id for exp in expertise]
+                'Expertise': [exp.Type_name for exp in expertise]
             })
 
         return jsonify(experts_data), 200
