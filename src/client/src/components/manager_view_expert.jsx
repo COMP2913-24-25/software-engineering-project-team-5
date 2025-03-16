@@ -3,7 +3,7 @@ import { useUser, useCSRF } from "../App"; // Calls the user
 import Tag_selector from "./tags_dropdown";
 
 
-const Manager_view_expert = ({ expert }) => {
+const Manager_view_expert = ({ expert, refresh_expert }) => {
     const { csrfToken } = useCSRF(); // Get the CSRF token
     const [selected_tags, set_selected_tags] = useState([]);
 
@@ -22,12 +22,40 @@ const Manager_view_expert = ({ expert }) => {
           });
 
           if (response.ok){
+            refresh_expert();
+            set_selected_tags([]);
           } else {
             console.error("Failed to add expertise");
           }
 
         } catch (error) {
             console.error("Error adding expertise: ", error);
+        }
+    };
+
+    const handle_remove_expertise = async () => {
+        if (selected_tags.length === 0) return;
+
+        try {
+            const response = await fetch(`http://localhost:5000/api/remove-expertise`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                },
+                body: JSON.stringify({expertise_ids: selected_tags.map(tag => tag.value), expert_id: expert.User_id}),
+                credentials: 'include',
+          });
+
+          if (response.ok){
+            refresh_expert();
+            set_selected_tags([]);
+          } else {
+            console.error("Failed to remove expertise");
+          }
+
+        } catch (error) {
+            console.error("Error removing expertise: ", error);
         }
     };
 
@@ -44,13 +72,9 @@ const Manager_view_expert = ({ expert }) => {
                 </ul>
             </div>
             <div className="mt-4">
-                <Tag_selector selected_tags={selected_tags} set_selected_tags={set_selected_tags} />
-                <button
-                    onClick={handle_add_expertise}
-                    className="ml-2 p-2 bg-blue-500 text-white rounded"
-                >
-                    Add
-                </button>
+                <Tag_selector selected_tags={selected_tags} set_selected_tags={set_selected_tags} is_item_tags={false} />
+                <button onClick={handle_add_expertise} className="ml-2 p-2 bg-blue-500 text-white rounded"> Add </button>
+                <button onClick={handle_remove_expertise} className="ml-2 p-2 bg-red-500 text-white rounded"> Remove </button>
             </div>
         </div>
     );
