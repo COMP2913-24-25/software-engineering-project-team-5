@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from "react";
 import Select from "react-select";
 
-const Tag_selector = ({ selected_tags, set_selected_tags }) => {
+const Tag_selector = ({ selected_tags, set_selected_tags, is_item_tags }) => {
     const [tags, set_tags] = useState([]);
 
     useEffect(() => {
@@ -24,12 +24,16 @@ const Tag_selector = ({ selected_tags, set_selected_tags }) => {
     }, []);
     
     const handleChange = (selected_tags) => {
+        if (is_item_tags && selected_tags.length > 3){ 
+            alert("You can only select up to 3 tags for items!");
+            return;
+        }
         set_selected_tags(selected_tags || [])
     }; 
     
     return (
         <div>
-            <Select isMulti options={tags} value={selected_tags} onChange={handleChange} placeholder="Select tags"/>
+            <Select isMulti options={tags} value={selected_tags} onChange={handleChange} placeholder={is_item_tags ? "Select tags (max 3)" : "Select expertise"}/>
         </div>
     );
 };

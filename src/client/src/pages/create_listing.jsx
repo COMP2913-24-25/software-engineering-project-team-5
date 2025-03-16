@@ -233,7 +233,7 @@ const CreateListing = () => {
 
                 {/* Tag Selector */}
                 <div>
-                    <Tag_selector selected_tags={selected_tags} set_selected_tags={set_selected_tags} />
+                    <Tag_selector selected_tags={selected_tags} set_selected_tags={set_selected_tags} is_item_tags={true}/>
                 </div>
 
                 {/* Minimum Price */}
