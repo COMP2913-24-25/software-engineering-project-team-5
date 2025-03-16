@@ -38,7 +38,7 @@ from werkzeug.utils import secure_filename
 
 import datetime
 
-# Stripe API
+# Stripe API/payment related imports
 import stripe 
 stripe.api_key = 'sk_test_51QvN8MIrwvA3VrIBU92sndiPG7ZWIgYImzVxVP2ofd1xEDLpwPgF4fgWNsWpVm46klGLfcfbjTvbec7Vfi11p9vk00ODQbcday'
 
@@ -351,6 +351,8 @@ def place_bid():
     bid_amount = data.get("Bid_amount")
     user_id = data.get("User_id")
     try: 
+        if (current_user.Setup_intent_ID == None or current_user.Payment_method_ID == None):
+            return jsonify({"message": "Please add a payment method to place a bid"}), 402 #402 Payment Required
         item = Items.query.filter_by(Item_id=item_id).first()
         if not item:
             return jsonify({"message": "Item not found"}), 404
@@ -371,9 +373,12 @@ def place_bid():
         return jsonify({"error": "Failed to place bid"}), 400
 
 
-@app.route("/api/charge-user", methods=["POST"])
-def charge_user():
+#@app.route("/api/charge-user", methods=["POST"])
+def charge_user(user_tbc, bid_price, ):
     """
+    Args:
+    - user_tbc: user to be charged
+    - bid_price: price to be charged
     Charges the user for an auction item
 
     Returns:
@@ -386,32 +391,87 @@ def charge_user():
     # -if successful bid
     # bidder_id = None # user id to be charged
     try:
-        bidders_id = current_user.User_id
-        bid_price = 5000 # price to be charged 
-        setup_intent_id = current_user.Setup_intent_ID
-        customer_id=current_user.Customer_ID
+        
 
         payment_intent = stripe.PaymentIntent.create(
-            amount=bid_price,
+            amount=int(bid_price * 100),  # convert to pence
             currency='gbp',
             confirm=True,
-            customer=current_user.Customer_ID,
-            payment_method=current_user.Payment_method_ID,
-            receipt_email=current_user.Email,
+            customer=user_tbc.Customer_ID,
+            payment_method=user_tbc.Payment_method_ID,
+            receipt_email=user_tbc.Email,
             #off_session=True
+            automatic_payment_methods={
+                "enabled": True,
+                "allow_redirects": "never"
+            }
         )
-        return jsonify({
+        print("Charged user in charge_user()!\n")
+        return{ # jsonify({
             "payment_intent_id": payment_intent.id,
             "client_secret": payment_intent.client_secret,
             "status": payment_intent.status,
-        }), 200
+        } #}), 200
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({"error": "Failed to charge user"}), 400
     
 
+#@app.route("/api/charge-expired-auctions", methods=["POST"])
+def charge_expired_auctions():
+    """
+    Check expired auctions and charge the highest bidder for each item.
+    """
 
+    try:
+        # Get all items where the auction time has ended
+        expired_items = Items.query.filter(
+            Items.Available_until < datetime.datetime.now(),
+            Items.Sold == False, #check that they have not been sold
+            ).all()
 
+        # Process each expired item
+        for item in expired_items:
+            # Get the highest bid from the bidding history
+            highest_bid = Bidding_history.query.filter_by(Item_id=item.Item_id).order_by(Bidding_history.Bid_price.desc()).first()
+            
+            if highest_bid:
+                bidder_id = highest_bid.Bidder_id  # Get the user who placed the highest bid
+                bid_price = highest_bid.Bid_price  # Get the bid amount
+
+                # Get the bidder's details (e.g., Customer ID, Payment Method ID, etc.)
+                bidder = User.query.filter_by(User_id=bidder_id).first()
+
+                if bidder:
+                    # Call the charge function
+                    try:
+                        charge_response = charge_user(bidder, bid_price)  
+
+                        # After charging the user, update the item status: Sold = True 
+                        item.Sold = True  # or whatever status you'd like
+                        db.session.commit()
+
+                    except Exception as e:
+                        print(f"Error charging user for item {item.Item_id}: {e}")
+
+        #return jsonify({"message": "Processed expired auctions"}), 200
+        print("\nProcessed expired auctions! \n")
+
+    except Exception as e:
+        print(f"Error processing expired auctions: {e}")
+        #return jsonify({"error": "Failed to process expired auctions"}), 500
+
+@app.route("/api/charge-manual", methods=["POST"])
+def charge_manual():
+    """
+    API endpoint to manually trigger the charge_expired_auctions function.
+    """
+    try:
+        charge_expired_auctions()
+        return jsonify({"message": "Processed expired auctions"}), 200
+    except Exception as e:
+        print(f"Error processing expired auctions: {e}")
+        return jsonify({"error": "Failed to process expired auctions"}), 500
 
 @app.route("/api/logout", methods=["POST"])
 @login_required

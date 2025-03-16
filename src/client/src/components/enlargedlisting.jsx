@@ -100,6 +100,9 @@ const EnlargedListingPage = () => {
             if (response.ok) {
                 alert("Bid placed successfully!");
                 setItem((prev) => ({ ...prev, Current_bid: parseFloat(bidAmount) })); //?
+            } else if (response.status === 402) { // 402 Payment Required
+                alert("Please set up your payment method before placing a bid.");
+                navigate("/accountsummary");
             } else {
                 alert(`Failed to place bid: ${data.message}`);
             }
@@ -107,7 +110,27 @@ const EnlargedListingPage = () => {
             console.error("Error placing bid:", error);
         }
     };
-
+    const manualCharge = async () => {
+        try {
+            const response = await fetch("http://localhost:5000/api/charge-manual", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
+                },
+                credentials: "include",
+            });
+            const data = await response.json();
+            if (response.ok) {
+                alert("Item charged successfully!");
+                //setItem((prev) => ({ ...prev, Current_bid: parseFloat(bidAmount) })); //?;
+            } else {
+                alert(`Failed to charge: ${data.message}`);
+            }
+        } catch (error) {
+            console.error("Error charging:", error);
+        }
+    };
     if (!item) {
         return <div className="text-center py-20 text-gray-600">Loading listing...</div>;
     }
@@ -160,6 +183,7 @@ const EnlargedListingPage = () => {
                             <h3 className="text-lg font-medium mb-2">Listing Details</h3>
                             <ul className="space-y-2">
                                 <li className="text-gray-600">Listed: <span className="font-medium">{item.Upload_datetime || "N/A"}</span></li>
+                                <li className="text-gray-600">Auction ends: <span className="font-medium">{item.Available_until || "N/A"}</span></li>
                                 <li className="text-gray-600">Proposed Price: <span className="font-medium">£{item.Min_price || "0.00"}</span></li>
                                 <li className="text-gray-600">Current bid: <span className="font-medium">£{item.Current_bid || "0.00"}</span></li>
                             </ul>
@@ -185,6 +209,9 @@ const EnlargedListingPage = () => {
                     </div>
                     <button onClick={handlePlaceBid} className="bg-blue-600 text-white py-2 px-6 rounded-lg text-lg hover:bg-blue-700 transition">
                         Place a Bid
+                    </button>
+                    <button onClick={manualCharge} className="bg-blue-600 text-white py-2 px-6 rounded-lg text-lg hover:bg-blue-700 transition ml-4">
+                        Charge Manually
                     </button>
                 </div>
             </div>

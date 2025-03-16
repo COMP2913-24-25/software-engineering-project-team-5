@@ -72,6 +72,7 @@ class Items(db.Model):
     Current_bid = db.Column(db.Float, nullable=False)
     Description = db.Column(db.String(500), nullable=False)
     Structure_id = db.Column(db.Integer, db.ForeignKey("profit_structure.Structure_id"))
+    Sold = db.Column(db.Boolean, default=False) #this will be used to determine if the item has been sold/charged
 
     # Item Authentication Fields
     Expert_id = db.Column(db.Integer, db.ForeignKey("user.User_id"), nullable=True)
