@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import ItemListing from "../../components/itemlisting";
 import { useUser, useCSRF } from "../../App";
+import { useNavigate } from "react-router-dom";
 
 export default function MAuthReq() {
     const [pendingauth, setPendingAuth] = useState([]);
@@ -8,6 +9,7 @@ export default function MAuthReq() {
     const [selectedExperts, setSelectedExperts] = useState({});
     const { user } = useUser();
     const { csrfToken } = useCSRF();
+    const navigate = useNavigate();
 
     // Fetch items pending authentication
     const getPendingAuth = async () => {
@@ -68,18 +70,26 @@ export default function MAuthReq() {
         if (user) {
             getPendingAuth();
             getExpertList();
+        } else {
+            navigate("/invalid-access-rights");
         }
     }, [user]);
 
     return (
         <div className="relative min-h-screen bg-gray-100 px-[5%] md:px-[10%] py-8">
             <div className="text-center mb-8">
-                <h1 className="text-2xl font-semibold text-center text-gray-800 mb-4">Items Pending Authentication</h1>
-                <p className="text-xl text-gray-500 mt-2">Assign authentication requests to experts.</p>
+                <h1 className="text-2xl font-semibold text-center text-gray-800 mb-4">
+                    Items Pending Authentication
+                </h1>
+                <p className="text-xl text-gray-500 mt-2">
+                    Assign authentication requests to experts.
+                </p>
             </div>
 
             {!user ? (
-                <p className="text-gray-600 text-center">Login to see items pending authentication</p>
+                <p className="text-gray-600 text-center">
+                    Login to see items pending authentication
+                </p>
             ) : pendingauth.length === 0 ? (
                 <p className="text-gray-600 text-center">No items pending authentication</p>
             ) : (
@@ -93,7 +103,9 @@ export default function MAuthReq() {
                                 description={item.Description}
                             />
                             <div className="mt-2">
-                                <label className="block text-sm font-medium text-gray-700">Assign Expert:</label>
+                                <label className="block text-sm font-medium text-gray-700">
+                                    Assign Expert:
+                                </label>
                                 <select
                                     className="border border-gray-300 rounded-md p-2 w-full"
                                     value={selectedExperts[item.Item_id] || ""}
@@ -114,7 +126,9 @@ export default function MAuthReq() {
                             </div>
                             <button
                                 className="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md transition w-full sm:w-auto"
-                                onClick={() => assignExpertToItem(item.Item_id, selectedExperts[item.Item_id])}
+                                onClick={() =>
+                                    assignExpertToItem(item.Item_id, selectedExperts[item.Item_id])
+                                }
                                 disabled={!selectedExperts[item.Item_id]}
                             >
                                 Assign Expert
