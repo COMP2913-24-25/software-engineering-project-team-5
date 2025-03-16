@@ -15,6 +15,8 @@ import AccountSummary from "./pages/accountsummary";
 import CurrentListings from "./pages/current_listings";
 import EnlargedListingPage from "./components/enlargedlisting";
 import ChatWindow from "./pages/chatwindow";
+import InvalidUrl from "./pages/invalidurl";
+import UnauthorizedAccess from "./pages/unauthorizedaccess";
 
 import WeeklyProfits from "./pages/manager/profits";
 import CustomerTable from "./pages/manager/custinfo";
@@ -111,12 +113,9 @@ function App() {
         <UserProvider>
             <Router>
                 <NotificationProvider>
-
-                     <div className="navbar">
-                        <Navbar 
-                        />
-                    </div> 
-
+                    <div className="navbar">
+                        <Navbar />
+                    </div>
 
                     {/* Expert View Sub Navbar */}
                     {activeSubMenu === "expert" && (
@@ -159,15 +158,8 @@ function App() {
                         <Route path="/seller-dash" element={<SellerDashboard />} />
                         <Route path="/watchlist" element={<WatchList />} />
                         <Route path="/chatwindow" element={<ChatWindow />} />
-                        <Route
-                            path="/bidding-history"
-                            element={<BiddingHistory />}
-                        />
-                        <Route
-                        path="/current_listings"
-                        element={<CurrentListings 
-                             />}
-                    />
+                        <Route path="/bidding-history" element={<BiddingHistory />} />
+                        <Route path="/current_listings" element={<CurrentListings />} />
 
                         <Route path="/current-bids" element={<CurrentBids />} />
                         <Route path="/create-listing" element={<CreateListing />} />
@@ -187,6 +179,8 @@ function App() {
                             element={<EnlargedListingPage />}
                         />
                         <Route path="/expert/profile" element={<Profile />} />
+                        <Route path="*" element={<InvalidUrl />} />
+                        <Route path="/invalid-access-rights" element={<UnauthorizedAccess />} />
                     </Routes>
                 </NotificationProvider>
             </Router>
