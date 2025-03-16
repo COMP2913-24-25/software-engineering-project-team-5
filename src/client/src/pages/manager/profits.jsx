@@ -19,7 +19,7 @@ export default function Dashboard() {
             getProfitStructure();
             getSold();
         } else {
-            navigate("/");
+            navigate("/invalid-access-rights");
         }
     }, [user, navigate]);
 
@@ -132,8 +132,12 @@ export default function Dashboard() {
     return (
         <div className="relative min-h-screen bg-gray-100 px-[5%] md:px-[10%] py-8">
             <div className="text-center mb-8">
-                <h1 className="text-2xl font-semibold text-center text-gray-800 mb-4">Weekly Profits</h1>
-                <p className="text-xl text-gray-500 mt-2">View profits and manage fee distribution.</p>
+                <h1 className="text-2xl font-semibold text-center text-gray-800 mb-4">
+                    Weekly Profits
+                </h1>
+                <p className="text-xl text-gray-500 mt-2">
+                    View profits and manage fee distribution.
+                </p>
             </div>
 
             {/* Chart Section */}
@@ -153,7 +157,9 @@ export default function Dashboard() {
 
             {/* Profit Structure Form */}
             <div className="bg-blue-50 p-6 rounded-lg">
-                <h2 className="text-2xl font-semibold text-gray-800 mb-4">Update Profit Structure</h2>
+                <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+                    Update Profit Structure
+                </h2>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>

@@ -29,12 +29,9 @@ const LogOut = () => {
             if (response.ok) {
                 // Removed session data for user
                 setUser(null);
-                alert("Log Out Successful!");
 
                 // Navigates to login page
                 navigate("/");
-            } else {
-                alert("Network Error!");
             }
         };
 
