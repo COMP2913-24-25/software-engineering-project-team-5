@@ -17,6 +17,7 @@ from flask_admin.contrib.sqla import ModelView
 from flask_login import login_user, login_required, logout_user, current_user
 from flask_wtf.csrf import generate_csrf
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy import and_, exists
 
 from .models import (
     User,
@@ -30,6 +31,7 @@ from .models import (
     Bidding_history,
     Profit_structure,
     Availabilities,
+    Middle_expertise,
 )
 from .forms import login_form, sign_up_form, Create_listing_form, update_user_form
 
@@ -1916,21 +1918,39 @@ def get_experts():
     try:
         data = request.get_json()
         week_start_date = data.get('week_start_date')
+        current_day = data.get("current_day")
 
         experts = User.query.filter_by(Level_of_access = 2).all()
 
         experts_data = []
         for expert in experts:
             print(expert)
+
+            is_available = db.session.query(
+                exists().where(
+                    and_(
+                        Availabilities.Expert_id == expert.User_id,
+                        Availabilities.Week_start_date == week_start_date,
+                        Availabilities.Day_of_week >= current_day
+                    )
+                )
+            ).scalar()
+
+            expertise = Middle_expertise.query.filter_by(Expert_id=expert.User_id).all()
+
             experts_data.append({
                 'User_id': expert.User_id,
-                'First_name' : expert.First_name,
-                'Middle_name' : expert.Middle_name,
-                'Surname' : expert.Surname,
-
+                'First_name': expert.First_name,
+                'Middle_name': expert.Middle_name,
+                'Surname': expert.Surname,
+                'Email': expert.Email,
+                'DOB': expert.DOB.strftime('%Y-%m-%d'),
+                'is_available': is_available,
+                'Expertise': [exp.Type_id for exp in expertise]
             })
-    
+
         return jsonify(experts_data), 200
+    
     except Exception as e:
         print("Error: ", e)
         return jsonify({"Error: Failed to retrieve experts"}), 400
