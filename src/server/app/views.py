@@ -1938,9 +1938,9 @@ def get_experts():
             expertise = Middle_expertise.query.filter_by(Expert_id=expert.User_id).all()
             for this_expertise in expertise:
                 this_expertise_name = Types.query.filter_by(Type_id=this_expertise.Type_id).first()
-                all_expertise.append([
+                all_expertise.append(
                     this_expertise_name.Type_name
-                ])
+                )
 
             experts_data.append({
                 'User_id': expert.User_id,
@@ -1973,8 +1973,6 @@ def add_expertise():
         expertise_ids = data.get('expertise_ids', [])
         expert_id = data.get('expert_id')
 
-        print(expertise_ids)
-
         for type_id in expertise_ids:
             print(type_id)
             existing_expertise = Middle_expertise.query.filter_by(
@@ -1992,3 +1990,33 @@ def add_expertise():
     except Exception as e:
         print("Error: ", e)
         return jsonify({"Error": "Failed to add expertise"}), 400
+    
+@app.route('/api/remove-expertise', methods=["POST"])
+def remove_expertise():
+    """    
+    Removes all the tags to the expert.
+
+    Returns:
+        status_code: HTTP status code (200 for success, 400 for bad request)
+    
+    """
+    try:
+        data = request.get_json()
+        expertise_ids = data.get('expertise_ids', [])
+        expert_id = data.get('expert_id')
+
+        for type_id in expertise_ids:
+            existing_expertise = Middle_expertise.query.filter_by(
+                Expert_id = expert_id,
+                Type_id = type_id
+            ).first()
+        
+            if existing_expertise:
+                db.session.delete(existing_expertise)
+
+        db.session.commit()
+        return jsonify({"Message": "Expertise removed successfully"}), 200
+
+    except Exception as e:
+        print("Error: ", e)
+        return jsonify({"Error": "Failed to remove expertise"}), 400
