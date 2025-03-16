@@ -1853,3 +1853,35 @@ def get_availabilites():
     except Exception as e:
         print("Error: ", e)
         return jsonify({"Error: Failed to retrieve availabilities"}), 400
+    
+@app.route('/api/get-experts', methods=["POST"])
+def get_experts():
+    """
+    Gets all the experts and whether they are available this week or not.
+
+    Returns:
+        json_object: A list of all the experts
+        status_code: HTTP status code (200 for success, 400 for bad request)
+    """
+
+    try:
+        data = request.get_json()
+        week_start_date = data.get('week_start_date')
+
+        experts = User.query.filter_by(Level_of_access = 2).all()
+
+        experts_data = []
+        for expert in experts:
+            print(expert)
+            experts_data.append({
+                'User_id': expert.User_id,
+                'First_name' : expert.First_name,
+                'Middle_name' : expert.Middle_name,
+                'Surname' : expert.Surname,
+
+            })
+    
+        return jsonify(experts_data), 200
+    except Exception as e:
+        print("Error: ", e)
+        return jsonify({"Error: Failed to retrieve experts"}), 400
