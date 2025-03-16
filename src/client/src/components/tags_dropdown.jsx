@@ -5,31 +5,28 @@ const Tag_selector = ({ selected_tags, set_selected_tags }) => {
     const [tags, set_tags] = useState([]);
 
     useEffect(() => {
-
-        try {
-            fetch("http://localhost:5000/api/get-tags")
-                .then((response) => response.json())
-                .then((data) => {
+        const fetch_tags = async () => {
+            try {
+                const response = await fetch("http://localhost:5000/api/get-tags");
+                if (response.ok){
+                    const data = await response.json();
                     set_tags(data.map(tag => ({value: tag.Type_id, label: tag.Type_name})));
-                }).catch((error) => console.error("Error fetching tags: ", error));
-
-        } catch (error) {
-            console.error("Error: ", error);
+                } else {
+                    console.error("Failed to get the tags");
+                }
+    
+            } catch (error) {
+                console.error("Error: ", error);
+            }
         }
 
-        
+        fetch_tags();
     }, []);
     
     const handleChange = (selected_tags) => {
-        if (selected_tags.length <= 3) {
-            set_selected_tags(selected_tags);
-        } else {
-            alert("You can only select up to 3 tags!");
-        }
+        set_selected_tags(selected_tags || [])
     }; 
     
-    console.log(tags)
-
     return (
         <div>
             <Select isMulti options={tags} value={selected_tags} onChange={handleChange} placeholder="Select tags"/>
