@@ -12,7 +12,17 @@ const Listing_item = (props) => {
     const { csrfToken } = useCSRF(); // Get the CSRF token
 
     const handleClick = () => {
-        navigate(`/item/${encodeURIComponent(item.Listing_name)}/${item.Item_id}`);
+        
+        {
+            if (item.Authentication_request === true && item.Expert_id !== null) {
+                // Under review item
+                let url = "/authrequest/" + encodeURIComponent(item.Listing_name) + "/" + item.Item_id; 
+                navigate(url);
+            } else {
+                // Regular item details page
+                navigate(`/item/${encodeURIComponent(item.Listing_name)}/${item.Item_id}`);
+            }
+        };
     };
 
     const toggle_wishlist = async (item_id) => {
