@@ -28,6 +28,7 @@ export const NotificationProvider = ({ children }) => {
         );
         setNotifications((prev) => [...prev, message]);
     };
+
     // can addany trigger this is for when new authenticated item is added
     const checkNewAuthRequests = async () => {
         try {
@@ -57,6 +58,30 @@ export const NotificationProvider = ({ children }) => {
         }
     };
 
+    // Check for Expired Auctions to charge @Mila
+    const chargeExpiredAuctions = async () => {
+        try {
+            const response = await fetch(
+                "http://localhost:5000/api/charge-expired-auctions",
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrfToken,},
+                    credentials: "include",
+                }
+            );
+
+            const data = await response.json();
+
+            if (response.ok) {
+                notify("Expired auctions have been charged!", "/bidding-history");
+            }
+        } catch (error) {
+            console.error("Error checking authentication requests:", error);
+        }
+    };
+
+
+
     useEffect(() => {
         if (user?.level_of_access === 2 ){
         const interval = setInterval(checkNewAuthRequests, 10000); //every 10 seconds check
@@ -64,6 +89,12 @@ export const NotificationProvider = ({ children }) => {
         }
     }, []);
 
+    // useEffect to charge expired auctions for all users
+    useEffect(() => {
+        const interval = setInterval(chargeExpiredAuctions, 10000); // every 10 seconds check
+        return () => clearInterval(interval);
+    }, []);
+    
     return (
         <NotificationContext.Provider value={{ notify }}>
             {children}

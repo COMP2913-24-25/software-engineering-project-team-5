@@ -47,6 +47,10 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# periodic checking of expired auctions
+# from celery import Celery
+# from celery.schedules import crontab
+
 # Admin mode accessed using "http://<url>/admin"
 # Used to view database on website instead of app.db
 admin.add_view(ModelView(User, db.session))
@@ -417,7 +421,7 @@ def charge_user(user_tbc, bid_price, ):
         return jsonify({"error": "Failed to charge user"}), 400
     
 
-#@app.route("/api/charge-expired-auctions", methods=["POST"])
+@app.route("/api/charge-expired-auctions", methods=["POST"])
 def charge_expired_auctions():
     """
     Check expired auctions and charge the highest bidder for each item.
@@ -425,6 +429,7 @@ def charge_expired_auctions():
 
     try:
         # Get all items where the auction time has ended
+        logger.info("Processing expired auctions...\n")
         expired_items = Items.query.filter(
             Items.Available_until < datetime.datetime.now(),
             Items.Sold == False, #check that they have not been sold
@@ -448,18 +453,19 @@ def charge_expired_auctions():
                         charge_response = charge_user(bidder, bid_price)  
 
                         # After charging the user, update the item status: Sold = True 
-                        item.Sold = True  # or whatever status you'd like
+                        item.Sold = True  
                         db.session.commit()
+                        logger.info("Charged user for item {item.Item_id}!\n")
 
                     except Exception as e:
                         print(f"Error charging user for item {item.Item_id}: {e}")
 
-        #return jsonify({"message": "Processed expired auctions"}), 200
         print("\nProcessed expired auctions! \n")
+        return jsonify({"message": "Processed expired auctions"}), 200
 
     except Exception as e:
         print(f"Error processing expired auctions: {e}")
-        #return jsonify({"error": "Failed to process expired auctions"}), 500
+        return jsonify({"error": "Failed to process expired auctions"}), 500
 
 @app.route("/api/charge-manual", methods=["POST"])
 def charge_manual():
