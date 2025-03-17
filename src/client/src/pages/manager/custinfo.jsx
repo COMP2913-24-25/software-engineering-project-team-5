@@ -1,8 +1,7 @@
-
-
 import React, { useState, useEffect } from "react";
-import {useCSRF} from "../../App"; // Calls the user
-import Search_Component from "../../components/Search_component"
+import { useCSRF, useUser } from "../../App"; // Calls the user
+import Search_Component from "../../components/Search_component";
+import { useNavigate } from "react-router-dom";
 
 // const initialData = [
 //     // Test data for customers
@@ -14,17 +13,20 @@ import Search_Component from "../../components/Search_component"
 //     { id: 6, name: "Hassan", email: "hassan@example.com", level: "Expert" },
 // ];
 
-
 export default function CustomerTable() {
     const [data, setData] = useState("");
     // const [sortField, setSortField] = useState(null);
     // const [sortOrder, setSortOrder] = useState("asc");
     const [selectedUsers, setSelectedUsers] = useState([]);
     const [newLevel, setNewLevel] = useState("");
-    
+
     const { csrfToken } = useCSRF();
     const [newLevels, setNewLevels] = useState({});
     const [updated_level_list, set_updated_level_list] = useState({});
+
+    const { user } = useUser();
+    const navigate = useNavigate();
+
     // useEffect(() => {
     //     console.log("Updated user details:", data);
     // }, [data]);
@@ -46,13 +48,15 @@ export default function CustomerTable() {
     // Handle selecting users
     const toggleSelect = (id) => {
         setSelectedUsers((prevSelected) =>
-            prevSelected.includes(id) ? prevSelected.filter((userId) => userId !== id) : [...prevSelected, id]
+            prevSelected.includes(id)
+                ? prevSelected.filter((userId) => userId !== id)
+                : [...prevSelected, id]
         );
     };
 
     const handle_search = (search_data) => {
         setData(search_data);
-    }
+    };
 
     // Handle updating level
     const handleLevelChange = (user_Id, new_Level) => {
@@ -61,19 +65,18 @@ export default function CustomerTable() {
             [user_Id]: new_Level, // Update only the selected user's level
         }));
 
-
         set_updated_level_list((prevLevelList) => ({
-            ...prevLevelList,  
-            [user_Id]: new_Level,  
+            ...prevLevelList,
+            [user_Id]: new_Level,
         }));
-      };
+    };
 
     // useEffect(() => {
     //     console.log("Updated Level List:", updated_level_list);
     // }, [updated_level_list]);  // Dependency on updatedLevelList ensures it runs whenever it changes
 
-// 
-    const handleSave = async() => {
+    //
+    const handleSave = async () => {
         if (Object.keys(updated_level_list).length === 0) return;
 
         const user_id = [];
@@ -81,40 +84,43 @@ export default function CustomerTable() {
 
         for (let user_Id in updated_level_list) {
             if (updated_level_list.hasOwnProperty(user_Id)) {
-                user_id.push(user_Id);  
-                level_of_access.push(updated_level_list[user_Id]);  
+                user_id.push(user_Id);
+                level_of_access.push(updated_level_list[user_Id]);
             }
         }
-    
-       
 
         // console.log("Updated list:", updated_users);
         // console.log("Sending to backend:", JSON.stringify({ user_id : user_id, level_of_access : level_of_access })); // Debugging
 
         try {
             const response = await fetch("http://localhost:5000/api/update_level", {
-                method : "POST",
+                method: "POST",
                 headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken, // If needed for CSRF protection
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": csrfToken, // If needed for CSRF protection
                 },
-                body: JSON.stringify({user_id : user_id, level_of_access : level_of_access}),
+                body: JSON.stringify({ user_id: user_id, level_of_access: level_of_access }),
                 credentials: "include",
-
             });
 
             const result = await response.json();
             console.log(" Backend response:", result);
-        } catch(error) {
+        } catch (error) {
             console.error("Error updating levels", error);
         }
     };
+
+    useEffect(() => {
+        if (!(user?.level_of_access === 3)) {
+            navigate("/invalid-access-rights");
+        }
+    }, [user]);
 
     return (
         <div className="customer-table">
             <h2>Customer Information</h2>
 
-            <Search_Component user = {true} item = {false} update_search={handle_search} />
+            <Search_Component user={true} item={false} update_search={handle_search} />
             <table>
                 <thead>
                     <tr>
@@ -140,13 +146,15 @@ export default function CustomerTable() {
                                 <td>
                                     <select
                                         value={newLevels[user.User_id] || user.Level_of_access}
-                                        onChange={(e) => handleLevelChange(user.User_id, e.target.value)}
+                                        onChange={(e) =>
+                                            handleLevelChange(user.User_id, e.target.value)
+                                        }
                                     >
                                         <option value="1">User</option>
                                         <option value="2">Expert</option>
                                         <option value="3">Manager</option>
                                     </select>
-                                    </td>
+                                </td>
                             </tr>
                         ))
                     ) : (

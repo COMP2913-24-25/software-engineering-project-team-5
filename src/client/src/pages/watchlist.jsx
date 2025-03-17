@@ -84,14 +84,16 @@ const Watchlist = () => {
         const minutes = Math.floor((diffMs / 60000) % 60);
         const hours = Math.floor(diffMs / 3600000);
 
-        return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds
+        return `${hours.toString().padStart(2, "0")}:${minutes
             .toString()
-            .padStart(2, "0")}`;
+            .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
     };
 
     useEffect(() => {
-        if (user) {
+        if (user?.level_of_access === 1) {
             get_watchlist(); // Fetch the watchlist only if the user is logged in
+        } else {
+            navigate("/invalid-access-rights");
         }
     }, [user]);
 
@@ -111,7 +113,10 @@ const Watchlist = () => {
 
     return (
         <div className="relative min-h-screen bg-gray-100 px-[5%] md:px-[10%] py-8">
-            <h1 className="text-3xl font-bold mb-6">Watch List</h1>
+            <div className="text-center mb-8">
+                <h1 className="text-2xl font-semibold text-center text-gray-800 mb-4">Watchlist</h1>
+                <p className="text-xl text-gray-500 mt-2">Track items you are interested in.</p>
+            </div>
 
             {user ? (
                 watchlist.length === 0 ? (
@@ -132,7 +137,8 @@ const Watchlist = () => {
                                             : Number(item.Min_price).toFixed(2)
                                     }`,
                                     `Time Remaining: ${
-                                        item.timeRemaining || calculate_time_remaining(item.Available_until)
+                                        item.timeRemaining ||
+                                        calculate_time_remaining(item.Available_until)
                                     }`,
                                 ]}
                                 buttons={[

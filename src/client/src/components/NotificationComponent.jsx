@@ -17,6 +17,7 @@ export const NotificationProvider = ({ children }) => {
     const [notifiedItemsBidPair, setNotifiedItemsBidPair] = useState({}); // to store the id and the price that has been out bid on (to prevent ongoing notifications for the same outbidding)
 
     const notify = (message, path) => {
+        console.log("Notification Triggered");
         toast.info(
             <span onClick={() => navigate(path)} style={{ cursor: "pointer" }}>
                 {message}
@@ -39,12 +40,13 @@ export const NotificationProvider = ({ children }) => {
                 "http://localhost:5000/api/get-experts-authentication-requests",
                 {
                     method: "POST",
-                    headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrfToken,},
+                    headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrfToken },
                     credentials: "include",
                 }
             );
 
             const data = await response.json();
+            console.log("Pending Auth Requests: ", data.pending_auth_requests);
 
             if (response.ok) {
                 const newCount = data.pending_auth_requests?.length || 0;
@@ -54,11 +56,14 @@ export const NotificationProvider = ({ children }) => {
                 }
 
                 prevPendingCount.current = newCount; // Update the previous pending count
-                setPendingCount(newCount);
+                setPendingCount(newCount); // Update state with the new count
             }
         } catch (error) {
             console.error("Error checking authentication requests:", error);
         }
+
+        console.log("CSRF Token: ", csrfToken);
+        console.log("User: ", user);
     };
 
     // Check for Expired Auctions to charge @Mila

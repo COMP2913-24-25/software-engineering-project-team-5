@@ -28,6 +28,10 @@ flask db init
 flask db migrate -m "Initial migration"
 flask db upgrade
 
+# Prepopulate database 
+echo "Adding data to the database..."
+flask add-users
+
 # Go back to root directory
 cd ../..
 
@@ -47,6 +51,7 @@ echo ""
 echo -e "${F_BOLD}${C_CYAN1}Setup complete! Flask running on http://localhost:5000${NO_FORMAT}"
 echo -e "${F_BOLD}${C_CYAN1}To view the database: http://localhost:5000/admin${NO_FORMAT}"
 echo -e "${F_BOLD}${C_YELLOW}Open React client (npm run dev) on another terminal.${NO_FORMAT}"
+echo -e "${F_BOLD}${C_YELLOW}Users Created - usernames: [user, expert, manager], password: P@ssw0rd123 (same for all)${NO_FORMAT}"
 
 cd src/server
 flask run 

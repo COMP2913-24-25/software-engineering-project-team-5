@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import UserDetailsForm from "../components/user_details_form";
 import AddressForm from "../components/address_form";
 import { useUser, useCSRF } from "../App"; // Access the user
-import Availabilty_calendar_set from "../components/availability_calendar";
+import Availability_calendar_set from "../components/availability_calendar";
 import Availability_calendar_view from "../components/availability_calendar_view";
 
 import PaymentForm from "../components/card_details";
@@ -36,7 +36,7 @@ const AccountSummary = () => {
     // Check if user is logged in and redirect if not
     useEffect(() => {
         if (user === null) {
-            navigate("/signup");
+            navigate("/invalid-access-rights");
         }
     }, [user, navigate]);
 
@@ -82,7 +82,9 @@ const AccountSummary = () => {
 
     // Updates the addresses list to remove the deleted address
     const handle_address_delete = async (addressId) => {
-        set_addresses((prevAddresses) => prevAddresses.filter((address) => address.Address_id !== addressId));
+        set_addresses((prevAddresses) =>
+            prevAddresses.filter((address) => address.Address_id !== addressId)
+        );
     };
 
     // Gets addresses on first time load of the page
@@ -111,7 +113,9 @@ const AccountSummary = () => {
 
                 if (start_time >= end_time) {
                     is_valid = false;
-                    alert(`Invalid time block on ${day}. ${start_time} is greater than or equal to ${end_time}`);
+                    alert(
+                        `Invalid time block on ${day}. ${start_time} is greater than or equal to ${end_time}`
+                    );
                     break;
                 }
             }
@@ -161,8 +165,12 @@ const AccountSummary = () => {
         <div className="relative min-h-screen bg-gray-100 px-[5%] md:px-[10%] py-8">
             {/* Account Summary Header */}
             <div className="text-center mb-8">
-                <h1 className="text-2xl font-semibold text-center text-gray-800 mb-4">Account Summary</h1>
-                <p className="text-xl text-gray-500 mt-2">Manage your account, addresses, card details and more.</p>
+                <h1 className="text-2xl font-semibold text-center text-gray-800 mb-4">
+                    Account Summary
+                </h1>
+                <p className="text-xl text-gray-500 mt-2">
+                    Manage your account, addresses, and more.
+                </p>
             </div>
 
             {/* User Details Section */}
@@ -230,16 +238,18 @@ const AccountSummary = () => {
             </div>
 
             {/* Expert View Availability Section (Visible only for experts)*/}
-            {is_expert && (            
+            {is_expert && (
                 <div className="p-6 mb-8">
-                    <Availability_calendar_view/>
-                </div>)}
+                    <Availability_calendar_view />
+                </div>
+            )}
 
             {/* Expert Availability Section (Visible only for experts on Sunday) */}
             {is_expert && is_sunday && (
                 <div className="p-6 mb-8">
                     <h2 className="text-2xl font-semibold text-gray-800 mb-4">Set Your Availability</h2>
-                    <Availabilty_calendar_set onSubmit={handle_submit} />
+                    <Availability_calendar_set onSubmit={handle_submit} />
+
                 </div>
             )}
 
@@ -251,7 +261,9 @@ const AccountSummary = () => {
 
             {/* Bidding History / Seller Dashboard Section (Placeholder for now) */}
             <div className="p-6">
-                <h2 className="text-2xl font-semibold text-gray-800 mb-4">Bidding History & Dashboard</h2>
+                <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+                    Bidding History & Dashboard
+                </h2>
                 <p className="text-gray-500">To do: After bidding system is completed.</p>
             </div>
             {addresses.map((address, index) => (
