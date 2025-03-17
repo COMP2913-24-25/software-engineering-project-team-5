@@ -90,7 +90,7 @@ const Watchlist = () => {
     };
 
     useEffect(() => {
-        if (user) {
+        if (user?.level_of_access === 1) {
             get_watchlist(); // Fetch the watchlist only if the user is logged in
         } else {
             navigate("/invalid-access-rights");

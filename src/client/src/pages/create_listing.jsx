@@ -38,7 +38,7 @@ const CreateListing = () => {
     const [selected_tags, set_selected_tags] = useState([]);
 
     useEffect(() => {
-        if (user) {
+        if (user?.level_of_access === 1) {
             setFormData((prevData) => ({
                 ...prevData,
                 seller_id: user.user_id,

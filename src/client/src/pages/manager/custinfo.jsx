@@ -111,7 +111,7 @@ export default function CustomerTable() {
     };
 
     useEffect(() => {
-        if (user === null) {
+        if (!(user?.level_of_access === 3)) {
             navigate("/invalid-access-rights");
         }
     }, [user]);

@@ -67,7 +67,7 @@ export default function MAuthReq() {
     };
 
     useEffect(() => {
-        if (user) {
+        if (user?.level_of_access === 3) {
             getPendingAuth();
             getExpertList();
         } else {

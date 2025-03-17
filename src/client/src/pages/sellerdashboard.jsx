@@ -65,7 +65,7 @@ const SellerDashboard = () => {
             }
         };
 
-        if (user) {
+        if (user?.level_of_access === 1) {
             fetchItems();
         } else {
             navigate("/invalid-access-rights");
