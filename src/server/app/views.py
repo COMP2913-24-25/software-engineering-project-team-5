@@ -1887,7 +1887,7 @@ def get_seller_listings():
         listings = []
 
         for item in items:
-            images = Images.query.filter_by(Item_id=item.Item_id).all()
+            image = Images.query.filter(Images.Item_id == item.Item_id).first()
             
             item_details = {
                 "Item_id": item.Item_id,
@@ -1901,9 +1901,7 @@ def get_seller_listings():
                 "Min_price": item.Min_price,
                 "Approved": item.Authentication_request_approved,
                 "Second_opinion": item.Second_opinion,
-                "Image": [
-                    base64.b64encode(image.Image).decode("utf-8") for image in images
-                ],
+                "Image": base64.b64encode(image.Image).decode("utf-8"),
                 "Available_until": item.Available_until
             }
             listings.append(item_details)
