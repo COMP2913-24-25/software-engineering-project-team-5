@@ -939,8 +939,13 @@ def get_listings():
                     db.and_(
                         Items.Authentication_request == True,
                         Items.Verified == True,
+                        Items.Authentication_request_approved == True,
                     ),
+                    db.and_(
                         Items.Authentication_request == False,
+                        Items.Verified == False,
+                        Items.Authentication_request_approved == None,
+                    )
                 ),
             )
             .all()
