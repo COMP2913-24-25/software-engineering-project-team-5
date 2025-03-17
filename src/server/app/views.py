@@ -1910,8 +1910,8 @@ def get_availabilites():
 
 
 
-@app.route("/api/get-seller-listings", methods=["POST"])
-def get_seller_listings():
+@app.route("/api/get-seller's-listings", methods=["POST"])
+def get_sellers_listings():
     """
     Gets all listings from a specific seller.
 

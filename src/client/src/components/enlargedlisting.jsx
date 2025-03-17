@@ -20,7 +20,7 @@ const EnlargedListingPage = () => {
     useEffect(() => {
         const fetchListingInformation = async () => {
             try {
-                const response = await fetch("http://localhost:5000/api/get-single-listing", {
+                const response = await fetch("http://localhost:5000/api/get-seller's-listings", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
