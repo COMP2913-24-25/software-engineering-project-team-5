@@ -1024,7 +1024,6 @@ def get_bids():
 
         for item in bid_data:
             if item.Item_id not in unique_bids:
-                # Fetch all images for the item (Same as get-history)
                 images = Images.query.filter_by(Item_id=item.Item_id).all()
                 image_list = []
 
@@ -1525,6 +1524,7 @@ def get_single_listing():
             "Images": [
                 base64.b64encode(image.Image).decode("utf-8") for image in images
             ],
+            "Available_until" : item.Available_until
         }
 
         return jsonify(item_details), 200
@@ -1853,3 +1853,73 @@ def get_availabilites():
     except Exception as e:
         print("Error: ", e)
         return jsonify({"Error: Failed to retrieve availabilities"}), 400
+
+@app.route("/api/get-seller-listings", methods=["POST"])
+def get_seller_listings():
+    """
+    Gets all listings from a specific seller.
+
+    Returns:
+        json_object: Containing item details
+        status_code: HTTP status code (200 for success, 400 for error)
+    """
+    try:
+        data = request.json
+        seller_id = data.get("Seller_id")
+
+        if not seller_id:
+            return jsonify({"error": "Seller_id is required"}), 400
+
+        # Query to fetch items by the seller
+        listings = (
+            db.session.query(
+                Items.Item_id,
+                Items.Listing_name,
+                Items.Min_price,
+                Items.Available_until,
+                Items.Description,
+            )
+            .outerjoin(Images, Items.Item_id == Images.Item_id)
+            .filter(Items.Seller_id == seller_id,
+                Items.Available_until < datetime.datetime.now())
+            .all()
+        )
+
+        # Format response
+        listings_data = []
+        for item in listings:
+            images = Images.query.filter_by(Item_id=item.Item_id).all()
+            image_list = []
+
+            for image in images:
+                image_data = image.Image
+                image_base64 = (
+                    base64.b64encode(image_data).decode("utf-8")
+                    if image_data
+                    else None
+                )
+                image_list.append(
+                    {
+                        "Image": image_base64,
+                        "Image_description": (
+                            image.Image_description
+                            if image.Image_description
+                            else "No description available"
+                        ),
+                    }
+                )
+
+            listings_data.append({
+                "Item_id": item.Item_id,
+                "Listing_name": item.Listing_name,
+                "Min_price": item.Min_price,
+                "Available_until": item.Available_until,
+                "Description": item.Description,
+                "Image": image_base64  # Base64-encoded image
+            })
+
+        return jsonify(listings_data), 200
+
+    except Exception as e:
+        print("Error:", e)
+        return jsonify({"error": "Failed to retrieve seller's listings"}), 400

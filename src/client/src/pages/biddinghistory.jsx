@@ -67,24 +67,26 @@ const BiddingHistory = () => {
                     <div className="space-y-4">
                         {history.map((item, index) => (
                             <ItemListing
-                                key={index}
+                                key={item.Item_id}
                                 itemId={item.Item_id}
+                                images={item.Images}
                                 title={item.Listing_name}
                                 seller={item.Seller_name}
                                 description={item.Description}
-                                images={item.Images}
-                                labels={[`Date Finished: ${item.Available_until}`]}
-                                buttons={
-                                    item.Successful_bid == 1 ? [
-                                        { text: "Highest Bidder", style: "bg-green-500 text-white" },
-                                        { text: `Your Bid: £${item.Bid_price}`, style: "bg-gray-200 text-black" },
-                                        { text: "View reciept", style: "bg-gray-200 text-black" }
-                                    ] : [
-                                        { text: "Out Bid", style: "bg-red-500 text-white" },
-                                        { text: `Your Bid: £${item.Bid_price}`, style: "bg-gray-200 text-black" },
-                                        { text: `Highest Bid: £${item.Current_bid}`, style: "bg-gray-500 text-white" },
-                                    ]
-                                }
+                                availableUntil={item.Available_until}
+                                labels={[
+                                    `Current Bid: £ ${Number(item.Current_bid) > Number(item.Min_price)
+                                        ? Number(item.Current_bid).toFixed(2)
+                                        : Number(item.Min_price).toFixed(2)
+                                    }`,
+                                ]}
+                                buttons={[
+                                    {
+                                        text: "Remove from Watchlist",
+                                        onClick: () => remove_from_watchlist(item.Item_id),
+                                        style: "bg-red-500 text-white hover:bg-red-600",
+                                    },
+                                ]}
                             />
                         ))}
                     </div>

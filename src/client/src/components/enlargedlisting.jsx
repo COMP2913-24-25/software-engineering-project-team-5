@@ -1,16 +1,20 @@
 import React, { useState, useEffect } from "react";
-import { useCSRF } from "../App";
+import { useCSRF, useUser } from "../App";
 import { useParams, useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import Listing_item from "../components/listing_items";
+
 
 const EnlargedListingPage = () => {
     const { csrfToken } = useCSRF();
     const params = useParams();
     const item_id = params.Item_id;
-
+    const { user } = useUser();
+    const [sellerListings, setSellerListings] = useState([]);
     const [item, setItem] = useState(null);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [imageCount, setImageCount] = useState(0);
+    const [timeRemaining, setTimeRemaining] = useState("");
 
     useEffect(() => {
         const fetchListingInformation = async () => {
@@ -25,16 +29,83 @@ const EnlargedListingPage = () => {
                     credentials: "include",
                 });
                 const data = await response.json();
+                console.log("API Response:", data); // Debugging line
+
                 if (response.ok) {
                     setItem(data);
                     setImageCount(data.Images.length);
+                    if (data.Available_until) {
+                        updateTimeRemaining(data.Available_until);
+                    } else {
+                        console.warn("Available_until is missing from the response!");
+                    }
                 }
             } catch (error) {
                 console.error("Error fetching listing information:", error);
             }
         };
+
         fetchListingInformation();
     }, [item_id, csrfToken]);
+
+    useEffect(() => {
+        if (item?.Available_until) {
+            const interval = setInterval(() => {
+                updateTimeRemaining(item.Available_until);
+            }, 1000);
+
+            return () => clearInterval(interval);
+        }
+    }, [item]);
+
+    useEffect(() => {
+        const fetchSellerListings = async () => {
+            if (!item?.Seller_id) return; // Ensure item is loaded before fetching
+
+            try {
+                const response = await fetch("http://localhost:5000/api/get-seller-listings", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": csrfToken,
+                    },
+                    body: JSON.stringify({ Seller_id: item.Seller_id }),
+                    credentials: "include",
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    setSellerListings(data);
+                } else {
+                    console.error("Error fetching seller listings:", data);
+                }
+            } catch (error) {
+                console.error("Request failed:", error);
+            }
+        };
+
+        if (item) {
+            fetchSellerListings();
+        }
+    }, [item, csrfToken]); // Runs when `item` is updated
+
+
+    const updateTimeRemaining = (availableUntil) => {
+        const endTime = new Date(availableUntil).getTime();
+        const now = new Date().getTime();
+        const diffMs = endTime - now;
+
+        if (diffMs <= 0) {
+            setTimeRemaining("Expired");
+            return;
+        }
+
+        const hours = Math.floor(diffMs / 3600000);
+        const minutes = Math.floor((diffMs / 60000) % 60);
+        const seconds = Math.floor((diffMs / 1000) % 60);
+
+        setTimeRemaining(`${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`);
+    };
 
     const nextImage = () => {
         if (item && item.Images) {
@@ -54,7 +125,7 @@ const EnlargedListingPage = () => {
 
     return (
         <div className="bg-gray-100 min-h-screen py-12 px-4">
-            <div className="container mx-auto bg-white shadow-lg rounded-lg p-6">
+            <div className="container mx-auto bg-white shadow-lg rounded-lg p-6 mt-8">
                 <h1 className="text-3xl font-bold text-gray-800 mb-2">{item.Listing_name}</h1>
                 <p className="text-gray-600 mb-4">Seller: {item.Seller_username}</p>
 
@@ -99,18 +170,50 @@ const EnlargedListingPage = () => {
                         <div className="mt-6">
                             <h3 className="text-lg font-medium mb-2">Listing Details</h3>
                             <ul className="space-y-2">
+                                <li className="text-gray-600">Time Remaining: <span className="font-medium">{timeRemaining}</span></li>
                                 <li className="text-gray-600">Listed: <span className="font-medium">{item.Upload_datetime || "N/A"}</span></li>
                                 <li className="text-gray-600">Proposed Price: <span className="font-medium">${item.Min_price || "0.00"}</span></li>
                             </ul>
+                            <div className="mt-8 text-left">
+                                {user ? (
+
+                                    <button className="bg-blue-600 text-white py-2 px-6 rounded-lg text-lg hover:bg-blue-700 transition">
+                                        Place a Bid
+                                    </button>
+                                ) : (
+                                    <button className="bg-blue-600 text-white py-2 px-6 rounded-lg text-lg hover:bg-blue-700 transition">
+                                        Login or Signup to place a Bid
+                                    </button>
+                                )}
+
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div className="mt-8 text-center">
-                    <button className="bg-blue-600 text-white py-2 px-6 rounded-lg text-lg hover:bg-blue-700 transition">
-                        Place a Bid
-                    </button>
-                </div>
+
             </div>
+
+            {user && user.level_of_access === 1 && sellerListings.length > 0 && (
+
+                <div className="container mx-auto bg-white shadow-lg rounded-lg p-6 mt-8">
+                    <h1 className="text-3xl font-bold text-gray-800 mb-4">
+                        Other Products by {item.Seller_username}
+                    </h1>
+
+                    {/* Scrollable horizontal container */}
+                    <div id="scrollContainer" className="flex overflow-x-auto space-x-4 p-2 scroll-smooth">
+                        {sellerListings
+                            .filter((listing) => listing.Item_id !== item.Item_id)
+                            .map((listing) => (
+                                <div key={listing.Item_id} className="flex-shrink-0">
+                                    <Listing_item item={listing} />
+                                </div>
+                            ))}
+                    </div>
+                </div>
+            )}
+
+
         </div>
     );
 };
