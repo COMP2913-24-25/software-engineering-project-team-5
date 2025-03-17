@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+
 import { useNavigate } from "react-router-dom";
 import { useUser, useCSRF } from "../../App";
 import Manager_view_expert from "../../components/manager_view_expert";
@@ -75,12 +76,19 @@ const SearchExperts = () => {
     });
 
 
+    useEffect(() => {
+        if (!(user?.level_of_access === 3)) {
+            navigate("/invalid-access-rights");
+        }
+    }, [user]);
+
     return (
         <div className="p-">
             <h2 className="text-2xl font-bold mb-4">Search Experts</h2>
 
             <div className="mb-4">
                 <input type="text" className="p-2 border rounded" placeholder="Search by name or expertise" value={search} onChange={(e) => set_search(e.target.value)} />
+
             </div>
             <label className="flex items-center gap-2">
                     <input type="checkbox" checked={show_available_only} onChange={(e) => set_show_available_only(e.target.checked)} className="form-checkbox h-5 w-5 text-blue-600"/>

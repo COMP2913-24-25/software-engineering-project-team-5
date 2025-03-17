@@ -13,15 +13,15 @@ const EAuthReq = () => {
     // Check if expert user is logged in and redirect if not
     useEffect(() => {
         if (user === null) {
-            navigate("/signup");
+            navigate("/invalid-access-rights");
         }
 
         if (user) {
             if (user.is_expert === false) {
-                navigate("/signup");
+                navigate("/invalid-access-rights");
             }
         }
-    }, [user, navigate]);
+    }, [user]);
 
     // Variables to store pending and past authentication requests
     const [pending_auth_requests, set_pending_auth_requests] = useState([]);
@@ -73,25 +73,36 @@ const EAuthReq = () => {
 
     // Gets authentication requests on first time load of the page
     useEffect(() => {
-        if (user) {
+        if (user?.level_of_access === 2) {
             get_auth_requests();
+        } else {
+            navigate("/invalid-access-rights");
         }
     }, [user]);
 
     return (
-        <div className="bg-gray-100 min-h-screen py-8 px-[5%] md:px-[10%]">
-            <h1 className="text-2xl font-semibold text-gray-800 mb-6">
+        <div className="relative min-h-screen bg-gray-100 px-[5%] md:px-[10%] py-8">
+            <div className="text-center mb-8">
+                <h1 className="text-2xl font-semibold text-center text-gray-800 mb-4">
+                    Authentication Requests Dashboard
+                </h1>
+                <p className="text-xl text-gray-500 mt-2">
+                    View and manage your assigned authentication requests here.
+                </p>
+            </div>
+
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">
                 Pending Authentication Requests
-            </h1>
+            </h2>
             <AuthRequestsTable
                 auth_requests={pending_auth_requests}
                 handle_request_update={handle_request_update}
                 pending={true}
             />
 
-            <h1 className="text-2xl font-semibold text-gray-800 mt-8 mb-6">
+            <h2 className="text-2xl font-semibold text-gray-800 mt-10 mb-4">
                 Past Authentication Requests
-            </h1>
+            </h2>
             <AuthRequestsTable
                 auth_requests={past_auth_requests}
                 handle_request_update={handle_request_update}

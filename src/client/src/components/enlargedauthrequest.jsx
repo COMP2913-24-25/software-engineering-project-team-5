@@ -155,7 +155,7 @@ const EnlargedAuthRequest = () => {
     // Only corresponding user can view their own listing
     if (user?.level_of_access == 1) {
         if (item.Seller_id != user?.user_id) {
-            navigate("/home-page");
+            navigate("/invalid-access-rights");
             return null;
         }
     }
@@ -163,25 +163,25 @@ const EnlargedAuthRequest = () => {
     // Only corresponding expert can view their assigned auth request
     if (user?.level_of_access == 2) {
         if (item.Expert_id != user?.user_id) {
-            navigate("/home-page");
+            navigate("/invalid-access-rights");
             return null;
         }
     }
 
     // Manager can't view auth request
     if (user?.level_of_access == 3) {
-        navigate("/home-page");
+        navigate("/invalid-access-rights");
         return null;
     }
 
     // Determine chat participants based on user role
     let senderId = user?.user_id;
-    let recipientId; // Declare variable first
+    let recipientId;
 
     if (item.Seller_id == senderId) {
-        recipientId = item.Expert_id; // Assign value, don't redeclare
+        recipientId = item.Expert_id;
     } else {
-        recipientId = item.Seller_id; // Assign value, don't redeclare
+        recipientId = item.Seller_id;
     }
 
     return (
