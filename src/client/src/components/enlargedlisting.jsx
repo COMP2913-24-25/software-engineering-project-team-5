@@ -10,9 +10,7 @@ const EnlargedListingPage = () => {
     const navigate = useNavigate();
     const { csrfToken } = useCSRF();
     const params = useParams();
-    const navigate = useNavigate();
     const item_id = params.Item_id;
-    const { user } = useUser();
     const [sellerListings, setSellerListings] = useState([]);
 
     const [item, setItem] = useState(null);
