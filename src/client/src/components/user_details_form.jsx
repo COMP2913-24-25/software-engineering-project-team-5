@@ -286,7 +286,7 @@ const UserDetailsForm = () => {
                                                 {is_expert && (
                             <div>
                                 <label className="block font-medium mb-1">
-                                    Expertise Types
+                                    Expertise
                                 </label>
                                 <ul className="list-disc list-inside">
                                     {expertise_types.length > 0 ? (
