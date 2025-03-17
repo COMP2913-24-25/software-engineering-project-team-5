@@ -1901,7 +1901,7 @@ def get_seller_listings():
                 "Min_price": item.Min_price,
                 "Approved": item.Authentication_request_approved,
                 "Second_opinion": item.Second_opinion,
-                "Images": [
+                "Image": [
                     base64.b64encode(image.Image).decode("utf-8") for image in images
                 ],
                 "Available_until": item.Available_until
