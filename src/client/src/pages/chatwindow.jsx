@@ -3,7 +3,7 @@ import { useUser, useCSRF } from "../App";
 import { Image } from "lucide-react";
 import { get_socket, release_socket } from "../hooks/chat_socket";
 
-const ChatWindow = ({ senderId, recipientId, itemId }) => {
+const ChatWindow = ({ senderId, recipientId, itemId, is_chat_closed }) => {
     const { user } = useUser();
     const { csrfToken } = useCSRF();
 
@@ -137,6 +137,7 @@ const ChatWindow = ({ senderId, recipientId, itemId }) => {
         if (event.target.files && event.target.files[0]) {
             const file = event.target.files[0];
             set_image(file);
+            set_new_message("");
 
             // Create image preview
             const reader = new FileReader();
@@ -174,6 +175,20 @@ const ChatWindow = ({ senderId, recipientId, itemId }) => {
         );
     }
 
+    // Determine if message input should be disabled
+    const is_message_input_disabled =
+        (user?.level_of_access === 1 && all_messages.length === 0) ||
+        image !== null ||
+        is_chat_closed;
+
+    // Determine if image upload should be disabled
+    const is_image_upload_disabled =
+        (user?.level_of_access === 1 && all_messages.length === 0) ||
+        (new_message && new_message.trim() !== "") ||
+        is_chat_closed;
+
+    console.log(is_chat_closed);
+
     return (
         <div className="flex flex-col max-w mx-auto border border-gray-300 rounded-lg bg-white resize-y overflow-hidden min-h-[40vh] max-h-[100vh]">
             <div className="px-4 py-3 bg-blue-600 text-white rounded-t-lg">
@@ -181,7 +196,11 @@ const ChatWindow = ({ senderId, recipientId, itemId }) => {
             </div>
 
             <div className="flex-1 p-4 overflow-y-auto bg-gray-50">
-                {user?.level_of_access === 1 && all_messages.length === 0 ? (
+                {is_chat_closed ? (
+                    <div className="flex justify-center items-center h-full">
+                        <p className="text-gray-500">This chat is now closed.</p>
+                    </div>
+                ) : user?.level_of_access === 1 && all_messages.length === 0 ? (
                     <div className="flex justify-center items-center h-full">
                         <p className="text-gray-500">
                             Waiting for expert to start the conversation...
@@ -237,69 +256,71 @@ const ChatWindow = ({ senderId, recipientId, itemId }) => {
                 <div ref={message_end_ref} />
             </div>
 
-            <form
-                onSubmit={handle_send_message}
-                className="p-3 border-t border-gray-300 bg-white rounded-b-lg"
-            >
-                {image_preview && (
-                    <div className="mb-2 relative">
-                        <img
-                            src={image_preview}
-                            alt="Preview"
-                            className="h-24 object-contain border border-gray-300 rounded"
-                        />
-                        <button
-                            type="button"
-                            onClick={() => {
-                                set_image(null);
-                                set_image_preview(null);
-                            }}
-                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold"
-                        >
-                            ×
-                        </button>
-                    </div>
-                )}
-
-                <div className="flex flex-col sm:flex-row items-center gap-2">
-                    <input
-                        type="text"
-                        value={new_message}
-                        onChange={(e) => set_new_message(e.target.value)}
-                        placeholder="Type a message..."
-                        className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 w-full sm:w-auto"
-                        disabled={user?.level_of_access === 1 && all_messages.length === 0}
-                    />
-
-                    <div className="flex w-full sm:w-auto sm:flex-row flex-col gap-2">
-                        <label
-                            className={`cursor-pointer px-3 py-2 bg-gray-200 rounded-md flex justify-center items-center ${
-                                user?.level_of_access === 1 && all_messages.length === 0
-                                    ? "opacity-50 cursor-not-allowed"
-                                    : "hover:bg-gray-300"
-                            }`}
-                        >
-                            <Image className="h-5 w-5 text-gray-700" />
-
-                            <input
-                                type="file"
-                                accept="image/*"
-                                onChange={handle_image_change}
-                                className="hidden"
-                                disabled={user?.level_of_access === 1 && all_messages.length === 0}
+            {!is_chat_closed && (
+                <form
+                    onSubmit={handle_send_message}
+                    className="p-3 border-t border-gray-300 bg-white rounded-b-lg"
+                >
+                    {image_preview && (
+                        <div className="mb-2 relative">
+                            <img
+                                src={image_preview}
+                                alt="Preview"
+                                className="h-24 object-contain border border-gray-300 rounded"
                             />
-                        </label>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    set_image(null);
+                                    set_image_preview(null);
+                                }}
+                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold"
+                            >
+                                ×
+                            </button>
+                        </div>
+                    )}
 
-                        <button
-                            type="submit"
-                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed flex justify-center"
-                            disabled={user?.level_of_access === 1 && all_messages.length === 0}
-                        >
-                            Send
-                        </button>
+                    <div className="flex flex-col sm:flex-row items-center gap-2">
+                        <input
+                            type="text"
+                            value={new_message}
+                            onChange={(e) => set_new_message(e.target.value)}
+                            placeholder="Type a message..."
+                            className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 w-full sm:w-auto"
+                            disabled={is_message_input_disabled}
+                        />
+
+                        <div className="flex w-full sm:w-auto sm:flex-row flex-col gap-2">
+                            <label
+                                className={`cursor-pointer px-3 py-2 bg-gray-200 rounded-md flex justify-center items-center ${
+                                    is_image_upload_disabled
+                                        ? "opacity-50 cursor-not-allowed"
+                                        : "hover:bg-gray-300"
+                                }`}
+                            >
+                                <Image className="h-5 w-5 text-gray-700" />
+
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handle_image_change}
+                                    className="hidden"
+                                    disabled={is_image_upload_disabled}
+                                />
+                            </label>
+
+                            <button
+                                type="submit"
+                                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed flex justify-center"
+                                disabled={user?.level_of_access === 1 && all_messages.length === 0}
+                            >
+                                Send
+                            </button>
+                        </div>
                     </div>
-                </div>
-            </form>
+                </form>
+            )}
         </div>
     );
 };
