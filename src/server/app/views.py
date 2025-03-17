@@ -228,22 +228,23 @@ def get_all_users():
     print(user_details_list)
     
     return jsonify(user_details_list), 200 
- 
 @app.route("/api/get-user-details", methods=["POST"])
 def get_user_details():
     """
-    Retrieves the user's details from the database, if they
-    are currently logged in.
+    Retrieves the user's details from the database, including expertise types
+    if they are an expert (Level_of_access == 2).
 
     Returns:
-        json_object: dictionary containing the user's details
-        status_code: HTTP status code (200 for success,
-                                       401 for unauthorized access)
+        json_object: dictionary containing the user's details (and expertise types if applicable)
+        status_code: HTTP status code (200 for success, 401 for unauthorized access)
     """
 
     if current_user.is_authenticated:
         user_id = current_user.User_id
         user_details = User.query.filter_by(User_id=user_id).first()
+
+        if not user_details:
+            return jsonify({"message": "User not found"}), 404
 
         user_details_dict = {
             "First_name": user_details.First_name,
@@ -252,9 +253,19 @@ def get_user_details():
             "DOB": user_details.DOB.strftime("%Y-%m-%d"),
             "Email": user_details.Email,
             "Username": user_details.Username,
-            "Level_of_access" : user_details.Level_of_access,
+            "Level_of_access": user_details.Level_of_access,
             "is_expert": user_details.Is_expert,
         }
+
+        # If the user is an expert, retrieve their expertise types
+        if user_details.Level_of_access == 2:
+            expertise_types = (
+                db.session.query(Types.Type_name)
+                .join(Middle_expertise, Types.Type_id == Middle_expertise.Type_id)
+                .filter(Middle_expertise.Expert_id == user_id)
+                .all()
+            )
+            user_details_dict["expertise_types"] = [type_name[0] for type_name in expertise_types]
 
         return jsonify(user_details_dict), 200
 
