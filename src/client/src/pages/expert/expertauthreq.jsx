@@ -73,7 +73,7 @@ const EAuthReq = () => {
 
     // Gets authentication requests on first time load of the page
     useEffect(() => {
-        if (user) {
+        if (user?.level_of_access === 2) {
             get_auth_requests();
         } else {
             navigate("/invalid-access-rights");

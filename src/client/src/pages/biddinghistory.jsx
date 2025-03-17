@@ -47,7 +47,7 @@ const BiddingHistory = () => {
 
     // Gets bidding history when the page loads for the first time
     useEffect(() => {
-        if (user) {
+        if (user?.level_of_access === 1) {
             getHistory();
         } else {
             navigate("/invalid-access-rights");
