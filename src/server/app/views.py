@@ -1025,6 +1025,7 @@ def get_seller_listings():
         print("Error: ", e)
         return jsonify({"Error": "Failed to retrieve items"}), 401
 
+
 @app.route("/api/get-bids", methods=["GET"])
 def get_bids():
     """
@@ -1908,66 +1909,6 @@ def get_availabilites():
         print("Error: ", e)
         return jsonify({"Error: Failed to retrieve availabilities"}), 400
 
-
-
-@app.route("/api/get-seller-listings", methods=["POST"])
-def get_seller_listings():
-    """
-    Gets all listings from a specific seller.
-
-    Returns:
-        json_object: Containing item details
-        status_code: HTTP status code (200 for success, 400/404 for error)
-    """
-    try:
-        data = request.json
-
-        # Validate input
-        if not data or "Seller_id" not in data:
-            return jsonify({"Error": "Missing Seller_id in request"}), 400
-
-        # Check if seller exists
-        seller = User.query.filter_by(User_id=data["Seller_id"]).first()
-        if not seller:
-            return jsonify({"Error": "Seller not found"}), 404
-
-        # Get all listings from this seller
-        items = Items.query.filter(
-            Items.Seller_id == seller.User_id,
-            Items.Available_until > datetime.datetime.now(datetime.UTC)
-        ).all()
-        if not items:
-            return jsonify({"Message": "No listings found for this seller"}), 200
-
-        listings = []
-
-        for item in items:
-            image = Images.query.filter(Images.Item_id == item.Item_id).first()
-            
-            item_details = {
-                "Item_id": item.Item_id,
-                "Listing_name": item.Listing_name,
-                "Description": item.Description,
-                "Seller_id": item.Seller_id,
-                "Seller_name": f"{seller.First_name or ''} {seller.Surname or ''}".strip(),
-                "Seller_username": seller.Username,
-                "Expert_id": item.Expert_id,
-                "Upload_datetime": item.Upload_datetime,
-                "Min_price": item.Min_price,
-                "Approved": item.Authentication_request_approved,
-                "Second_opinion": item.Second_opinion,
-                "Image": base64.b64encode(image.Image).decode("utf-8"),
-                "Available_until": item.Available_until
-            }
-            listings.append(item_details)
-
-        return jsonify({"Listings": listings}), 200
-
-    except Exception as e:
-        print("Error:", e)
-        return jsonify({"Error": "Failed to retrieve seller listings"}), 400
-
-    
 @app.route('/api/get-experts', methods=["POST"])
 def get_experts():
     """

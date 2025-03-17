@@ -64,7 +64,7 @@ const EnlargedListingPage = () => {
             if (!item?.Seller_id) return; // Ensure item is loaded before fetching
 
             try {
-                const response = await fetch("http://localhost:5000/api/get-seller-listings", {
+                const response = await fetch("http://localhost:5000/api/get-seller-items", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -78,12 +78,12 @@ const EnlargedListingPage = () => {
                 if (response.ok) {
                     console.log("Seller Listings API Response:", data);
 
-                    if (response.ok && Array.isArray(data.Listings)) {
-                        setSellerListings(data.Listings)
+                    if (response.ok) {
+                        setSellerListings(data)
                         console.log(sellerListings)
                     } else {
                         console.warn("Seller listings is not an array!", data);
-                        setSellerListings([]);
+                        setSellerListings();
                     }
 
                 } else {
@@ -207,7 +207,7 @@ const EnlargedListingPage = () => {
 
             </div>
 
-            {user && user.level_of_access === 1 && sellerListings.length > 0 && (
+            {user && user.level_of_access === 1 && (
                 <div className="container mx-auto bg-white shadow-lg rounded-lg p-6 mt-8">
                     <h1 className="text-3xl font-bold text-gray-800 mb-4">
                         Other Products by {item.Seller_username}
@@ -216,8 +216,8 @@ const EnlargedListingPage = () => {
                     <div id="scrollContainer" className="flex overflow-x-auto space-x-4 p-2 scroll-smooth">
                         {sellerListings
                             .filter((listing) => listing.Item_id !== item.Item_id) // Exclude current item
-                            .map((listing, index) => (
-                                <div key={index} className="min-w-[40%] sm:min-w-0 sm:w-auto">
+                            .map((listing) => (
+                                <div key={item.Item_id} className="min-w-[40%] sm:min-w-0 sm:w-auto">
                                     <Listing_item item={listing} />
                                 </div>
                             ))
