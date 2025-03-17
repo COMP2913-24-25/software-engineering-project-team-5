@@ -54,7 +54,13 @@ const SellerDashboard = () => {
                     );
                     setNormalItems(
                         noAuthReqItems.filter(
-                            (item) => item.Authentication_request_approved === null
+                            (item) =>
+                                (item.Authentication_request === false &&
+                                    item.Verified === true &&
+                                    item.Authentication_request_approved === true) ||
+                                (item.Authentication_request === false &&
+                                    item.Verified === false &&
+                                    item.Authentication_request_approved === null)
                         )
                     );
                 } else {
