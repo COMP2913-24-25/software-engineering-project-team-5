@@ -17,6 +17,7 @@ from flask_admin.contrib.sqla import ModelView
 from flask_login import login_user, login_required, logout_user, current_user
 from flask_wtf.csrf import generate_csrf
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy import and_, exists
 
 from .models import (
     User,
@@ -30,6 +31,7 @@ from .models import (
     Bidding_history,
     Profit_structure,
     Availabilities,
+    Middle_expertise,
 )
 from .forms import login_form, sign_up_form, Create_listing_form, update_user_form
 
@@ -50,6 +52,9 @@ admin.add_view(ModelView(Types, db.session))
 admin.add_view(ModelView(Watchlist, db.session))
 admin.add_view(ModelView(Bidding_history, db.session))
 admin.add_view(ModelView(Profit_structure, db.session))
+admin.add_view(ModelView(Middle_expertise, db.session))
+admin.add_view(ModelView(Availabilities, db.session))
+
 
 
 @app.route("/api/login", methods=["POST"])
@@ -932,7 +937,7 @@ def get_listings():
                 Items.Available_until > datetime.datetime.now(),
                 db.or_(
                     db.and_(
-                        Items.Authentication_request == False,
+                        Items.Authentication_request == True,
                         Items.Verified == True,
                         Items.Authentication_request_approved == True,
                     ),
@@ -940,7 +945,7 @@ def get_listings():
                         Items.Authentication_request == False,
                         Items.Verified == False,
                         Items.Authentication_request_approved == None,
-                    ),
+                    )
                 ),
             )
             .all()
@@ -970,6 +975,55 @@ def get_listings():
         print("Error: ", e)
         return jsonify({"Error": "Failed to retrieve items"}), 401
 
+
+@app.route("/api/get-seller-items", methods=["POST"])
+def get_seller_listings():
+    """
+    Retrieves the item details that were sold by user from the database that are still available.
+
+    Returns:
+        json_object:  containing the items details
+        status_code: HTTP status code (200 for success,
+                                       401 for unauthorized access)
+    """
+
+    try:
+        # Checks if the listing is available and doesn't still need authentication.
+        available_items = (
+            db.session.query(Items, User.Username)
+            .join(User, Items.Seller_id == User.User_id)
+            .filter(
+                Items.Seller_id == current_user.User_id,
+                Items.Available_until > datetime.datetime.now(),
+            )
+            .all()
+        )
+
+        items_list = []
+        for item, username in available_items:
+
+            image = Images.query.filter(Images.Item_id == item.Item_id).first()
+
+            item_details_dict = {
+                "Item_id": item.Item_id,
+                "Listing_name": item.Listing_name,
+                "Seller_id": item.Seller_id,
+                "Seller_username": username,
+                "Available_until": item.Available_until,
+                "Verified": item.Verified,
+                "Min_price": item.Min_price,
+                "Current_bid": item.Current_bid,
+                "Image": base64.b64encode(image.Image).decode("utf-8"),
+                "Expert_id": item.Expert_id,
+                "Authentication_request_approved": item.Authentication_request_approved,
+                "Authentication_request": item.Authentication_request
+            }
+            items_list.append(item_details_dict)
+        return jsonify(items_list), 200
+
+    except Exception as e:
+        print("Error: ", e)
+        return jsonify({"Error": "Failed to retrieve items"}), 401
 
 @app.route("/api/get-bids", methods=["GET"])
 def get_bids():
@@ -1855,6 +1909,7 @@ def get_availabilites():
         return jsonify({"Error: Failed to retrieve availabilities"}), 400
 
 
+
 @app.route("/api/get-seller-listings", methods=["POST"])
 def get_seller_listings():
     """
@@ -1911,3 +1966,123 @@ def get_seller_listings():
     except Exception as e:
         print("Error:", e)
         return jsonify({"Error": "Failed to retrieve seller listings"}), 400
+
+    
+@app.route('/api/get-experts', methods=["POST"])
+def get_experts():
+    """
+    Gets all the experts and whether they are available this week or not.
+
+    Returns:
+        json_object: A list of all the experts
+        status_code: HTTP status code (200 for success, 400 for bad request)
+    """
+
+    try:
+        data = request.get_json()
+        week_start_date = data.get('week_start_date')
+        current_day = data.get("current_day")
+
+        experts = User.query.filter_by(Level_of_access = 2).all()
+
+        experts_data = []
+        for expert in experts:
+
+            is_available = db.session.query(
+                exists().where(
+                    and_(
+                        Availabilities.Expert_id == expert.User_id,
+                        Availabilities.Week_start_date == week_start_date,
+                        Availabilities.Day_of_week >= current_day
+                    )
+                )
+            ).scalar()
+
+            all_expertise = []
+
+            expertise = Middle_expertise.query.filter_by(Expert_id=expert.User_id).all()
+            for this_expertise in expertise:
+                this_expertise_name = Types.query.filter_by(Type_id=this_expertise.Type_id).first()
+                all_expertise.append(
+                    this_expertise_name.Type_name
+                )
+
+            experts_data.append({
+                'User_id': expert.User_id,
+                'First_name': expert.First_name,
+                'Middle_name': expert.Middle_name,
+                'Surname': expert.Surname,
+                'Email': expert.Email,
+                'DOB': expert.DOB.strftime('%Y-%m-%d'),
+                'is_available': is_available,
+                'Expertise': all_expertise
+            })
+
+        return jsonify(experts_data), 200
+    
+    except Exception as e:
+        print("Error: ", e)
+        return jsonify({"Error": "Failed to retrieve experts"}), 400
+    
+@app.route('/api/add-expertise', methods=["POST"])
+def add_expertise():
+    """    
+    Adds all the tags to the expert.
+
+    Returns:
+        status_code: HTTP status code (200 for success, 400 for bad request)
+    
+    """
+    try:
+        data = request.get_json()
+        expertise_ids = data.get('expertise_ids', [])
+        expert_id = data.get('expert_id')
+
+        for type_id in expertise_ids:
+            print(type_id)
+            existing_expertise = Middle_expertise.query.filter_by(
+                Expert_id = expert_id,
+                Type_id = type_id
+            ).first()
+        
+            if not existing_expertise:
+                new_expertise = Middle_expertise(Expert_id = expert_id, Type_id = type_id)
+                db.session.add(new_expertise)
+
+        db.session.commit()
+        return jsonify({"Message": "Expertise added successfully"}), 200
+
+    except Exception as e:
+        print("Error: ", e)
+        return jsonify({"Error": "Failed to add expertise"}), 400
+    
+@app.route('/api/remove-expertise', methods=["POST"])
+def remove_expertise():
+    """    
+    Removes all the tags to the expert.
+
+    Returns:
+        status_code: HTTP status code (200 for success, 400 for bad request)
+    
+    """
+    try:
+        data = request.get_json()
+        expertise_ids = data.get('expertise_ids', [])
+        expert_id = data.get('expert_id')
+
+        for type_id in expertise_ids:
+            existing_expertise = Middle_expertise.query.filter_by(
+                Expert_id = expert_id,
+                Type_id = type_id
+            ).first()
+        
+            if existing_expertise:
+                db.session.delete(existing_expertise)
+
+        db.session.commit()
+        return jsonify({"Message": "Expertise removed successfully"}), 200
+
+    except Exception as e:
+        print("Error: ", e)
+        return jsonify({"Error": "Failed to remove expertise"}), 400
+

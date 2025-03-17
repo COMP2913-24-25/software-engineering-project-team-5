@@ -22,6 +22,9 @@ const EnlargedAuthRequest = () => {
     const [errors, setErrors] = useState({});
     const [success_message, set_success_message] = useState("");
 
+    // Chat window state
+    const [is_chat_closed, set_is_chat_closed] = useState(false);
+
     const get_listing_information = async () => {
         try {
             const response = await fetch("http://localhost:5000/api/get-single-listing", {
@@ -50,7 +53,12 @@ const EnlargedAuthRequest = () => {
 
     useEffect(() => {
         get_listing_information();
-    }, []);
+        if (item) {
+            if (item.Approved === true || item.Approved === false) {
+                set_is_chat_closed(true);
+            }
+        }
+    }, [item]);
 
     // Updating auth request - approve or deny
     const handle_update = async (action) => {
@@ -75,6 +83,9 @@ const EnlargedAuthRequest = () => {
             // Reload item data
             set_item(null);
             get_listing_information();
+
+            // Close the chat and set chat as closed
+            set_is_chat_closed(true);
         } else {
             setErrors({
                 general: ["Unexpected Error. Please Try Again."],
@@ -155,7 +166,7 @@ const EnlargedAuthRequest = () => {
     // Only corresponding user can view their own listing
     if (user?.level_of_access == 1) {
         if (item.Seller_id != user?.user_id) {
-            navigate("/home-page");
+            navigate("/invalid-access-rights");
             return null;
         }
     }
@@ -163,25 +174,25 @@ const EnlargedAuthRequest = () => {
     // Only corresponding expert can view their assigned auth request
     if (user?.level_of_access == 2) {
         if (item.Expert_id != user?.user_id) {
-            navigate("/home-page");
+            navigate("/invalid-access-rights");
             return null;
         }
     }
 
     // Manager can't view auth request
     if (user?.level_of_access == 3) {
-        navigate("/home-page");
+        navigate("/invalid-access-rights");
         return null;
     }
 
     // Determine chat participants based on user role
     let senderId = user?.user_id;
-    let recipientId; // Declare variable first
+    let recipientId;
 
     if (item.Seller_id == senderId) {
-        recipientId = item.Expert_id; // Assign value, don't redeclare
+        recipientId = item.Expert_id;
     } else {
-        recipientId = item.Seller_id; // Assign value, don't redeclare
+        recipientId = item.Seller_id;
     }
 
     return (
@@ -344,6 +355,7 @@ const EnlargedAuthRequest = () => {
                             senderId={senderId}
                             recipientId={recipientId}
                             itemId={item.Item_id}
+                            is_chat_closed={is_chat_closed}
                         />
                     )}
                 </div>

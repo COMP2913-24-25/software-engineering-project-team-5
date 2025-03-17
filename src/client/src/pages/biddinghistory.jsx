@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useUser, useCSRF } from "../App";
 import ItemListing from "../components/itemlisting";
+import { useNavigate } from "react-router-dom";
 
 const BiddingHistory = () => {
     /*  
@@ -10,27 +11,24 @@ const BiddingHistory = () => {
     */
 
     const { user } = useUser();
+    const navigate = useNavigate();
 
     // Variable to store the bids stored and bidding history
     const [history, setHistory] = useState([]);
 
     const { csrfToken } = useCSRF();
 
-
     // Function to fetch bidding history from the server
     const getHistory = async () => {
         try {
-            const response = await fetch(
-                "http://localhost:5000/api/get-history",
-                {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRF-TOKEN": csrfToken,
-                    },
-                    credentials: "include",
-                }
-            );
+            const response = await fetch("http://localhost:5000/api/get-history", {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
+                },
+                credentials: "include",
+            });
 
             // Waits for the server response
             const data = await response.json();
@@ -38,8 +36,7 @@ const BiddingHistory = () => {
             if (response.ok) {
                 if (Array.isArray(data.history)) {
                     setHistory(data.history);
-                }
-                else {
+                } else {
                     console.log("No items in history");
                 }
             }
@@ -50,15 +47,23 @@ const BiddingHistory = () => {
 
     // Gets bidding history when the page loads for the first time
     useEffect(() => {
-        if (user) {
+        if (user?.level_of_access === 1) {
             getHistory();
+        } else {
+            navigate("/invalid-access-rights");
         }
     }, [user]);
 
-
     return (
-        <div className="container p-6">
-            <h1 className="text-3xl font-bold mb-6">Bidding history</h1>
+        <div className="relative min-h-screen bg-gray-100 px-[5%] md:px-[10%] py-8">
+            <div className="text-center mb-8">
+                <h1 className="text-2xl font-semibold text-center text-gray-800 mb-4">
+                    Bidding History
+                </h1>
+                <p className="text-xl text-gray-500 mt-2">
+                    View items that you have previously bidded on.
+                </p>
+            </div>
 
             {user ? (
                 history.length === 0 ? (
@@ -110,7 +115,8 @@ const BiddingHistory = () => {
                 )
             ) : (
                 <p className="text-gray-600">Login to see Bidding History</p>
-            )}
+            )}      
+      
         </div>
     );
 };

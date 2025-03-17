@@ -51,14 +51,23 @@ const CurrentBids = () => {
 
     // Gets bidding history when the page loads for the first time
     useEffect(() => {
-        if (user) {
+        if (user?.level_of_access === 1) {
             getBids();
+        } else {
+            navigate("/invalid-access-rights");
         }
     }, [user]);
 
     return (
         <div className="relative min-h-screen bg-gray-100 px-[5%] md:px-[10%] py-8">
-            <h1 className="text-3xl font-bold mb-6">Current Bids</h1>
+            <div className="text-center mb-8">
+                <h1 className="text-2xl font-semibold text-center text-gray-800 mb-4">
+                    Current Bids
+                </h1>
+                <p className="text-xl text-gray-500 mt-2">
+                    View items you are currently bidding on.
+                </p>
+            </div>
             {user ? (
                 bids.length > 0 ? (
                     <div className="space-y-6">

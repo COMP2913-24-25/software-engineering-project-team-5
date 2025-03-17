@@ -17,7 +17,6 @@ def get_locale():
 
 
 app = Flask(__name__)
-
 app.config.from_object("config")
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SECURE"] = True
@@ -74,3 +73,6 @@ def load_user(id):
         return user
     except ValueError:
         return None
+
+
+from app.prepopulatedb import *
