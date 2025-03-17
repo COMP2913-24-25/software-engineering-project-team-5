@@ -240,17 +240,6 @@ const CreateListing = () => {
                             ))}
                     </div>
 
-                    {/* Tag Selector */}
-                    <div>
-                        <label className="block text-gray-700 text-xl font-medium mt-5">
-                            Item Categories
-                        </label>
-                        <Tag_selector
-                            selected_tags={selected_tags}
-                            set_selected_tags={set_selected_tags}
-                        />
-                    </div>
-
                     {/* Minimum Price */}
                     <div>
                         <label className="block text-gray-700 text-xl font-medium mt-5">
@@ -271,66 +260,26 @@ const CreateListing = () => {
                                 onChange={handleChange}
                                 required
                             />
+                            {errors.minimum_price &&
+                                errors.minimum_price.map((error, index) => (
+                                    <p key={index} className="text-red-500 text-sm mt-1">
+                                        {error}
+                                    </p>
+                                ))}
                         </div>
                     </div>
 
-                {/* Listing Name */}
-                <div>
-                    <input
-                        className="bg-white w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        type="text"
-                        name="listing_name"
-                        placeholder="Listing Name"
-                        value={formData.listing_name}
-                        onChange={handleChange}
-                        required
-                    />
-                    {errors.listing_name &&
-                        errors.listing_name.map((error, index) => (
-                            <p key={index} className="text-red-500 text-sm mt-1">{error}</p>
-                        ))}
-                </div>
-
-                {/* Listing Description */}
-                <div>
-                    <textarea
-                        className="bg-white w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        rows="4"
-                        name="listing_description"
-                        placeholder="Description"
-                        value={formData.listing_description}
-                        onChange={handleChange}
-                        required
-                    />
-                    {errors.listing_description &&
-                        errors.listing_description.map((error, index) => (
-                            <p key={index} className="text-red-500 text-sm mt-1">{error}</p>
-                        ))}
-                </div>
-
-                {/* Tag Selector */}
-                <div>
-                    <Tag_selector selected_tags={selected_tags} set_selected_tags={set_selected_tags} is_item_tags={true}/>
-                </div>
-
-                {/* Minimum Price */}
-                <div>
-                    <input
-                        className="bg-white w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        type="number"
-                        name="minimum_price"
-                        min="0"
-                        step="0.01"
-                        placeholder="Price"
-                        value={formData.minimum_price}
-                        onChange={handleChange}
-                        required
-                    />
-                    {errors.minimum_price &&
-                        errors.minimum_price.map((error, index) => (
-                            <p key={index} className="text-red-500 text-sm mt-1">{error}</p>
-                        ))}
-                </div>
+                    {/* Tag Selector */}
+                    <div>
+                        <label className="block text-gray-700 text-xl font-medium mt-5">
+                            Select Tags
+                        </label>
+                        <Tag_selector
+                            selected_tags={selected_tags}
+                            set_selected_tags={set_selected_tags}
+                            is_item_tags={true}
+                        />
+                    </div>
 
                     {/* Days Available */}
                     <div>
