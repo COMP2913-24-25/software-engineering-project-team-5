@@ -1327,31 +1327,28 @@ def get_expert_id():
     if current_user.Level_of_access == 3:
         try:
             # Fetch experts available for assignment
-            experts = (
-                db.session.query(
-                    User.User_id,
-                    User.Username,
-                    db.func.group_concat(Types.Type_name).label("Tags")
-                )
-                .join(Middle_expertise, User.User_id == Middle_expertise.Expert_id)
-                .join(Types, Middle_expertise.Type_id == Types.Type_id)
-                .filter(User.Level_of_access == 2)
-                .group_by(User.User_id)
-                .all()
-            )
+            experts = User.query.filter(User.Level_of_access == 2).all()
 
             if not experts:
                 return jsonify({"message": "No available experts found"}), 200
+                
+            expert_data = []
+            for expert in experts:
+                # Fetch all expertise tags for the expert
+                tags = (
+                    db.session.query(Types.Type_name)
+                    .join(Middle_expertise, Types.Type_id == Middle_expertise.Type_id)
+                    .filter(Middle_expertise.Expert_id == expert.User_id)
+                    .all()
+                )
+                # Convert list of tuples to a flat list
+                tag_names = [tag.Type_name for tag in tags]
 
-            expert_data = [
-                {
+                expert_data.append({
                     "Expert_id": expert.User_id,
                     "Username": expert.Username,
-                    "Tags": expert.Tags.split(",") if expert.Tags else []
-                }
-                for expert in experts
-            ]
-
+                    "Tags": tag_names
+                })
             return jsonify({"Available Experts": expert_data}), 200
 
         except Exception as e:
