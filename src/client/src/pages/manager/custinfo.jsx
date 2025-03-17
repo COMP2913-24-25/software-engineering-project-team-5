@@ -15,14 +15,16 @@ import { useNavigate } from "react-router-dom";
 
 export default function CustomerTable() {
     const [data, setData] = useState("");
+    // const [filtered_data, set_filtered_data] = useState(""); // stores all users but managers to display on page
     // const [sortField, setSortField] = useState(null);
     // const [sortOrder, setSortOrder] = useState("asc");
     const [selectedUsers, setSelectedUsers] = useState([]);
-    const [newLevel, setNewLevel] = useState("");
+    // const [newLevel, setNewLevel] = useState("");
 
     const { csrfToken } = useCSRF();
     const [newLevels, setNewLevels] = useState({});
     const [updated_level_list, set_updated_level_list] = useState({});
+    const [refreshTrigger, setRefreshTrigger] = useState(false);
 
     const { user } = useUser();
     const navigate = useNavigate();
@@ -56,7 +58,8 @@ export default function CustomerTable() {
 
     const handle_search = (search_data) => {
         setData(search_data);
-    };
+        // setData(search_data.filter(user => user.Level_of_access !== 3)); // Exclude managers    
+        };
 
     // Handle updating level
     const handleLevelChange = (user_Id, new_Level) => {
@@ -91,7 +94,7 @@ export default function CustomerTable() {
 
         // console.log("Updated list:", updated_users);
         // console.log("Sending to backend:", JSON.stringify({ user_id : user_id, level_of_access : level_of_access })); // Debugging
-
+        
         try {
             const response = await fetch("http://localhost:5000/api/update_level", {
                 method: "POST",
@@ -105,10 +108,29 @@ export default function CustomerTable() {
 
             const result = await response.json();
             console.log(" Backend response:", result);
+            console.log("Refresh before", refreshTrigger)
+            setRefreshTrigger(!refreshTrigger);
+            console.log("Refresh after", refreshTrigger)
+            alert("User access levels have been updated successfully! ✅");
+
+            // if (result.ok)
+            // {
+            //     alert("User access levels have been updated successfully! ✅");
+            // }
+
+            // Clear updated list and trigger re-fetch
+            set_updated_level_list({});
+           
         } catch (error) {
             console.error("Error updating levels", error);
         }
     };
+
+    useEffect(() => {
+        // Call the function that fetches user data again
+        console.log("Re-rendering");
+        // setData((prevData) => prevData.filter(user => user.Level_of_access !== 3));
+        }, [refreshTrigger]); 
 
     useEffect(() => {
         if (!(user?.level_of_access === 3)) {
@@ -117,81 +139,66 @@ export default function CustomerTable() {
     }, [user]);
 
     return (
-        <div className="customer-table">
-            <h2>Customer Information</h2>
+        <div className="max-w-5xl mx-auto p-6 bg-white shadow-lg rounded-lg">
+            <h2 className="text-2xl font-bold mb-4">Customer Information</h2>
+            
+            <div className="mb-4">
+                <h3 className="text-lg font-semibold mb-2">Search for Users</h3>
+                <Search_Component user={true} item={false} update_search={handle_search} />
+            </div>
 
-            <Search_Component user={true} item={false} update_search={handle_search} />
-            <table>
-                <thead>
-                    <tr>
-                        <th>Select</th>
-                        <th onClick={() => handleSort("name")}>Name </th>
-                        <th onClick={() => handleSort("email")}>Email</th>
-                        <th onClick={() => handleSort("level")}>Level</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {data.length > 0 ? (
-                        data.map((user) => (
-                            <tr key={user.User_id}>
-                                <td>
-                                    <input
-                                        type="checkbox"
-                                        checked={selectedUsers.includes(user.User_id)}
-                                        onChange={() => toggleSelect(user.User_id)}
-                                    />
-                                </td>
-                                <td>{`${user.First_name} ${user.Middle_name} ${user.Surname}`}</td>
-                                <td>{user.Email}</td>
-                                <td>
-                                    <select
-                                        value={newLevels[user.User_id] || user.Level_of_access}
-                                        onChange={(e) =>
-                                            handleLevelChange(user.User_id, e.target.value)
-                                        }
-                                    >
-                                        <option value="1">User</option>
-                                        <option value="2">Expert</option>
-                                        <option value="3">Manager</option>
-                                    </select>
-                                </td>
+            <div className="overflow-x-auto">
+                <table className="min-w-full bg-white border border-gray-300 rounded-lg">
+                    <thead>
+                        <tr className="bg-gray-100 text-left">
+                            <th className="p-3 border">Select</th>
+                            <th className="p-3 border">Name</th>
+                            <th className="p-3 border">Email</th>
+                            <th className="p-3 border">Level</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {data.length > 0 ? (
+                            data.filter(user => user.Level_of_access !== 3).map((user) => (
+                                <tr key={user.User_id} className="border-b hover:bg-gray-50">
+                                    <td className="p-3 border text-center">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedUsers.includes(user.User_id)}
+                                            onChange={() => toggleSelect(user.User_id)}
+                                        />
+                                    </td>
+                                    <td className="p-3 border">{`${user.First_name} ${user.Middle_name} ${user.Surname}`}</td>
+                                    <td className="p-3 border">{user.Email}</td>
+                                    <td className="p-3 border">
+                                        <select
+                                            className="border rounded p-1"
+                                            value={newLevels[user.User_id] || user.Level_of_access}
+                                            onChange={(e) => handleLevelChange(user.User_id, e.target.value)}
+                                        >
+                                            <option value="1">User</option>
+                                            <option value="2">Expert</option>
+                                            <option value="3">Manager</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan="4" className="p-3 text-center text-gray-500">Loading...</td>
                             </tr>
-                        ))
-                    ) : (
-                        <tr>
-                            <td colSpan="4">Loading...</td>
-                        </tr>
-                    )}
-                </tbody>
-                {/* <tbody>
-                    {data.map((user) => (
-                        <tr key={user.id}>
-                            <td>
-                                <input
-                                    type="checkbox"
-                                    checked={selectedUsers.includes(user.id)}
-                                    onChange={() => toggleSelect(user.id)}
-                                />
-                            </td>
-                            <td>{user.name}</td>
-                            <td>{user.email}</td>
-                            <td>{user.level}</td>
-                        </tr>
-                    ))}
-                </tbody> */}
-            </table>
+                        )}
+                    </tbody>
+                </table>
+            </div>
 
-            <div>
-                <label>
-                    Level:
-                    <select value={newLevel} onChange={(e) => setNewLevel(e.target.value)}>
-                        <option value="">Select</option>
-                        <option value="User">User</option>
-                        <option value="Expert">Expert</option>
-                        <option value="Manager">Manager</option>
-                    </select>
-                </label>
-                <button onClick={handleSave}>Save</button>
+            <div className="mt-4 flex items-center gap-4">
+                <button
+                    onClick={handleSave}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                >
+                    Save
+                </button>
             </div>
         </div>
     );
