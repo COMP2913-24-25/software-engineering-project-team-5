@@ -37,8 +37,7 @@ const CurrentBids = () => {
                 if (Array.isArray(data.bids)) {
                     setBids(
                         data.bids.map((item) => ({
-                            ...item,
-                            timeRemaining: calculate_time_remaining(item.Available_until),
+                            ...item
                         }))
                     );
                 } else {
@@ -50,27 +49,6 @@ const CurrentBids = () => {
         }
     };
 
-    // Calculate time remaining dynamically (with seconds)
-    const calculate_time_remaining = (availableUntil) => {
-        const endTime = new Date(availableUntil).getTime();
-        const now = new Date().getTime();
-        const diffMs = endTime - now;
-
-        if (diffMs <= 0) {
-            const expiredDate = new Date(availableUntil).toLocaleString();
-            return `Expired on ${expiredDate}`;
-        }
-
-        // Calculate hours, minutes, and seconds
-        const seconds = Math.floor((diffMs / 1000) % 60);
-        const minutes = Math.floor((diffMs / 60000) % 60);
-        const hours = Math.floor(diffMs / 3600000);
-
-        return `${hours.toString().padStart(2, "0")}:${minutes
-            .toString()
-            .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
-    };
-
     // Gets bidding history when the page loads for the first time
     useEffect(() => {
         if (user?.level_of_access === 1) {
@@ -79,20 +57,6 @@ const CurrentBids = () => {
             navigate("/invalid-access-rights");
         }
     }, [user]);
-
-    // Live update timer
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setBids((prev) =>
-                prev.map((item) => ({
-                    ...item,
-                    timeRemaining: calculate_time_remaining(item.Available_until),
-                }))
-            );
-        }, 1000); // Update every second
-
-        return () => clearInterval(interval); // Cleanup on unmount
-    }, []);
 
     return (
         <div className="relative min-h-screen bg-gray-100 px-[5%] md:px-[10%] py-8">
@@ -114,30 +78,30 @@ const CurrentBids = () => {
                                 seller={item.Seller_name}
                                 description={item.Description}
                                 images={item.Images}
-                                labels={[`Time Left: ${item.timeRemaining}`]}
+                                availableUntil={item.Available_until}
                                 buttons={
                                     item.Successful_bid == 1
                                         ? [
-                                              {
-                                                  text: "Highest Bidder",
-                                                  style: "bg-green-500 text-white",
-                                              },
-                                              {
-                                                  text: `Your Bid: £${item.Bid_price}`,
-                                                  style: "bg-gray-200 text-black",
-                                              },
-                                          ]
+                                            {
+                                                text: "Highest Bidder",
+                                                style: "bg-green-500 text-white",
+                                            },
+                                            {
+                                                text: `Your Bid: £${item.Bid_price}`,
+                                                style: "bg-gray-200 text-black",
+                                            },
+                                        ]
                                         : [
-                                              { text: "Out Bid", style: "bg-red-500 text-white" },
-                                              {
-                                                  text: `Your Bid: £${item.Bid_price}`,
-                                                  style: "bg-gray-200 text-black",
-                                              },
-                                              {
-                                                  text: `Highest Bid: £${item.Current_bid}`,
-                                                  style: "bg-gray-500 text-white",
-                                              },
-                                          ]
+                                            { text: "Out Bid", style: "bg-red-500 text-white" },
+                                            {
+                                                text: `Your Bid: £${item.Bid_price}`,
+                                                style: "bg-gray-200 text-black",
+                                            },
+                                            {
+                                                text: `Highest Bid: £${item.Current_bid}`,
+                                                style: "bg-gray-500 text-white",
+                                            },
+                                        ]
                                 }
                             />
                         ))}
