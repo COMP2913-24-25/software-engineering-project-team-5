@@ -78,7 +78,7 @@ const EnlargedListingPage = () => {
         if (!bidAmount || parseFloat(bidAmount) <= 0) {
             alert("Please enter a valid bid amount.");
             return;
-        } else if (parseFloat(bidAmount) <= item.Min_price) {
+        } else if (parseFloat(bidAmount) < item.Min_price) {
             alert("Bid amount must be higher than the minimum price.");
             return;
         } else if (parseFloat(bidAmount) <= item.Current_bid) {

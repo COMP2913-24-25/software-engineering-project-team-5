@@ -46,7 +46,8 @@ import traceback
 import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
+from sqlalchemy.orm import aliased
+from sqlalchemy import func
 # periodic checking of expired auctions
 # from celery import Celery
 # from celery.schedules import crontab
@@ -323,14 +324,23 @@ def update_item_bid(item_id, bid_amount, user_id):
     - user_id (int): The ID of the user placing the bid.
     """
     try:
+        # Updates the item's current bid
         item = Items.query.filter_by(Item_id=item_id).first()
         item.Current_bid = bid_amount
         db.session.commit()
+
+        # makes previous bid (if exists) unsuccessful
+        prev_bid = Bidding_history.query.filter_by(Item_id=item_id, Successful_bid=True).order_by(Bidding_history.Bid_datetime.desc()).first()
+        if prev_bid is not None:
+            prev_bid.Successful_bid = False
+            db.session.commit()
+
+        # Adds the new bid to the bidding history
         new_bid = Bidding_history(
             Item_id = item_id,
             Bidder_id = user_id,
             Successful_bid = True,
-           # Bid_datetime = datetime.datetime.now(datetime.UTC),
+            Bid_datetime = datetime.datetime.now(datetime.UTC),
             Bid_price = bid_amount,
         )
 
@@ -363,7 +373,7 @@ def place_bid():
         
         # Validate bid (check if the bid is higher than the current minimum price)
         
-        if float(bid_amount) <= float(item.Min_price):
+        if float(bid_amount) < float(item.Min_price):
             return jsonify({"message": "Bid must be higher than the minimum price"}), 400
         if float(bid_amount) <= float(item.Current_bid):
             return jsonify({"message": "Bid must be higher than the current bid"}), 400
@@ -478,6 +488,87 @@ def charge_manual():
     except Exception as e:
         print(f"Error processing expired auctions: {e}")
         return jsonify({"error": "Failed to process expired auctions"}), 500
+
+
+@app.route("/api/outbid-notification-check", methods=["POST"])
+def outbid_notification():
+    """
+    Checks for any notifications that need to be sent to users (e.g. outbid, won auction, lost/ended auction)
+    uses the user
+    process:
+        get user ID
+        get all items user has bid on
+            get the items that user has the highest bid on/latest bid (bid_datetime)
+        for each item id:
+            get the bid with the latest Bid_datetime
+            get the user id of that bid
+            if user id is the same as the user id of the user:
+                send no notification
+            else if user id is different:
+                send outbid notification
+    Returns:
+    - Status: 0=error, 1=outbid, 2=not outbid
+    """
+    print("\nStarting outbid_notification \n")
+    try:
+        notification_list = []
+        # Check for expired auctions and charge the highest bidder
+        user_to_notify = current_user.User_id 
+        # trying to fix
+        
+        # Subquery to get the most recent bid for each Item_id by the user
+        subquery = (
+            db.session.query(
+                Bidding_history.Item_id,
+                func.max(Bidding_history.Bid_datetime).label('max_bid_datetime')
+            )
+            .filter(Bidding_history.Bidder_id == user_to_notify)
+            .group_by(Bidding_history.Item_id)
+            .subquery()
+        )
+
+        # Main query to get the most recent bids for each Item_id for the specified Bidder_id
+        item_bids_list = (
+            db.session.query(Bidding_history)
+            .join(subquery, (Bidding_history.Item_id == subquery.c.Item_id) & (Bidding_history.Bid_datetime == subquery.c.max_bid_datetime))
+            .filter(Bidding_history.Bidder_id == user_to_notify)
+            .order_by(Bidding_history.Bid_datetime.desc())
+            .all()
+        )
+        # Print the results
+        print("\nItem_bid_list: ", item_bids_list, "-------------\n\n")
+        for item_bid in item_bids_list:
+            print("Item bid is :", item_bid, "with id of ", item_bid.Item_id, "for user with id ", item_bid.Bidder_id)
+        # end trying to fix
+        # get the most recent bid of unique items that user has bid on
+        #item_bids_list = Bidding_history.query.filter_by(Bidder_id=user_to_notify).distinct(Bidding_history.Item_id).order_by(Bidding_history.Bid_datetime.desc()).all()
+        # get the items that user has the highest/latest bid on
+        #logger.info("Item_bid_list: ",  item_bids_list)
+        print("\nItem_bid_list: ",  item_bids_list, "-------------\n\n")
+        for item_bid in item_bids_list:
+            print("ITem bid is :", item_bid, "with id of ", item_bid.Item_id, "for user with id ", item_bid.Bidder_id)
+            print("     Price is :", item_bid.Bid_price, "at time ", item_bid.Bid_datetime)
+            item_id = item_bid.Item_id
+            #logger.info("   Item id in list: ",  item_id)
+            item_obj = Items.query.filter_by(Item_id=item_id).first()
+            #get the latest bid for that item
+            latest_bid = Bidding_history.query.filter_by(Item_id=item_id).order_by(Bidding_history.Bid_datetime.desc()).first()
+            if latest_bid.Bidder_id == user_to_notify:
+                # this is the users own bid, send no notification
+                # return jsonify({"status": 2, "message": "Notification checks complete"}), 200
+
+                pass
+            else:
+                notification_list.append({"status": 1, "User_ID_outbid": current_user.User_id, "Item_ID": item_id, "Item_Name": item_obj.Listing_name, "Outbid_Price": item_obj.Current_bid, "message": "You have been out bid in an auction"})
+                # send outbid notification
+                # return jsonify({"status": 1, "ItemName": item_obj.Listing_name, "message": "You have been out bid in an auction"}), 200
+                pass
+        return jsonify({"outbid_notification_list": notification_list, "message": "Notification checks complete"}), 200
+
+    except Exception as e:
+        print(f"Error processing notifications: {e}")
+        return jsonify({"status": 0, "error": "Failed to process notifications"}), 500
+
 
 @app.route("/api/logout", methods=["POST"])
 @login_required
