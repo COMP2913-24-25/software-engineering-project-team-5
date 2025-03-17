@@ -20,7 +20,7 @@ const EnlargedListingPage = () => {
     useEffect(() => {
         const fetchListingInformation = async () => {
             try {
-                const response = await fetch("http://localhost:5000/api/get-seller's-listings", {
+                const response = await fetch("http://localhost:5000/api/get-single-listing", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -64,7 +64,7 @@ const EnlargedListingPage = () => {
             if (!item?.Seller_id) return; // Ensure item is loaded before fetching
 
             try {
-                const response = await fetch("http://localhost:5000/api/get-seller-listings", {
+                const response = await fetch("http://localhost:5000/api/get-seller's-listings", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
