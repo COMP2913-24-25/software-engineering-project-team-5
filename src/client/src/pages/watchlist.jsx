@@ -27,8 +27,7 @@ const Watchlist = () => {
                 if (Array.isArray(data.watchlist)) {
                     setWatchlist(
                         data.watchlist.map((item) => ({
-                            ...item,
-                            timeRemaining: calculate_time_remaining(item.Available_until),
+                            ...item
                         }))
                     );
                 } else {
@@ -68,27 +67,6 @@ const Watchlist = () => {
         }
     };
 
-    // Calculate time remaining dynamically (with seconds)
-    const calculate_time_remaining = (availableUntil) => {
-        const endTime = new Date(availableUntil).getTime();
-        const now = new Date().getTime();
-        const diffMs = endTime - now;
-
-        if (diffMs <= 0) {
-            const expiredDate = new Date(availableUntil).toLocaleString();
-            return `Expired on ${expiredDate}`;
-        }
-
-        // Calculate hours, minutes, and seconds
-        const seconds = Math.floor((diffMs / 1000) % 60);
-        const minutes = Math.floor((diffMs / 60000) % 60);
-        const hours = Math.floor(diffMs / 3600000);
-
-        return `${hours.toString().padStart(2, "0")}:${minutes
-            .toString()
-            .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
-    };
-
     useEffect(() => {
         if (user?.level_of_access === 1) {
             get_watchlist(); // Fetch the watchlist only if the user is logged in
@@ -96,20 +74,6 @@ const Watchlist = () => {
             navigate("/invalid-access-rights");
         }
     }, [user]);
-
-    // Live update timer
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setWatchlist((prev) =>
-                prev.map((item) => ({
-                    ...item,
-                    timeRemaining: calculate_time_remaining(item.Available_until),
-                }))
-            );
-        }, 1000); // Update every second
-
-        return () => clearInterval(interval); // Cleanup on unmount
-    }, []);
 
     return (
         <div className="relative min-h-screen bg-gray-100 px-[5%] md:px-[10%] py-8">
@@ -126,19 +90,16 @@ const Watchlist = () => {
                         {watchlist.map((item) => (
                             <ItemListing
                                 key={item.Item_id}
+                                itemId={item.Item_id}
                                 images={item.Images}
                                 title={item.Listing_name}
                                 seller={item.Seller_name}
                                 description={item.Description}
+                                availableUntil={item.Available_until}
                                 labels={[
-                                    `Current Bid: £ ${
-                                        Number(item.Current_bid) > Number(item.Min_price)
-                                            ? Number(item.Current_bid).toFixed(2)
-                                            : Number(item.Min_price).toFixed(2)
-                                    }`,
-                                    `Time Remaining: ${
-                                        item.timeRemaining ||
-                                        calculate_time_remaining(item.Available_until)
+                                    `Current Bid: £ ${Number(item.Current_bid) > Number(item.Min_price)
+                                        ? Number(item.Current_bid).toFixed(2)
+                                        : Number(item.Min_price).toFixed(2)
                                     }`,
                                 ]}
                                 buttons={[

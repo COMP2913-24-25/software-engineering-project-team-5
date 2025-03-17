@@ -1025,6 +1025,7 @@ def get_seller_listings():
         print("Error: ", e)
         return jsonify({"Error": "Failed to retrieve items"}), 401
 
+
 @app.route("/api/get-bids", methods=["GET"])
 def get_bids():
     """
@@ -1078,7 +1079,6 @@ def get_bids():
 
         for item in bid_data:
             if item.Item_id not in unique_bids:
-                # Fetch all images for the item (Same as get-history)
                 images = Images.query.filter_by(Item_id=item.Item_id).all()
                 image_list = []
 
@@ -1579,6 +1579,7 @@ def get_single_listing():
             "Images": [
                 base64.b64encode(image.Image).decode("utf-8") for image in images
             ],
+            "Available_until" : item.Available_until
         }
 
         return jsonify(item_details), 200
@@ -1907,7 +1908,7 @@ def get_availabilites():
     except Exception as e:
         print("Error: ", e)
         return jsonify({"Error: Failed to retrieve availabilities"}), 400
-    
+
 @app.route('/api/get-experts', methods=["POST"])
 def get_experts():
     """
@@ -2025,3 +2026,4 @@ def remove_expertise():
     except Exception as e:
         print("Error: ", e)
         return jsonify({"Error": "Failed to remove expertise"}), 400
+

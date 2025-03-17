@@ -65,53 +65,58 @@ const BiddingHistory = () => {
                 </p>
             </div>
 
-            {history.length === 0 ? (
-                <p className="text-gray-600">You have no expired auctions.</p>
+            {user ? (
+                history.length === 0 ? (
+                    <p className="text-gray-600">You have no expired auctions.</p>
+                ) : (
+                    <div className="space-y-4">
+                        {history.map((item, index) => (
+                            <ItemListing
+                                key={index}
+                                title={item.Listing_name}
+                                seller={item.Seller_name}
+                                description={item.Description}
+                                images={item.Images}
+                                availableUntil={item.Available_until}
+                                buttons={
+                                    item.Successful_bid == 1
+                                        ? [
+                                            {
+                                                text: "Highest Bidder",
+                                                style: "bg-green-500 text-white",
+                                            },
+                                            {
+                                                text: `Your Bid: £${item.Bid_price}`,
+                                                style: "bg-gray-200 text-black",
+                                            },
+                                            {
+                                                text: "View Receipt",
+                                                style: "bg-blue-500 text-white",
+                                            },
+                                        ]
+                                        : [
+                                            {
+                                                text: "Out Bid",
+                                                style: "bg-red-500 text-white",
+                                            },
+                                            {
+                                                text: `Your Bid: £${item.Bid_price}`,
+                                                style: "bg-gray-200 text-black",
+                                            },
+                                            {
+                                                text: `Highest Bid: £${item.Current_bid}`,
+                                                style: "bg-gray-500 text-white",
+                                            },
+                                        ]
+                                }
+                            />
+                        ))}
+                    </div>
+                )
             ) : (
-                <div className="space-y-6">
-                    {history.map((item, index) => (
-                        <ItemListing
-                            key={index}
-                            title={item.Listing_name}
-                            seller={item.Seller_name}
-                            description={item.Description}
-                            images={item.Images}
-                            labels={[`Date Finished: ${item.Available_until}`]}
-                            buttons={
-                                item.Successful_bid == 1
-                                    ? [
-                                          {
-                                              text: "Highest Bidder",
-                                              style: "bg-green-500 text-white",
-                                          },
-                                          {
-                                              text: `Your Bid: £${item.Bid_price}`,
-                                              style: "bg-gray-200 text-black",
-                                          },
-                                          {
-                                              text: "View Receipt",
-                                              style: "bg-blue-500 text-white",
-                                          },
-                                      ]
-                                    : [
-                                          {
-                                              text: "Out Bid",
-                                              style: "bg-red-500 text-white",
-                                          },
-                                          {
-                                              text: `Your Bid: £${item.Bid_price}`,
-                                              style: "bg-gray-200 text-black",
-                                          },
-                                          {
-                                              text: `Highest Bid: £${item.Current_bid}`,
-                                              style: "bg-gray-500 text-white",
-                                          },
-                                      ]
-                            }
-                        />
-                    ))}
-                </div>
-            )}
+                <p className="text-gray-600">Login to see Bidding History</p>
+            )}      
+      
         </div>
     );
 };
