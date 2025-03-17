@@ -272,8 +272,7 @@ const CreateListing = () => {
                                 required
                             />
                         </div>
-                    ))
-                }
+                    </div>
 
                 {/* Listing Name */}
                 <div>
