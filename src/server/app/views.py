@@ -1318,7 +1318,7 @@ def get_pending_auth():
 @app.route("/api/get-expert-id", methods=["GET"])
 def get_expert_id():
     """
-    Retrieves all available experts (users with Level_of_access == 2) for assignment.
+    Retrieves all available experts (users with Level_of_access == 2) for assignment plus their tags.
     """
     if not current_user.is_authenticated:
         return jsonify({"message": "No user logged in"}), 401
@@ -1327,20 +1327,29 @@ def get_expert_id():
     if current_user.Level_of_access == 3:
         try:
             # Fetch experts available for assignment
-            available_experts = (
-                User.query.filter(
-                    User.Level_of_access == 2
-                )  # Use correct attribute and numeric comparison
-                .with_entities(User.User_id, User.Username)
+            experts = (
+                db.session.query(
+                    User.User_id,
+                    User.Username,
+                    db.func.group_concat(Types.Type_name).label("Tags")
+                )
+                .join(Middle_expertise, User.User_id == Middle_expertise.Expert_id)
+                .join(Types, Middle_expertise.Type_id == Types.Type_id)
+                .filter(User.Level_of_access == 2)
+                .group_by(User.User_id)
                 .all()
             )
 
-            if not available_experts:
+            if not experts:
                 return jsonify({"message": "No available experts found"}), 200
 
             expert_data = [
-                {"Expert_id": expert.User_id, "Username": expert.Username}
-                for expert in available_experts
+                {
+                    "Expert_id": expert.User_id,
+                    "Username": expert.Username,
+                    "Tags": expert.Tags.split(",") if expert.Tags else []
+                }
+                for expert in experts
             ]
 
             return jsonify({"Available Experts": expert_data}), 200
