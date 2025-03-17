@@ -1,4 +1,4 @@
-from app import app, db, 
+from app import app, db
 
 from .models import (
     User,
@@ -18,7 +18,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 
 import base64
-import datetime
+from datetime import date
 
 
 # Add functions to add default data to the database here
@@ -28,9 +28,9 @@ import datetime
 
 # i.e. refering to line 31 in setup.sh
 
-# 31. # Prepopulate database 
+# 31. # Prepopulate database
 # 32. echo "Adding data to the database..."
-# 33. flask add-users <- Line already there to add users 
+# 33. flask add-users <- Line already there to add users
 # 34. flask <cli-command-name> <- Add a new line here to add new data to the database
 
 
