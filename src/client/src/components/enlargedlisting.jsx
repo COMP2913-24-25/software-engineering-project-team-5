@@ -4,13 +4,14 @@ import { useParams, useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Listing_item from "../components/listing_items";
 
-
 const EnlargedListingPage = () => {
     const { csrfToken } = useCSRF();
     const params = useParams();
+    const navigate = useNavigate();
     const item_id = params.Item_id;
     const { user } = useUser();
     const [sellerListings, setSellerListings] = useState([]);
+
     const [item, setItem] = useState(null);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [imageCount, setImageCount] = useState(0);
@@ -29,7 +30,7 @@ const EnlargedListingPage = () => {
                     credentials: "include",
                 });
                 const data = await response.json();
-                console.log("API Response:", data); // Debugging line
+                console.log("API Response:", data);
 
                 if (response.ok) {
                     setItem(data);
@@ -75,7 +76,16 @@ const EnlargedListingPage = () => {
 
                 const data = await response.json();
                 if (response.ok) {
-                    setSellerListings(data);
+                    console.log("Seller Listings API Response:", data);
+
+                    if (response.ok && Array.isArray(data.Listings)) {
+                        setSellerListings(data.Listings)
+                        console.log(sellerListings)
+                    } else {
+                        console.warn("Seller listings is not an array!", data);
+                        setSellerListings([]);
+                    }
+
                 } else {
                     console.error("Error fetching seller listings:", data);
                 }
@@ -84,10 +94,10 @@ const EnlargedListingPage = () => {
             }
         };
 
-        if (item) {
+        if (item && user) {
             fetchSellerListings();
         }
-    }, [item, csrfToken]); // Runs when `item` is updated
+    }, [item, user, csrfToken]);
 
 
     const updateTimeRemaining = (availableUntil) => {
@@ -181,9 +191,13 @@ const EnlargedListingPage = () => {
                                         Place a Bid
                                     </button>
                                 ) : (
-                                    <button className="bg-blue-600 text-white py-2 px-6 rounded-lg text-lg hover:bg-blue-700 transition">
+                                    <button
+                                        onClick={() => navigate(`/`)} // Call navigate when the button is clicked
+                                        className="bg-blue-600 text-white py-2 px-6 rounded-lg text-lg hover:bg-blue-700 transition"
+                                    >
                                         Login or Signup to place a Bid
                                     </button>
+
                                 )}
 
                             </div>
@@ -194,25 +208,23 @@ const EnlargedListingPage = () => {
             </div>
 
             {user && user.level_of_access === 1 && sellerListings.length > 0 && (
-
                 <div className="container mx-auto bg-white shadow-lg rounded-lg p-6 mt-8">
                     <h1 className="text-3xl font-bold text-gray-800 mb-4">
                         Other Products by {item.Seller_username}
                     </h1>
 
-                    {/* Scrollable horizontal container */}
                     <div id="scrollContainer" className="flex overflow-x-auto space-x-4 p-2 scroll-smooth">
                         {sellerListings
-                            .filter((listing) => listing.Item_id !== item.Item_id)
-                            .map((listing) => (
-                                <div key={listing.Item_id} className="flex-shrink-0">
+                            .filter((listing) => listing.Item_id !== item.Item_id) // Exclude current item
+                            .map((listing, index) => (
+                                <div key={index} className="min-w-[40%] sm:min-w-0 sm:w-auto">
                                     <Listing_item item={listing} />
                                 </div>
-                            ))}
+                            ))
+                        }
                     </div>
                 </div>
             )}
-
 
         </div>
     );

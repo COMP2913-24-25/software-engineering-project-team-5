@@ -1854,6 +1854,7 @@ def get_availabilites():
         print("Error: ", e)
         return jsonify({"Error: Failed to retrieve availabilities"}), 400
 
+
 @app.route("/api/get-seller-listings", methods=["POST"])
 def get_seller_listings():
     """
@@ -1861,65 +1862,54 @@ def get_seller_listings():
 
     Returns:
         json_object: Containing item details
-        status_code: HTTP status code (200 for success, 400 for error)
+        status_code: HTTP status code (200 for success, 400/404 for error)
     """
     try:
         data = request.json
-        seller_id = data.get("Seller_id")
 
-        if not seller_id:
-            return jsonify({"error": "Seller_id is required"}), 400
+        # Validate input
+        if not data or "Seller_id" not in data:
+            return jsonify({"Error": "Missing Seller_id in request"}), 400
 
-        # Query to fetch items by the seller
-        listings = (
-            db.session.query(
-                Items.Item_id,
-                Items.Listing_name,
-                Items.Min_price,
-                Items.Available_until,
-                Items.Description,
-            )
-            .outerjoin(Images, Items.Item_id == Images.Item_id)
-            .filter(Items.Seller_id == seller_id,
-                Items.Available_until < datetime.datetime.now())
-            .all()
-        )
+        # Check if seller exists
+        seller = User.query.filter_by(User_id=data["Seller_id"]).first()
+        if not seller:
+            return jsonify({"Error": "Seller not found"}), 404
 
-        # Format response
-        listings_data = []
-        for item in listings:
+        # Get all listings from this seller
+        items = Items.query.filter(
+            Items.Seller_id == seller.User_id,
+            Items.Available_until > datetime.datetime.now(datetime.UTC)
+        ).all()
+        if not items:
+            return jsonify({"Message": "No listings found for this seller"}), 200
+
+        listings = []
+
+        for item in items:
             images = Images.query.filter_by(Item_id=item.Item_id).all()
-            image_list = []
-
-            for image in images:
-                image_data = image.Image
-                image_base64 = (
-                    base64.b64encode(image_data).decode("utf-8")
-                    if image_data
-                    else None
-                )
-                image_list.append(
-                    {
-                        "Image": image_base64,
-                        "Image_description": (
-                            image.Image_description
-                            if image.Image_description
-                            else "No description available"
-                        ),
-                    }
-                )
-
-            listings_data.append({
+            
+            item_details = {
                 "Item_id": item.Item_id,
                 "Listing_name": item.Listing_name,
-                "Min_price": item.Min_price,
-                "Available_until": item.Available_until,
                 "Description": item.Description,
-                "Image": image_base64  # Base64-encoded image
-            })
+                "Seller_id": item.Seller_id,
+                "Seller_name": f"{seller.First_name or ''} {seller.Surname or ''}".strip(),
+                "Seller_username": seller.Username,
+                "Expert_id": item.Expert_id,
+                "Upload_datetime": item.Upload_datetime,
+                "Min_price": item.Min_price,
+                "Approved": item.Authentication_request_approved,
+                "Second_opinion": item.Second_opinion,
+                "Images": [
+                    base64.b64encode(image.Image).decode("utf-8") for image in images
+                ],
+                "Available_until": item.Available_until
+            }
+            listings.append(item_details)
 
-        return jsonify(listings_data), 200
+        return jsonify({"Listings": listings}), 200
 
     except Exception as e:
         print("Error:", e)
-        return jsonify({"error": "Failed to retrieve seller's listings"}), 400
+        return jsonify({"Error": "Failed to retrieve seller listings"}), 400
