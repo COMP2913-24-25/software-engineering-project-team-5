@@ -64,7 +64,11 @@ const EnlargedListingPage = () => {
             if (!item?.Seller_id) return; // Ensure item is loaded before fetching
 
             try {
+<<<<<<< HEAD
                 const response = await fetch("http://localhost:5000/api/get-seller-items", {
+=======
+                const response = await fetch("http://localhost:5000/api/get-seller's-listings", {
+>>>>>>> f478d7646731d9a9f74eff461ae4ea3f0fe955f2
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
