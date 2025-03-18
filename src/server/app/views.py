@@ -629,22 +629,23 @@ def get_all_users():
     print(user_details_list)
     
     return jsonify(user_details_list), 200 
- 
 @app.route("/api/get-user-details", methods=["POST"])
 def get_user_details():
     """
-    Retrieves the user's details from the database, if they
-    are currently logged in.
+    Retrieves the user's details from the database, including expertise types
+    if they are an expert (Level_of_access == 2).
 
     Returns:
-        json_object: dictionary containing the user's details
-        status_code: HTTP status code (200 for success,
-                                       401 for unauthorized access)
+        json_object: dictionary containing the user's details (and expertise types if applicable)
+        status_code: HTTP status code (200 for success, 401 for unauthorized access)
     """
 
     if current_user.is_authenticated:
         user_id = current_user.User_id
         user_details = User.query.filter_by(User_id=user_id).first()
+
+        if not user_details:
+            return jsonify({"message": "User not found"}), 404
 
         user_details_dict = {
             "First_name": user_details.First_name,
@@ -653,9 +654,19 @@ def get_user_details():
             "DOB": user_details.DOB.strftime("%Y-%m-%d"),
             "Email": user_details.Email,
             "Username": user_details.Username,
-            "Level_of_access" : user_details.Level_of_access,
+            "Level_of_access": user_details.Level_of_access,
             "is_expert": user_details.Is_expert,
         }
+
+        # If the user is an expert, retrieve their expertise types
+        if user_details.Level_of_access == 2:
+            expertise_types = (
+                db.session.query(Types.Type_name)
+                .join(Middle_expertise, Types.Type_id == Middle_expertise.Type_id)
+                .filter(Middle_expertise.Expert_id == user_id)
+                .all()
+            )
+            user_details_dict["expertise_types"] = [type_name[0] for type_name in expertise_types]
 
         return jsonify(user_details_dict), 200
 
@@ -1338,7 +1349,7 @@ def get_listings():
                 Items.Available_until > datetime.datetime.now(),
                 db.or_(
                     db.and_(
-                        Items.Authentication_request == True,
+                        Items.Authentication_request == False,
                         Items.Verified == True,
                         Items.Authentication_request_approved == True,
                     ),
@@ -1708,7 +1719,7 @@ def get_pending_auth():
 @app.route("/api/get-expert-id", methods=["GET"])
 def get_expert_id():
     """
-    Retrieves all available experts (users with Level_of_access == 2) for assignment.
+    Retrieves all available experts (users with Level_of_access == 2) for assignment plus their tags.
     """
     if not current_user.is_authenticated:
         return jsonify({"message": "No user logged in"}), 401
@@ -1717,22 +1728,28 @@ def get_expert_id():
     if current_user.Level_of_access == 3:
         try:
             # Fetch experts available for assignment
-            available_experts = (
-                User.query.filter(
-                    User.Level_of_access == 2
-                )  # Use correct attribute and numeric comparison
-                .with_entities(User.User_id, User.Username)
-                .all()
-            )
+            experts = User.query.filter(User.Level_of_access == 2).all()
 
-            if not available_experts:
+            if not experts:
                 return jsonify({"message": "No available experts found"}), 200
+                
+            expert_data = []
+            for expert in experts:
+                # Fetch all expertise tags for the expert
+                tags = (
+                    db.session.query(Types.Type_name)
+                    .join(Middle_expertise, Types.Type_id == Middle_expertise.Type_id)
+                    .filter(Middle_expertise.Expert_id == expert.User_id)
+                    .all()
+                )
+                # Convert list of tuples to a flat list
+                tag_names = [tag.Type_name for tag in tags]
 
-            expert_data = [
-                {"Expert_id": expert.User_id, "Username": expert.Username}
-                for expert in available_experts
-            ]
-
+                expert_data.append({
+                    "Expert_id": expert.User_id,
+                    "Username": expert.Username,
+                    "Tags": tag_names
+                })
             return jsonify({"Available Experts": expert_data}), 200
 
         except Exception as e:
@@ -1789,7 +1806,6 @@ def get_profit_structure():
         status_code: HTTP status code (200 for success, 404 for incorrect level of access / no user, 500 for server error)
     """
     if current_user.is_authenticated:
-        if current_user.Level_of_access == 3:
             try:
                 # Fetch the most recent profit structure, ordering by enforced_datetime descending
                 prof_struct = Profit_structure.query.order_by(
@@ -1807,7 +1823,7 @@ def get_profit_structure():
 
                     return jsonify({"profit_data": profit_data}), 200
                 else:
-                    return jsonify({"message": "no profit structures reccorded"}), 200
+                    return jsonify({"profit_data": {"expert_split": 0.04, "manager_split": 0.01, "enforced_datetime": datetime.datetime.now(datetime.UTC)}}), 200
 
             except Exception as e:
                 import traceback
@@ -1816,8 +1832,6 @@ def get_profit_structure():
                     "Error retrieving profit structure:", traceback.format_exc()
                 )  # Print full error stack
                 return jsonify({"Error": "Failed to retrieve profit structure"}), 500
-        else:
-            return jsonify({"message": "User is not on correct level of access!"}), 401
     else:
         return jsonify({"message": "No user logged in"}), 401
 
@@ -1848,6 +1862,11 @@ def update_profit_structure():
 
                 if not (0 <= expert_split <= 1) or not (0 <= manager_split <= 1):
                     return jsonify({"message": "Splits must be between 0 and 1."}), 400
+                
+                user = 1 - (expert_split + manager_split)
+
+                if user < 0:
+                     return jsonify({"message": "User split cannot be below zero"}), 400                   
 
                 new_profit_structure = Profit_structure(
                     Expert_split=expert_split,
@@ -1902,22 +1921,30 @@ def get_sold():
                         Profit_structure.Expert_split,
                         Profit_structure.Manager_split,
                         Profit_structure.Enforced_datetime,
-                        Items.Authentication_request_approved,
+                        Items.Authentication_request,
+                        Items.Authentication_request_approved
                     )
                 )
 
                 sold_items_data = []
                 for item in sold_items:
-                    eSplit = item.Expert_split
-                    mSplit = item.Manager_split
-
-                    if item.Authentication_request_approved is False:
+                    if item.Authentication_request == 0:
                         eSplit = 0
-                        mSplit = 0.01
-                    else:
-                        if item.Structure_id is None:
-                            eSplit = 0.04
+                        if item.Structure_id:
+                            mSplit = item.Manager_split
+                        else:
                             mSplit = 0.01
+                    else:
+                        if item.Authentication_request_approved == 1:
+                            if item.Structure_id is None:
+                                eSplit = 0.04
+                                mSplit = 0.01   
+                            else:
+                                eSplit = item.Expert_split
+                                mSplit = item.Manager_split                                                       
+                        else:
+                            eSplit = 0
+                            mSplit = item.Manager_split                           
 
                     sold_items_data.append(
                         {
@@ -1933,6 +1960,7 @@ def get_sold():
                             "Expert_split": eSplit,
                             "Manager_split": mSplit,
                             "Enforced_datetime": item.Enforced_datetime,
+                            "Authentication_request": item.Authentication_request,
                             "Authentication_request_approved": item.Authentication_request_approved,
                         }
                     )
@@ -1966,6 +1994,7 @@ def get_single_listing():
         images = Images.query.filter_by(Item_id=item.Item_id).all()
 
         item_details = {
+            "Current_bid": item.Current_bid,
             "Item_id": item.Item_id,
             "Listing_name": item.Listing_name,
             "Description": item.Description,

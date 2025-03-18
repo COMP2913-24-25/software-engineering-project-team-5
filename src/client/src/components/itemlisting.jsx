@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useUser } from "../App";
 
 const ItemListing = ({
     itemId,
@@ -15,6 +16,8 @@ const ItemListing = ({
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [timeRemaining, setTimeRemaining] = useState("");
     const navigate = useNavigate();
+    const { user } = useUser();
+
 
     // Function to calculate time remaining
     const calculateTimeRemaining = (availableUntil) => {
@@ -48,8 +51,10 @@ const ItemListing = ({
 
     // Navigate to EnlargedListingPage when clicking anywhere except buttons
     const handleNavigation = (e) => {
-        if (!e.target.closest("button")) {
-            navigate(`/item/${encodeURIComponent(title)}/${itemId}`);
+        if (user?.level_of_access === 1) {
+            if (!e.target.closest("button")) {
+                navigate(`/item/${encodeURIComponent(title)}/${itemId}`);
+            }
         }
     };
 

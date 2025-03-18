@@ -70,7 +70,7 @@ const SearchExperts = () => {
         const full_name = `${expert.First_name} ${expert.Middle_name || ''} ${expert.Surname}`.replace(/\s+/g, ' ').trim().toLowerCase();
         const expertise = (expert.Expertise || []).join(" ").toLowerCase();
         const search_term = search.toLowerCase();
-        const matches_search =  full_name.includes(search_term) || expertise.includes(search_term);
+        const matches_search =  full_name.startsWith(search_term) || expertise.startsWith(search_term);
         const matches_availability = !show_available_only || expert.is_available;
         return matches_search && matches_availability;
     });
@@ -83,24 +83,48 @@ const SearchExperts = () => {
     }, [user]);
 
     return (
-        <div className="p-">
-            <h2 className="text-2xl font-bold mb-4">Search Experts</h2>
-
-            <div className="mb-4">
-                <input type="text" className="p-2 border rounded" placeholder="Search by name or expertise" value={search} onChange={(e) => set_search(e.target.value)} />
-
+        <div className="relative min-h-screen bg-gray-100 px-[5%] md:px-[10%] py-8">
+            {/* Page Header */}
+            <div className="text-center mb-8">
+                <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-4">Search Experts</h1>
+                <p className="text-lg text-gray-600">Manage and search for experts.</p>
             </div>
-            <label className="flex items-center gap-2">
-                    <input type="checkbox" checked={show_available_only} onChange={(e) => set_show_available_only(e.target.checked)} className="form-checkbox h-5 w-5 text-blue-600"/>
-                    <span>Show available only</span>
-                </label>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Search and Filter Section */}
+            <div className="mb-8">
+                <div className="flex flex-col sm:flex-row gap-4">
+                    <input
+                        type="text"
+                        className="p-2 border rounded flex-grow"
+                        placeholder="Search by name or expertise"
+                        value={search}
+                        onChange={(e) => set_search(e.target.value)}
+                    />
+                    <label className="flex items-center gap-2 bg-white p-2 border rounded">
+                        <input
+                            type="checkbox"
+                            checked={show_available_only}
+                            onChange={(e) => set_show_available_only(e.target.checked)}
+                            className="form-checkbox h-5 w-5 text-blue-600"
+                        />
+                        <span>Show available only</span>
+                    </label>
+                </div>
+            </div>
+
+            {/* Experts Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {filteredExperts.map((expert) => (
                     <Manager_view_expert key={expert.User_id} expert={expert} refresh_expert={fetch_experts}/>
                 ))}
             </div>
 
+            {/* No Experts Found Message */}
+            {filteredExperts.length === 0 && (
+                <div className="text-center text-gray-500 mt-8">
+                    No experts found matching your search criteria.
+                </div>
+            )}
         </div>
     );
 };

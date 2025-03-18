@@ -103,8 +103,9 @@ def test_get_profit_structure_no_record(client, logged_in_user):
     response = client.get("/api/get-profit-structure", headers={"Content-Type": "application/json"})
     assert response.status_code == 200
     data = json.loads(response.data)
-    assert "message" in data
-    assert data["message"] == "no profit structures reccorded"
+    assert "profit_data" in data
+    assert data["profit_data"]["expert_split"] == 0.04
+    assert data["profit_data"]["manager_split"] == 0.01
 
 
 def test_update_profit_structure(client, logged_in_user):

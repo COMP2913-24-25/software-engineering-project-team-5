@@ -97,7 +97,7 @@ const Watchlist = () => {
                                 description={item.Description}
                                 availableUntil={item.Available_until}
                                 labels={[
-                                    `Current Bid: £ ${Number(item.Current_bid) > Number(item.Min_price)
+                                    `Current Bid: £${Number(item.Current_bid) > Number(item.Min_price)
                                         ? Number(item.Current_bid).toFixed(2)
                                         : Number(item.Min_price).toFixed(2)
                                     }`,
