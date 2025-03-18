@@ -547,8 +547,12 @@ def get_search_filter():
             # filtering by first, middle, last name
             user_names_and_Ids = db.session.query(User.First_name, User.Middle_name, User.Surname, User.User_id).all()
             for first, middle, last, user_id in user_names_and_Ids:
-                name_tokens = [first.lower(), middle.lower(), last.lower()]
-                # print("NAME", name_tokens)
+                if middle == ""  or middle == None :
+                    name_tokens = [first.lower(), middle, last.lower()]
+                else :
+                    name_tokens = [first.lower(), middle.lower(), last.lower()]    
+                    
+                    # print("NAME", name_tokens)
                 search_tokens = searchQuery.lower().split()
         
                 # if searchQuery has two tokens, it matches both in the same sequence to the name token
@@ -558,7 +562,7 @@ def get_search_filter():
                     if len(search_tokens) <= len(name_tokens): 
                         # if name_tokens is greater than two, it matches first search_token to first name,
                         # second to middle name, third to last
-                        if name_tokens[1] != "" :
+                        if name_tokens[1] != "" and name_tokens[1] != None:
                             for i in range(len(search_tokens)):
                                 if not name_tokens[i].lower().startswith(search_tokens[i]):
                                     matched = False
@@ -590,8 +594,9 @@ def get_search_filter():
                         
                 elif len(search_tokens) == 1 :
                     for i in range(len(name_tokens)):
-                        if name_tokens[i].lower().startswith(search_tokens[0]):
-                            filtered_user_ids.append(user_id)
+                        if name_tokens[i] != None:
+                            if name_tokens[i].lower().startswith(search_tokens[0]):
+                                filtered_user_ids.append(user_id)
 
                         
                             
