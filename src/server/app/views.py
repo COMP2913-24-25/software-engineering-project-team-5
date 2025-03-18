@@ -948,7 +948,7 @@ def get_listings():
                 Items.Available_until > datetime.datetime.now(),
                 db.or_(
                     db.and_(
-                        Items.Authentication_request == True,
+                        Items.Authentication_request == False,
                         Items.Verified == True,
                         Items.Authentication_request_approved == True,
                     ),
@@ -1582,6 +1582,7 @@ def get_single_listing():
         images = Images.query.filter_by(Item_id=item.Item_id).all()
 
         item_details = {
+            "Current_bid": item.Current_bid,
             "Item_id": item.Item_id,
             "Listing_name": item.Listing_name,
             "Description": item.Description,

@@ -12,16 +12,18 @@ const Listing_item = (props) => {
     const { csrfToken } = useCSRF(); // Get the CSRF token
 
     const handleClick = () => {
-        
+
         {
-            if (item.Authentication_request === true && item.Expert_id !== null) {
+
+            if (item.Authentication_request === true && item.Expert_id !== null && user.level_of_access === 2) {
                 // Under review item
-                let url = "/authrequest/" + encodeURIComponent(item.Listing_name) + "/" + item.Item_id; 
+                let url = "/authrequest/" + encodeURIComponent(item.Listing_name) + "/" + item.Item_id;
                 navigate(url);
             } else {
                 // Regular item details page
                 navigate(`/item/${encodeURIComponent(item.Listing_name)}/${item.Item_id}`);
             }
+
         };
     };
 
@@ -107,7 +109,7 @@ const Listing_item = (props) => {
                 onClick={handleClick}
             >
                 <div className="w-full h-[180px] bg-gray-200 flex items-center justify-center overflow-hidden relative">
-                    {user && (
+                    {user && user.level_of_access === 1 && (
                         <span
                             className={`absolute top-2 right-2 cursor-pointer text-xl ${wishlist ? "text-red-600" : "text-white"}`}
                             onClick={(e) => { e.stopPropagation(); toggle_wishlist(item.Item_id); }}

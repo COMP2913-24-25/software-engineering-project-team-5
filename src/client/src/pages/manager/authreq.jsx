@@ -101,6 +101,7 @@ export default function MAuthReq() {
                                 title={item.Listing_name}
                                 seller={item.Username}
                                 description={item.Description}
+                                availableUntil={item.Available_until}
                             />
                             <div className="mt-2">
                                 <label className="block text-sm font-medium text-gray-700">
