@@ -101,6 +101,7 @@ export default function MAuthReq() {
                                 title={item.Listing_name}
                                 seller={item.Username}
                                 description={item.Description}
+                                availableUntil={item.Available_until}
                             />
                             <div className="mt-2">
                                 <label className="block text-sm font-medium text-gray-700">
@@ -119,10 +120,11 @@ export default function MAuthReq() {
                                     <option value="">Select an expert</option>
                                     {experts.map((expert) => (
                                         <option key={expert.Expert_id} value={expert.Expert_id}>
-                                            {expert.Username}
+                                            {expert.Username} {expert.Tags.length > 0 ? `(${expert.Tags.join(", ")})` : ""}
                                         </option>
                                     ))}
                                 </select>
+
                             </div>
                             <button
                                 className="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md transition w-full sm:w-auto"

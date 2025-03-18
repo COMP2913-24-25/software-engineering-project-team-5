@@ -20,6 +20,10 @@ const CreateListing = () => {
 
     const { csrfToken } = useCSRF();
 
+    const [fee, setFee] = useState(5);
+
+    const [mFee, setMFee] = useState(1);
+
     // Set up the data that is in the form - should match the variable names used in forms.py
     const [formData, setFormData] = useState({
         seller_id: "",
@@ -39,6 +43,7 @@ const CreateListing = () => {
 
     useEffect(() => {
         if (user?.level_of_access === 1) {
+            getProfitStructure();
             setFormData((prevData) => ({
                 ...prevData,
                 seller_id: user.user_id,
@@ -98,6 +103,32 @@ const CreateListing = () => {
         }
 
         return newErrors;
+    };
+
+    const getProfitStructure = async () => {
+        try {
+            const response = await fetch("http://localhost:5000/api/get-profit-structure", {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
+                },
+                credentials: "include",
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                const { manager_split, expert_split } = data.profit_data;
+                setMFee(manager_split);
+                setFee(expert_split + manager_split);
+
+            } else {
+                alert(data.Error || "Failed to fetch profit structure");
+            }
+        } catch (error) {
+            console.error("Error fetching profit structure:", error);
+        }
     };
 
     // Handle form submission - asynchronous function, as the function needs to wait
@@ -240,17 +271,6 @@ const CreateListing = () => {
                             ))}
                     </div>
 
-                    {/* Tag Selector */}
-                    <div>
-                        <label className="block text-gray-700 text-xl font-medium mt-5">
-                            Item Categories
-                        </label>
-                        <Tag_selector
-                            selected_tags={selected_tags}
-                            set_selected_tags={set_selected_tags}
-                        />
-                    </div>
-
                     {/* Minimum Price */}
                     <div>
                         <label className="block text-gray-700 text-xl font-medium mt-5">
@@ -271,13 +291,25 @@ const CreateListing = () => {
                                 onChange={handleChange}
                                 required
                             />
+                            {errors.minimum_price &&
+                                errors.minimum_price.map((error, index) => (
+                                    <p key={index} className="text-red-500 text-sm mt-1">
+                                        {error}
+                                    </p>
+                                ))}
                         </div>
-                        {errors.minimum_price &&
-                            errors.minimum_price.map((error, index) => (
-                                <p key={index} className="text-red-500 text-sm mt-1">
-                                    {error}
-                                </p>
-                            ))}
+                    </div>
+
+                    {/* Tag Selector */}
+                    <div>
+                        <label className="block text-gray-700 text-xl font-medium mt-5">
+                            Select Tags
+                        </label>
+                        <Tag_selector
+                            selected_tags={selected_tags}
+                            set_selected_tags={set_selected_tags}
+                            is_item_tags={true}
+                        />
                     </div>
 
                     {/* Days Available */}
@@ -285,6 +317,7 @@ const CreateListing = () => {
                         <label className="block text-gray-700 text-xl font-medium mt-5">
                             Auction Duration (Days)
                         </label>
+
                         <input
                             className="bg-white w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             type="number"
@@ -310,6 +343,9 @@ const CreateListing = () => {
                         <label className="block text-gray-700 text-xl font-medium mt-5">
                             Authentication Request
                         </label>
+                        <span className="text-gray-600">
+                            {mFee * 100}% Standard fee charged
+                        </span>
                         <label className="flex items-center space-x-2">
                             <input
                                 type="checkbox"
@@ -319,7 +355,7 @@ const CreateListing = () => {
                                 className="focus:ring-blue-500 h-4 w-4"
                             />
                             <span className="text-gray-600">
-                                Enable Authentication (5% fee of winning bid if approved)
+                                Enable Authentication ({fee * 100}% fee of winning bid if approved - Standard fee included)
                             </span>
                         </label>
                     </div>

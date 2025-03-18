@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import UserDetailsForm from "../components/user_details_form";
 import AddressForm from "../components/address_form";
 import { useUser, useCSRF } from "../App"; // Access the user
-import Availabilty_calendar_set from "../components/availability_calendar";
+import Availability_calendar_set from "../components/availability_calendar";
 import Availability_calendar_view from "../components/availability_calendar_view";
 
 const AccountSummary = () => {
@@ -214,10 +214,9 @@ const AccountSummary = () => {
             {/* Expert Availability Section (Visible only for experts on Sunday) */}
             {is_expert && is_sunday && (
                 <div className="p-6 mb-8">
-                    <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-                        Set Your Availability
-                    </h2>
-                    <Availabilty_calendar_set onSubmit={handle_submit} />
+                    <h2 className="text-2xl font-semibold text-gray-800 mb-4">Set Your Availability</h2>
+                    <Availability_calendar_set onSubmit={handle_submit} />
+
                 </div>
             )}
 
