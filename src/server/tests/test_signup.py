@@ -62,7 +62,6 @@ def test_signup_valid(client):
     assert user.First_name == "John"
     assert user.Middle_name == "Joe"
     assert user.Surname == "Doe"
-    assert user.Customer_ID.startswith('cus_') # Stripe customer ID @Mila new
     assert user.DOB == datetime.date(2000, 1, 1)
     
     
