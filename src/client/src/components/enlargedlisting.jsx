@@ -188,38 +188,37 @@ const EnlargedListingPage = () => {
     if (!item) {
         return <div className="text-center py-20 text-gray-600">Loading listing...</div>;
     }
-
     return (
-        <div className="bg-gray-100 min-h-screen py-12 px-4">
-            <div className="container mx-auto bg-white shadow-lg rounded-lg p-6 mt-8">
-                <h1 className="text-3xl font-bold text-gray-800 mb-2">{item.Listing_name}</h1>
-                <p className="text-gray-600 mb-4">Seller: {item.Seller_username}</p>
+        <div className="bg-gray-50 min-h-screen py-8 px-4 lg:px-6">
+            <div className="container mx-auto bg-white shadow-lg rounded-2xl p-6 lg:p-8">
+                <h1 className="text-2xl lg:text-4xl font-bold text-gray-800 mb-4">{item.Listing_name}</h1>
+                <p className="text-gray-600 mb-6 text-sm lg:text-base">Seller: <span className="font-semibold">{item.Seller_username}</span></p>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-10">
                     <div className="lg:col-span-2">
-                        <div className="relative rounded-lg overflow-hidden bg-gray-100 h-96">
+                        <div className="relative rounded-xl overflow-hidden bg-gray-100 h-72 sm:h-96 lg:h-[30rem]">
                             {item.Images && imageCount > 0 ? (
                                 <>
                                     <img
                                         src={`data:image/jpeg;base64,${item.Images[currentImageIndex]}`}
                                         alt={`${item.Listing_name} - Image ${currentImageIndex + 1}`}
-                                        className="w-full h-full object-contain"
+                                        className="w-full h-full object-cover"
                                     />
-                                    <div className="absolute inset-0 flex items-center justify-between p-4">
+                                    <div className="absolute inset-0 flex items-center justify-between px-4">
                                         <button
                                             onClick={prevImage}
-                                            className="bg-white/80 hover:bg-gray-200 rounded-full p-2 shadow-md"
+                                            className="bg-white/80 hover:bg-gray-200 rounded-full p-3 shadow-lg"
                                         >
                                             <ChevronLeft className="h-6 w-6 text-gray-800" />
                                         </button>
                                         <button
                                             onClick={nextImage}
-                                            className="bg-white/80 hover:bg-gray-200 rounded-full p-2 shadow-md"
+                                            className="bg-white/80 hover:bg-gray-200 rounded-full p-3 shadow-lg"
                                         >
                                             <ChevronRight className="h-6 w-6 text-gray-800" />
                                         </button>
                                     </div>
-                                    <div className="absolute bottom-4 right-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm">
+                                    <div className="absolute bottom-4 right-4 bg-black/60 text-white px-4 py-2 rounded-lg text-sm">
                                         {currentImageIndex + 1} / {imageCount}
                                     </div>
                                 </>
@@ -230,60 +229,65 @@ const EnlargedListingPage = () => {
                             )}
                         </div>
                     </div>
+
                     <div>
-                        <h2 className="text-xl font-semibold mb-4">Product Description</h2>
-                        <p className="text-gray-700">{item.Description || "No description available."}</p>
-                        <div className="mt-6">
-                            <h3 className="text-lg font-medium mb-2">Listing Details</h3>
-                            <ul className="space-y-2">
+                        <h2 className="text-xl lg:text-2xl font-semibold mb-6">Product Description</h2>
+                        <p className="text-gray-700 text-sm lg:text-base">{item.Description || "No description available."}</p>
+
+                        <div className="mt-8">
+                            <h3 className="text-lg lg:text-xl font-medium mb-4">Listing Details</h3>
+                            <ul className="space-y-2 text-sm lg:text-base">
                                 <li className="text-gray-600">Time Remaining: <span className="font-medium">{timeRemaining}</span></li>
                                 <li className="text-gray-600">Listed: <span className="font-medium">{item.Upload_datetime || "N/A"}</span></li>
-                                <li className="text-gray-600">Proposed Price: <span className="font-medium">${item.Min_price || "0.00"}</span></li>
-                                <li>
-                                    {user && (
+                                <li className="text-gray-600">Proposed Price: <span className="font-medium">£{item.Min_price || "0.00"}</span></li>
+                                <li className="text-gray-600">Current Bid: <span className="font-medium">£{item.Current_bid || "0.00"}</span></li>
+
+                                {user && user.level_of_access === 1 && (
+                                    <li className="text-gray-600">
                                         <span
-                                            className={`cursor-pointer text-2xl p-2 ${wishlist ? "text-red-600" : "text-gray"}`}
+                                            className={`cursor-pointer text-2xl p-2 ${wishlist ? "text-red-600" : "text-gray-500"}`}
                                             onClick={(e) => { e.stopPropagation(); toggle_wishlist(item.Item_id); }}
                                         >
                                             ♥
                                         </span>
-                                    )}</li>
+                                    </li>
+                                )}
                             </ul>
-                            <div className="mt-8 text-left">
-                                {user ? (
 
-                                    <button className="bg-blue-600 text-white py-2 px-6 rounded-lg text-lg hover:bg-blue-700 transition">
-                                        Place a Bid
-                                    </button>
+                            <div className="mt-10">
+                                {user ? (
+                                    user.level_of_access === 1 ? (
+                                        <button className="bg-blue-600 text-white py-3 px-6 rounded-lg text-base lg:text-lg hover:bg-blue-700 transition-all">
+                                            Place a Bid
+                                        </button>
+                                    ) : (<></>)
                                 ) : (
                                     <button
-                                        onClick={() => navigate(`/`)} // Call navigate when the button is clicked
-                                        className="bg-blue-600 text-white py-2 px-6 rounded-lg text-lg hover:bg-blue-700 transition"
+                                        onClick={() => navigate(`/`)}
+                                        className="bg-blue-600 text-white py-3 px-6 rounded-lg text-base lg:text-lg hover:bg-blue-700 transition-all"
                                     >
                                         Login or Signup to place a Bid
                                     </button>
-
                                 )}
-
                             </div>
                         </div>
                     </div>
                 </div>
-
             </div>
 
             {user && user.level_of_access === 1 && sellerListings?.filter((listing) => listing.Item_id !== item.Item_id).length > 0 && (
-
-                <div className="container mx-auto bg-white shadow-lg rounded-lg p-6 mt-8">
-                    <h1 className="text-3xl font-bold text-gray-800 mb-4">
+                <div className="container mx-auto bg-white shadow-lg rounded-2xl p-6 lg:p-8 mt-12">
+                    <h1 className="text-2xl lg:text-3xl font-bold text-gray-800 mb-6">
                         Other Products by {item.Seller_username}
                     </h1>
 
-                    <div id="scrollContainer" className="flex overflow-x-auto space-x-4 p-2 scroll-smooth">
+                    <div id="scrollContainer" className="flex overflow-x-auto space-x-6 p-2 scroll-smooth">
                         {sellerListings
-                            .filter((listing) => listing.Item_id !== item.Item_id) // Exclude current item
+                            .filter((listing) =>
+                                listing.Item_id !== item.Item_id && (listing.Authentication_request !== null && listing.Authentication_request_approved !== false)
+                            )
                             .map((listing) => (
-                                <div key={item.Item_id} className="min-w-[40%] sm:min-w-0 sm:w-auto">
+                                <div key={listing.Item_id} className="min-w-[60%] sm:min-w-[30%] lg:min-w-[20%]">
                                     <Listing_item item={listing} />
                                 </div>
                             ))
@@ -291,9 +295,9 @@ const EnlargedListingPage = () => {
                     </div>
                 </div>
             )}
-
         </div>
     );
+
 };
 
 export default EnlargedListingPage;

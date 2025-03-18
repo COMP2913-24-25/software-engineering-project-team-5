@@ -1565,6 +1565,7 @@ def get_single_listing():
         images = Images.query.filter_by(Item_id=item.Item_id).all()
 
         item_details = {
+            "Current_bid": item.Current_bid,
             "Item_id": item.Item_id,
             "Listing_name": item.Listing_name,
             "Description": item.Description,
