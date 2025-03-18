@@ -29,6 +29,8 @@ const UserDetailsForm = () => {
     });
 
     // State variables for error and success messages
+    const [is_expert, set_is_expert] = useState(false);
+    const [expertise_types, set_expertise_types] = useState([]);
     const [errors, set_errors] = useState({});
     const [error_message, set_error_message] = useState("");
     const [success_message, set_success_message] = useState("");
@@ -61,6 +63,8 @@ const UserDetailsForm = () => {
                         Surname: data.Surname,
                         DOB: data.DOB,
                     });
+                    set_is_expert(data.is_expert);
+                    set_expertise_types(data.expertise_types || []);
                 } else {
                     set_error_message(data.message);
                 }
@@ -277,6 +281,26 @@ const UserDetailsForm = () => {
                                 readOnly
                             />
                         </div>
+                        
+                                                {/* Display expertise types only if user is an expert */}
+                                                {is_expert && (
+                            <div>
+                                <label className="block font-medium mb-1">
+                                    Expertise
+                                </label>
+                                <ul className="list-disc list-inside">
+                                    {expertise_types.length > 0 ? (
+                                        expertise_types.map((type, index) => (
+                                            <li key={index} className="text-gray-700">
+                                                {type}
+                                            </li>
+                                        ))
+                                    ) : (
+                                        <p className="text-gray-500">No expertise listed</p>
+                                    )}
+                                </ul>
+                            </div>
+                        )}
                     </div>
 
                     {success_message && (

@@ -119,10 +119,11 @@ export default function MAuthReq() {
                                     <option value="">Select an expert</option>
                                     {experts.map((expert) => (
                                         <option key={expert.Expert_id} value={expert.Expert_id}>
-                                            {expert.Username}
+                                            {expert.Username} {expert.Tags.length > 0 ? `(${expert.Tags.join(", ")})` : ""}
                                         </option>
                                     ))}
                                 </select>
+
                             </div>
                             <button
                                 className="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md transition w-full sm:w-auto"
