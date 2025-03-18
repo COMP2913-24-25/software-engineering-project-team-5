@@ -13,6 +13,7 @@ export default function Dashboard() {
     const [expertSplit, setExpertSplit] = useState(0.04);
     const [userSplit, setUserSplit] = useState(0.95);
     const [weeklyProfits, setWeeklyProfits] = useState([]);
+    const [error, setError] = useState("");
 
     useEffect(() => {
         if (user && user.level_of_access === 3) {
@@ -22,6 +23,20 @@ export default function Dashboard() {
             navigate("/invalid-access-rights");
         }
     }, [user, navigate]);
+
+    const validateSplits = (manager, expert) => {
+        if (manager < 0 || manager > 1 || expert < 0 || expert > 1) {
+            setError("Manager and Expert split must be between 0% and 100%.");
+            return false;
+        }
+        const calculatedUserSplit = 1 - manager - expert;
+        if (calculatedUserSplit < 0) {
+            setError("Invalid split values. User split cannot be negative.");
+            return false;
+        }
+        setError("");
+        return true;
+    };
 
     const getProfitStructure = async () => {
         try {
@@ -50,6 +65,8 @@ export default function Dashboard() {
     };
 
     const updateProfitStructure = async () => {
+        if (error !== "") { return }
+
         try {
             const response = await fetch("http://localhost:5000/api/update-profit-structure", {
                 method: "POST",
@@ -140,7 +157,6 @@ export default function Dashboard() {
                 </p>
             </div>
 
-            {/* Chart Section */}
             <div className="mb-8">
                 <Chart
                     data={weeklyProfits}
@@ -150,16 +166,16 @@ export default function Dashboard() {
                 />
             </div>
 
-            {/* Table Section */}
             <div className="overflow-x-auto mb-8">
                 <Table data={weeklyProfits} />
             </div>
 
-            {/* Profit Structure Form */}
-            <div className="bg-blue-50 p-6 rounded-lg">
+            <div className="p-6 rounded-lg">
                 <h2 className="text-2xl font-semibold text-gray-800 mb-4">
                     Update Profit Structure
                 </h2>
+
+                {error && <p className="text-red-600 mb-4">{error}</p>}
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
@@ -171,11 +187,17 @@ export default function Dashboard() {
                             id="manager-split"
                             value={managerSplit * 100}
                             onChange={(e) => {
-                                const value = parseFloat(e.target.value / 100);
-                                setManagerSplit(value);
-                                setUserSplit(1 - value - expertSplit);
+                                const value = e.target.value.trim() === "" ? 0 : parseFloat(e.target.value) / 100;
+                                if (!isNaN(value) && validateSplits(value, expertSplit)) {
+                                    setManagerSplit(value);
+                                    setUserSplit(1 - value - expertSplit);
+                                }
                             }}
+                            min="0"
+                            max="100"
+                            placeholder="0"
                             className="border border-gray-300 rounded-md p-2 w-full"
+                            required
                         />
                     </div>
 
@@ -188,11 +210,18 @@ export default function Dashboard() {
                             id="expert-split"
                             value={expertSplit * 100}
                             onChange={(e) => {
-                                const value = parseFloat(e.target.value / 100);
-                                setExpertSplit(value);
-                                setUserSplit(1 - managerSplit - value);
+                                const value = e.target.value.trim() === "" ? 0 : parseFloat(e.target.value) / 100;
+                                if (!isNaN(value) && validateSplits(managerSplit, value)) {
+                                    setExpertSplit(value);
+                                    setUserSplit(1 - managerSplit - value);
+                                }
                             }}
+
+                            min="0"
+                            max="100"
+                            placeholder="0"
                             className="border border-gray-300 rounded-md p-2 w-full"
+                            required
                         />
                     </div>
 
@@ -206,16 +235,21 @@ export default function Dashboard() {
                             value={(userSplit * 100).toFixed(3)}
                             readOnly
                             className="border border-gray-300 rounded-md p-2 w-full bg-gray-200"
+                            min="0"
+                            max="100"
                         />
                     </div>
                 </div>
 
                 <button
                     onClick={updateProfitStructure}
-                    className="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md transition w-full sm:w-auto"
+                    disabled={error !== ""}
+                    className={`mt-6 font-semibold py-2 px-4 rounded-md transition w-full sm:w-auto 
+                        ${error ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700 text-white"}`}
                 >
                     Save Changes
                 </button>
+
             </div>
         </div>
     );

@@ -1406,7 +1406,7 @@ def get_profit_structure():
 
                     return jsonify({"profit_data": profit_data}), 200
                 else:
-                    return jsonify({"message": "no profit structures reccorded"}), 200
+                    return jsonify({"profit_data": {"expert_split": 0.04, "manager_split": 0.01, "enforced_datetime": datetime.datetime.now(datetime.UTC)}}), 200
 
             except Exception as e:
                 import traceback
@@ -1447,6 +1447,11 @@ def update_profit_structure():
 
                 if not (0 <= expert_split <= 1) or not (0 <= manager_split <= 1):
                     return jsonify({"message": "Splits must be between 0 and 1."}), 400
+                
+                user = 1 - (expert_split + manager_split)
+
+                if user < 0:
+                     return jsonify({"message": "User split cannot be below zero"}), 400                   
 
                 new_profit_structure = Profit_structure(
                     Expert_split=expert_split,
