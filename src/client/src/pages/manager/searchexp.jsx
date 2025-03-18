@@ -70,7 +70,7 @@ const SearchExperts = () => {
         const full_name = `${expert.First_name} ${expert.Middle_name || ''} ${expert.Surname}`.replace(/\s+/g, ' ').trim().toLowerCase();
         const expertise = (expert.Expertise || []).join(" ").toLowerCase();
         const search_term = search.toLowerCase();
-        const matches_search =  full_name.includes(search_term) || expertise.includes(search_term);
+        const matches_search =  full_name.startsWith(search_term) || expertise.startsWith(search_term);
         const matches_availability = !show_available_only || expert.is_available;
         return matches_search && matches_availability;
     });
