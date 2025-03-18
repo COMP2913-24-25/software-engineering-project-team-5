@@ -147,39 +147,32 @@ export default function Dashboard() {
     };
 
     return (
-        <div className="relative min-h-screen bg-gray-100 px-[5%] md:px-[10%] py-8">
-            <div className="text-center mb-8">
-                <h1 className="text-2xl font-semibold text-center text-gray-800 mb-4">
-                    Weekly Profits
-                </h1>
-                <p className="text-xl text-gray-500 mt-2">
-                    View profits and manage fee distribution.
-                </p>
+        <div className="relative min-h-screen bg-gray-50 px-4 sm:px-6 lg:px-12 py-8">
+            <div className="text-center mb-10">
+                <h1 className="text-3xl font-bold text-gray-900">Weekly Profits</h1>
+                <p className="text-lg text-gray-600 mt-2">Monitor profits and adjust distribution settings.</p>
             </div>
 
-            <div className="mb-8">
+            <div className="mb-10 overflow-x-auto mb-10 shadow-lg rounded-lg bg-white p-6">
                 <Chart
                     data={weeklyProfits}
                     xKey="week"
                     yKeys={["expertProfit", "managerProfit", "totalProfit"]}
-                    colors={["#8884d8", "#82ca9d", "#ff7300"]}
+                    colors={["#4F46E5", "#16A34A", "#F97316"]}
                 />
             </div>
 
-            <div className="overflow-x-auto mb-8">
+            <div className="overflow-x-auto mb-10 shadow-lg rounded-lg bg-white p-6">
                 <Table data={weeklyProfits} />
             </div>
 
-            <div className="p-6 rounded-lg">
-                <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-                    Update Profit Structure
-                </h2>
+            <div className="bg-white shadow-lg rounded-lg p-6 md:p-8 max-w-3xl mx-auto">
+                <h2 className="text-2xl font-semibold text-gray-900 mb-6">Update Profit Structure</h2>
+                {error && <p className="text-red-600 font-medium mb-4">{error}</p>}
 
-                {error && <p className="text-red-600 mb-4">{error}</p>}
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
-                        <label htmlFor="manager-split" className="block text-sm text-gray-700">
+                        <label htmlFor="manager-split" className="block text-sm font-medium text-gray-700">
                             Manager Split (%)
                         </label>
                         <input
@@ -195,14 +188,12 @@ export default function Dashboard() {
                             }}
                             min="0"
                             max="100"
-                            placeholder="0"
-                            className="border border-gray-300 rounded-md p-2 w-full"
+                            className="border border-gray-300 rounded-lg px-4 py-2 w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                             required
                         />
                     </div>
-
                     <div>
-                        <label htmlFor="expert-split" className="block text-sm text-gray-700">
+                        <label htmlFor="expert-split" className="block text-sm font-medium text-gray-700">
                             Expert Split (%)
                         </label>
                         <input
@@ -216,17 +207,14 @@ export default function Dashboard() {
                                     setUserSplit(1 - managerSplit - value);
                                 }
                             }}
-
                             min="0"
                             max="100"
-                            placeholder="0"
-                            className="border border-gray-300 rounded-md p-2 w-full"
+                            className="border border-gray-300 rounded-lg px-4 py-2 w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                             required
                         />
                     </div>
-
                     <div>
-                        <label htmlFor="user-split" className="block text-sm text-gray-700">
+                        <label htmlFor="user-split" className="block text-sm font-medium text-gray-700">
                             User Split (%)
                         </label>
                         <input
@@ -234,9 +222,7 @@ export default function Dashboard() {
                             id="user-split"
                             value={(userSplit * 100).toFixed(3)}
                             readOnly
-                            className="border border-gray-300 rounded-md p-2 w-full bg-gray-200"
-                            min="0"
-                            max="100"
+                            className="border border-gray-300 bg-gray-100 rounded-lg px-4 py-2 w-full cursor-not-allowed"
                         />
                     </div>
                 </div>
@@ -244,13 +230,13 @@ export default function Dashboard() {
                 <button
                     onClick={updateProfitStructure}
                     disabled={error !== ""}
-                    className={`mt-6 font-semibold py-2 px-4 rounded-md transition w-full sm:w-auto 
-                        ${error ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700 text-white"}`}
+                    className={`mt-6 w-full md:w-auto px-6 py-3 text-white font-semibold rounded-lg transition duration-300
+                        ${error ? "bg-gray-400 cursor-not-allowed" : "bg-indigo-600 hover:bg-indigo-700"}`}
                 >
                     Save Changes
                 </button>
-
             </div>
         </div>
     );
+
 }
