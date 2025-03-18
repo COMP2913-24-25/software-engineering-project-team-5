@@ -937,7 +937,7 @@ def get_listings():
                 Items.Available_until > datetime.datetime.now(),
                 db.or_(
                     db.and_(
-                        Items.Authentication_request == True,
+                        Items.Authentication_request == False,
                         Items.Verified == True,
                         Items.Authentication_request_approved == True,
                     ),
