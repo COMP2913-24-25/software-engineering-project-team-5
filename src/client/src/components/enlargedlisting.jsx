@@ -11,11 +11,60 @@ const EnlargedListingPage = () => {
     const item_id = params.Item_id;
     const { user } = useUser();
     const [sellerListings, setSellerListings] = useState([]);
-
+    const [wishlist, set_wishlist] = useState(false);
     const [item, setItem] = useState(null);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [imageCount, setImageCount] = useState(0);
     const [timeRemaining, setTimeRemaining] = useState("");
+
+    const check_watchlist = async () => {
+        if (!user) return;
+
+        try {
+            const response = await fetch(`http://localhost:5000/api/check-watchlist?Item_id=${item.Item_id}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                set_wishlist(data.in_watchlist);
+            } else {
+                console.error("Error2:", data.message);
+            }
+        } catch (error) {
+            console.error("Error2:", error);
+            alert("An error occurred while checking the watchlist.");
+        }
+    };
+
+    const toggle_wishlist = async (item_id) => {
+        if (!user) return;
+
+        try {
+            const response = await fetch(`http://localhost:5000/api/${wishlist ? "remove-watchlist" : "add-watchlist"}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
+                },
+                credentials: "include",
+                body: JSON.stringify({ item_id }),
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                set_wishlist(!wishlist);
+            } else {
+                console.error("Error:", data.message);
+                alert(`Error: ${data.message}`);
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            alert("An error occurred while updating the watchlist.");
+        }
+    };
 
     useEffect(() => {
         const fetchListingInformation = async () => {
@@ -60,9 +109,15 @@ const EnlargedListingPage = () => {
     }, [item]);
 
     useEffect(() => {
+        if (user && item) {
+            check_watchlist();
+        }
+    }, [user, item]);
+
+    useEffect(() => {
         const fetchSellerListings = async () => {
             if (!item?.Seller_id) return; // Ensure item is loaded before fetching
-
+            setSellerListings([]);
             try {
                 const response = await fetch("http://localhost:5000/api/get-seller-items", {
 
@@ -184,6 +239,15 @@ const EnlargedListingPage = () => {
                                 <li className="text-gray-600">Time Remaining: <span className="font-medium">{timeRemaining}</span></li>
                                 <li className="text-gray-600">Listed: <span className="font-medium">{item.Upload_datetime || "N/A"}</span></li>
                                 <li className="text-gray-600">Proposed Price: <span className="font-medium">${item.Min_price || "0.00"}</span></li>
+                                <li>
+                                    {user && (
+                                        <span
+                                            className={`cursor-pointer text-2xl p-2 ${wishlist ? "text-red-600" : "text-gray"}`}
+                                            onClick={(e) => { e.stopPropagation(); toggle_wishlist(item.Item_id); }}
+                                        >
+                                            ♥
+                                        </span>
+                                    )}</li>
                             </ul>
                             <div className="mt-8 text-left">
                                 {user ? (
@@ -208,7 +272,8 @@ const EnlargedListingPage = () => {
 
             </div>
 
-            {user && user.level_of_access === 1 && (
+            {user && user.level_of_access === 1 && sellerListings?.filter((listing) => listing.Item_id !== item.Item_id).length > 0 && (
+
                 <div className="container mx-auto bg-white shadow-lg rounded-lg p-6 mt-8">
                     <h1 className="text-3xl font-bold text-gray-800 mb-4">
                         Other Products by {item.Seller_username}
