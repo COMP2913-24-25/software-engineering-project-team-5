@@ -1405,7 +1405,6 @@ def get_profit_structure():
         status_code: HTTP status code (200 for success, 404 for incorrect level of access / no user, 500 for server error)
     """
     if current_user.is_authenticated:
-        if current_user.Level_of_access == 3:
             try:
                 # Fetch the most recent profit structure, ordering by enforced_datetime descending
                 prof_struct = Profit_structure.query.order_by(
@@ -1423,7 +1422,7 @@ def get_profit_structure():
 
                     return jsonify({"profit_data": profit_data}), 200
                 else:
-                    return jsonify({"message": "no profit structures reccorded"}), 200
+                    return jsonify({"profit_data": {"expert_split": 0.04, "manager_split": 0.01, "enforced_datetime": datetime.datetime.now(datetime.UTC)}}), 200
 
             except Exception as e:
                 import traceback
@@ -1432,8 +1431,6 @@ def get_profit_structure():
                     "Error retrieving profit structure:", traceback.format_exc()
                 )  # Print full error stack
                 return jsonify({"Error": "Failed to retrieve profit structure"}), 500
-        else:
-            return jsonify({"message": "User is not on correct level of access!"}), 401
     else:
         return jsonify({"message": "No user logged in"}), 401
 
@@ -1464,6 +1461,11 @@ def update_profit_structure():
 
                 if not (0 <= expert_split <= 1) or not (0 <= manager_split <= 1):
                     return jsonify({"message": "Splits must be between 0 and 1."}), 400
+                
+                user = 1 - (expert_split + manager_split)
+
+                if user < 0:
+                     return jsonify({"message": "User split cannot be below zero"}), 400                   
 
                 new_profit_structure = Profit_structure(
                     Expert_split=expert_split,
@@ -1518,22 +1520,30 @@ def get_sold():
                         Profit_structure.Expert_split,
                         Profit_structure.Manager_split,
                         Profit_structure.Enforced_datetime,
-                        Items.Authentication_request_approved,
+                        Items.Authentication_request,
+                        Items.Authentication_request_approved
                     )
                 )
 
                 sold_items_data = []
                 for item in sold_items:
-                    eSplit = item.Expert_split
-                    mSplit = item.Manager_split
-
-                    if item.Authentication_request_approved is False:
+                    if item.Authentication_request == 0:
                         eSplit = 0
-                        mSplit = 0.01
-                    else:
-                        if item.Structure_id is None:
-                            eSplit = 0.04
+                        if item.Structure_id:
+                            mSplit = item.Manager_split
+                        else:
                             mSplit = 0.01
+                    else:
+                        if item.Authentication_request_approved == 1:
+                            if item.Structure_id is None:
+                                eSplit = 0.04
+                                mSplit = 0.01   
+                            else:
+                                eSplit = item.Expert_split
+                                mSplit = item.Manager_split                                                       
+                        else:
+                            eSplit = 0
+                            mSplit = item.Manager_split                           
 
                     sold_items_data.append(
                         {
@@ -1549,6 +1559,7 @@ def get_sold():
                             "Expert_split": eSplit,
                             "Manager_split": mSplit,
                             "Enforced_datetime": item.Enforced_datetime,
+                            "Authentication_request": item.Authentication_request,
                             "Authentication_request_approved": item.Authentication_request_approved,
                         }
                     )

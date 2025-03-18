@@ -20,6 +20,10 @@ const CreateListing = () => {
 
     const { csrfToken } = useCSRF();
 
+    const [fee, setFee] = useState(5);
+
+    const [mFee, setMFee] = useState(1);
+
     // Set up the data that is in the form - should match the variable names used in forms.py
     const [formData, setFormData] = useState({
         seller_id: "",
@@ -39,6 +43,7 @@ const CreateListing = () => {
 
     useEffect(() => {
         if (user?.level_of_access === 1) {
+            getProfitStructure();
             setFormData((prevData) => ({
                 ...prevData,
                 seller_id: user.user_id,
@@ -98,6 +103,32 @@ const CreateListing = () => {
         }
 
         return newErrors;
+    };
+
+    const getProfitStructure = async () => {
+        try {
+            const response = await fetch("http://localhost:5000/api/get-profit-structure", {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
+                },
+                credentials: "include",
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                const { manager_split, expert_split } = data.profit_data;
+                setMFee(manager_split);
+                setFee(expert_split + manager_split);
+
+            } else {
+                alert(data.Error || "Failed to fetch profit structure");
+            }
+        } catch (error) {
+            console.error("Error fetching profit structure:", error);
+        }
     };
 
     // Handle form submission - asynchronous function, as the function needs to wait
@@ -312,6 +343,9 @@ const CreateListing = () => {
                         <label className="block text-gray-700 text-xl font-medium mt-5">
                             Authentication Request
                         </label>
+                        <span className="text-gray-600">
+                            {mFee * 100}% Standard fee charged
+                        </span>
                         <label className="flex items-center space-x-2">
                             <input
                                 type="checkbox"
@@ -321,7 +355,7 @@ const CreateListing = () => {
                                 className="focus:ring-blue-500 h-4 w-4"
                             />
                             <span className="text-gray-600">
-                                Enable Authentication (5% fee of winning bid if approved)
+                                Enable Authentication ({fee * 100}% fee of winning bid if approved - Standard fee included)
                             </span>
                         </label>
                     </div>
