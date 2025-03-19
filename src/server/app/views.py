@@ -653,30 +653,19 @@ def get_filtered_listings():
 
     try:
         data = request.json
-        price_range = data.get("price_range", "")
+        min_price = data.get("min_price", "")
+        max_price = data.get("max_price","")
         listing_Ids = data.get("listing_Ids", [])
         listing_Ids = list(map(int, listing_Ids))
         filtered_listing_Ids = []
         # print("DATAAAA", data)
-        if price_range != "":
+        if min_price != "" and max_price != "":
             for Id in listing_Ids:
                 item = Items.query.filter_by(Item_id=Id).first()
                 print(item.Listing_name)
-                if price_range == "less_than_50":
-                    if get_listing_price(item) < 50:
-                        filtered_listing_Ids.append(Id)
-                elif price_range == "50_200":
-                    if get_listing_price(item) >= 50 and get_listing_price(item) < 200:
-                        filtered_listing_Ids.append(Id)
-                elif price_range == "200_500":
-                    if (
-                        get_listing_price(item) >= 200
-                        and get_listing_price(item) <= 500
-                    ):
-                        filtered_listing_Ids.append(Id)
-                elif price_range == "more_than_500":
-                    if get_listing_price(item) > 500:
-                        filtered_listing_Ids.append(Id)
+                
+                if get_listing_price(item) <= max_price and get_listing_price(item) >= min_price :
+                    filtered_listing_Ids.append(Id)
 
         return jsonify(filtered_listing_Ids)
 

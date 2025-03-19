@@ -1,29 +1,43 @@
 import React, { useState, useEffect } from "react";
 import { useCSRF } from "../App";
-
+import { ChevronDown, ChevronUp } from "lucide-react";
 //only price filtering implemented here
 //Need to add bid_status, sorting filters,  verified/non verified, antique? etc
 const Filter_component = ({ update_listings, listings }) => {
   const [selectedPriceRange, setSelectedPriceRange] = useState("");
-    const { csrfToken } = useCSRF();
+  const { csrfToken } = useCSRF();
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+  const [filter_applied, set_filter_applied] = useState(true);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  const priceRanges = [
-    { label: "Less than £50", value: "less_than_50" },
-    { label: "£50 - £200", value: "50_200" },
-    { label: "£200 - £500", value: "200_500" },
-    { label: "More than £500", value: "more_than_500" },
-  ];
 
-  //handles price range selection event
-  const handlePriceRangeChange = (event) => {
-    const newValue = event.target.value;
-    setSelectedPriceRange((prevValue) => (prevValue === newValue ? "" : newValue));
+  const handleMinPriceChange = (event) => {
+    const value = event.target.value;
+    if (value < 0) {
+      alert("Min price must be greater than 0");
+    }
+    else{
+    setMinPrice(value);
+    }
   };
-  
-  //gets ID's of all listings
+
+  // handles the change for max price input
+  const handleMaxPriceChange = (event) => {
+    const value = event.target.value;
+    if (value < 0) {
+      alert("Max price must be greater than 0");
+    }
+    else{
+      setMaxPrice(value);
+      }
+  };
+ 
   const listingIds = listings.map(listing => listing.Item_id);
  
-  
+const handleApplyFilter = () => {
+  set_filter_applied(!filter_applied)
+}
   useEffect(() =>
     {
 
@@ -32,6 +46,14 @@ const Filter_component = ({ update_listings, listings }) => {
         // prints for testing :P
         // console.log("Filter selected: ", selectedPriceRange);
         // console.log("Filtered_listings reached in filter :", listings);
+
+      const min = parseFloat(minPrice) || 0; // Default to 0 if empty or invalid
+      const max = parseFloat(maxPrice) || 9999999; 
+      console.log("min : ", min, "max : ", max);
+      if (min > max) {
+        alert("Max price must be greater than Min price.");
+        return;
+      }
         const response = await fetch(
             "http://localhost:5000/api/get_filtered_listings",
             {
@@ -42,7 +64,7 @@ const Filter_component = ({ update_listings, listings }) => {
                 },
                 
                 body: JSON.stringify({
-                  price_range: selectedPriceRange, 
+                  min_price : min, max_price : max, 
                   listing_Ids: listingIds}),
                 credentials: "include",
             },
@@ -54,52 +76,80 @@ const Filter_component = ({ update_listings, listings }) => {
             console.log("Error Response:", errorText); 
         }
 
-        else 
-        {
-           console.log("Filter returned");
-        }
+        // else 
+        // {
+        //    console.log("Filter returned");
+        // }
 
         const filtered_Ids = await response.json();
-        // console.log("Filtered_IDs after filtering:", filtered_Ids);
         
         //get listings for all returned ID's
         const filteredListings = listings.filter(listing => filtered_Ids.includes(listing.Item_id));
         
-        // console.log("Filtered_listings after filtering:", filteredListings);
 
         update_listings(filteredListings);
 
     };
-    if (selectedPriceRange) {
-      fetch_filteredlistings(); 
-      // Apply the filter if one is selected else just set original listings
+    if (minPrice || maxPrice) {
+      fetch_filteredlistings();
     } else {
-      update_listings(listings); 
+      update_listings(listings); // If no filter, show all listings
     }
-    }, [selectedPriceRange]);
+    }, [filter_applied]);
 
-
-  return (
-    <div className="p-4 bg-gray-100 shadow-md w-64">
-      <h2 className="text-lg font-bold mb-4">Price Filter</h2>
-      <div className="space-y-2">
-        {priceRanges.map((range) => (
-          <div key={range.value} className="flex items-center">
-            <input
-              type="checkbox" 
-              id={range.value}
-              name="priceRange"
-              value={range.value}
-              checked={selectedPriceRange === range.value}
-              onChange={handlePriceRangeChange}
-              className="mr-2"
-            />
-            <label htmlFor={range.value}>{range.label}</label>
+    return (
+      <div className="p-6 bg-white shadow-lg rounded-lg">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-gray-800">Price Filter</h2>
+          <button
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            className="text-blue-600 hover:text-blue-700 transition"
+          >
+            {isDropdownOpen ? (
+              <ChevronUp size={24} />
+            ) : (
+              <ChevronDown size={24} />
+            )}
+          </button>
+        </div>
+    
+        {isDropdownOpen && (
+          <div className="mt-6 space-y-4">
+            <div className="flex items-center space-x-6">
+              <div className="flex items-center space-x-2">
+                <label htmlFor="minPrice" className="text-gray-700 font-medium">Min Price:</label>
+                <input
+                  type="number"
+                  id="minPrice"
+                  value={minPrice}
+                  onChange={handleMinPriceChange}
+                  className="border-2 border-gray-300 p-3 rounded-lg w-28 focus:ring-2 focus:ring-blue-500"
+                  placeholder="Min Price"
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <label htmlFor="maxPrice" className="text-gray-700 font-medium">Max Price:</label>
+                <input
+                  type="number"
+                  id="maxPrice"
+                  value={maxPrice}
+                  onChange={handleMaxPriceChange}
+                  className="border-2 border-gray-300 p-3 rounded-lg w-28 focus:ring-2 focus:ring-blue-500"
+                  placeholder="Max Price"
+                />
+              </div>
+              <button
+                onClick={handleApplyFilter}
+                className="bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition"
+              >
+                Apply Filter
+              </button>
+            </div>
           </div>
-        ))}
+        )}
       </div>
-    </div>
-  );
+    );
+    
 };
 
 export default Filter_component;
