@@ -21,7 +21,7 @@ const EnlargedListingPage = () => {
     const [bidAmount, setBidAmount] = useState(0);
 
     const [timeRemaining, setTimeRemaining] = useState("");
-
+    const [isExpired, setIsExpired] = useState(false);
 
     useEffect(() => {
         const fetchListingInformation = async () => {
@@ -59,6 +59,7 @@ const EnlargedListingPage = () => {
         if (item?.Available_until) {
             const interval = setInterval(() => {
                 updateTimeRemaining(item.Available_until);
+                checkIfExpired(item.Available_until);
             }, 1000);
 
             return () => clearInterval(interval);
@@ -124,6 +125,11 @@ const EnlargedListingPage = () => {
         setTimeRemaining(`${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`);
     };
 
+    const checkIfExpired = (availableUntil) => {
+        const endTime = new Date(availableUntil).getTime();
+        const now = new Date().getTime();
+        setIsExpired(now >= endTime);
+    };
     const nextImage = () => {
         if (item && item.Images) {
             setCurrentImageIndex((prev) => (prev + 1 < imageCount ? prev + 1 : 0));
@@ -309,12 +315,16 @@ const EnlargedListingPage = () => {
                             //min={parseFloat(item.Min_price) + 0.01}
                         />
                     </div>
-                    <button onClick={handlePlaceBid} className="bg-blue-600 text-white py-2 px-6 rounded-lg text-lg hover:bg-blue-700 transition">
-                        Place a Bid
-                    </button>
-                    <button onClick={manualCharge} className="bg-blue-600 text-white py-2 px-6 rounded-lg text-lg hover:bg-blue-700 transition ml-4">
-                        Charge Manually
-                    </button>
+                    {!isExpired ? (
+                        <button onClick={handlePlaceBid} className="bg-blue-600 text-white py-2 px-6 rounded-lg text-lg hover:bg-blue-700 transition">
+                            Place a Bid
+                        </button>
+                    ) : (
+
+                        <button className="bg-blue-600 text-white py-2 px-6 rounded-lg text-lg hover:bg-blue-700 transition ml-4">
+                            Auction Expired
+                        </button>
+                    )}
                 </div>
 
             </div>
