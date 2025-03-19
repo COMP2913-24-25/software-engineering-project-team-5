@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useCSRF } from "../App";
-
+import { ChevronDown, ChevronUp } from "lucide-react";
 //only price filtering implemented here
 //Need to add bid_status, sorting filters,  verified/non verified, antique? etc
 const Filter_component = ({ update_listings, listings }) => {
@@ -9,12 +9,8 @@ const Filter_component = ({ update_listings, listings }) => {
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [filter_applied, set_filter_applied] = useState(true);
-  // const priceRanges = [
-  //   { label: "Less than £50", value: "less_than_50" },
-  //   { label: "£50 - £200", value: "50_200" },
-  //   { label: "£200 - £500", value: "200_500" },
-  //   { label: "More than £500", value: "more_than_500" },
-  // ];
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
 
   const handleMinPriceChange = (event) => {
     const value = event.target.value;
@@ -36,13 +32,7 @@ const Filter_component = ({ update_listings, listings }) => {
       setMaxPrice(value);
       }
   };
-  //handles price range selection event
-  // const handlePriceRangeChange = (event) => {
-  //   const newValue = event.target.value;
-  //   setSelectedPriceRange((prevValue) => (prevValue === newValue ? "" : newValue));
-  // };
-  
-  //gets ID's of all listings
+ 
   const listingIds = listings.map(listing => listing.Item_id);
  
 const handleApplyFilter = () => {
@@ -86,18 +76,16 @@ const handleApplyFilter = () => {
             console.log("Error Response:", errorText); 
         }
 
-        else 
-        {
-           console.log("Filter returned");
-        }
+        // else 
+        // {
+        //    console.log("Filter returned");
+        // }
 
         const filtered_Ids = await response.json();
-        // console.log("Filtered_IDs after filtering:", filtered_Ids);
         
         //get listings for all returned ID's
         const filteredListings = listings.filter(listing => filtered_Ids.includes(listing.Item_id));
         
-        // console.log("Filtered_listings after filtering:", filteredListings);
 
         update_listings(filteredListings);
 
@@ -109,42 +97,59 @@ const handleApplyFilter = () => {
     }
     }, [filter_applied]);
 
-
-  return (
-    <div className="p-4 bg-gray-100 shadow-md w-64">
-    <h2 className="text-lg font-bold mb-4">Price Filter</h2>
-    <div className="space-y-4">
-      <div className="flex items-center">
-        <label htmlFor="minPrice" className="mr-2">Min Price:</label>
-        <input
-          type="number"
-          id="minPrice"
-          value={minPrice}
-          onChange={handleMinPriceChange}
-          className="border p-2 rounded w-24"
-          placeholder="Min Price"
-        />
+    return (
+      <div className="p-6 bg-white shadow-lg rounded-lg">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-gray-800">Price Filter</h2>
+          <button
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            className="text-blue-600 hover:text-blue-700 transition"
+          >
+            {isDropdownOpen ? (
+              <ChevronUp size={24} />
+            ) : (
+              <ChevronDown size={24} />
+            )}
+          </button>
+        </div>
+    
+        {isDropdownOpen && (
+          <div className="mt-6 space-y-4">
+            <div className="flex items-center space-x-6">
+              <div className="flex items-center space-x-2">
+                <label htmlFor="minPrice" className="text-gray-700 font-medium">Min Price:</label>
+                <input
+                  type="number"
+                  id="minPrice"
+                  value={minPrice}
+                  onChange={handleMinPriceChange}
+                  className="border-2 border-gray-300 p-3 rounded-lg w-28 focus:ring-2 focus:ring-blue-500"
+                  placeholder="Min Price"
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <label htmlFor="maxPrice" className="text-gray-700 font-medium">Max Price:</label>
+                <input
+                  type="number"
+                  id="maxPrice"
+                  value={maxPrice}
+                  onChange={handleMaxPriceChange}
+                  className="border-2 border-gray-300 p-3 rounded-lg w-28 focus:ring-2 focus:ring-blue-500"
+                  placeholder="Max Price"
+                />
+              </div>
+              <button
+                onClick={handleApplyFilter}
+                className="bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition"
+              >
+                Apply Filter
+              </button>
+            </div>
+          </div>
+        )}
       </div>
-      <div className="flex items-center">
-        <label htmlFor="maxPrice" className="mr-2">Max Price:</label>
-        <input
-          type="number"
-          id="maxPrice"
-          value={maxPrice}
-          onChange={handleMaxPriceChange}
-          className="border p-2 rounded w-24"
-          placeholder="Max Price"
-        />
-      </div>
-      <button
-          onClick={handleApplyFilter}
-          className="mt-4 bg-blue-500 text-white p-2 rounded w-full"
-        >
-          Apply Filter
-        </button>
-    </div>
-  </div>
-  );
+    );
+    
 };
 
 export default Filter_component;
