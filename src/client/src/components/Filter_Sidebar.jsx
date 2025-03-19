@@ -17,12 +17,24 @@ const Filter_component = ({ update_listings, listings }) => {
   // ];
 
   const handleMinPriceChange = (event) => {
-    setMinPrice(event.target.value);
+    const value = event.target.value;
+    if (value < 0) {
+      alert("Min price must be greater than 0");
+    }
+    else{
+    setMinPrice(value);
+    }
   };
 
   // handles the change for max price input
   const handleMaxPriceChange = (event) => {
-    setMaxPrice(event.target.value);
+    const value = event.target.value;
+    if (value < 0) {
+      alert("Max price must be greater than 0");
+    }
+    else{
+      setMaxPrice(value);
+      }
   };
   //handles price range selection event
   // const handlePriceRangeChange = (event) => {
