@@ -278,8 +278,6 @@ const AccountSummary = () => {
                 />
             ))}
 
-            {is_expert && is_sunday && (<Availability_calendar_set onSubmit={handle_submit}/>)}
-            {/* Only displays the availability calendar if the user is an expert and it is a sunday */}
         </div>
     );
 };
