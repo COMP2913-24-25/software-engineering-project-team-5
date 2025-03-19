@@ -73,6 +73,7 @@ const BiddingHistory = () => {
                         {history.map((item, index) => (
                             <ItemListing
                                 key={index}
+                                itemId={item.Item_id}
                                 title={item.Listing_name}
                                 seller={item.Seller_name}
                                 description={item.Description}
@@ -115,8 +116,8 @@ const BiddingHistory = () => {
                 )
             ) : (
                 <p className="text-gray-600">Login to see Bidding History</p>
-            )}      
-      
+            )}
+
         </div>
     );
 };

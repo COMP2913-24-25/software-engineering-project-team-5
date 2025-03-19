@@ -98,10 +98,10 @@ export default function MAuthReq() {
                         <div key={item.Item_id} className="bg-white p-4 rounded-lg border">
                             <ItemListing
                                 images={item.Images}
+                                itemId={item.Item_id}
                                 title={item.Listing_name}
                                 seller={item.Username}
                                 description={item.Description}
-                                availableUntil={item.Available_until}
                             />
                             <div className="mt-2">
                                 <label className="block text-sm font-medium text-gray-700">

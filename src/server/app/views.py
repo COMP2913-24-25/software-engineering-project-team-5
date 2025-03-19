@@ -339,12 +339,12 @@ def update_item_bid(item_id, bid_amount, user_id):
 
         # Adds the new bid to the bidding history
         new_bid = Bidding_history(
-            Item_id = item_id,
-            Bidder_id = user_id,
-            Successful_bid = True,
-            Bid_datetime = datetime.datetime.now(datetime.UTC),
-            Winning_bid = False,
-            Bid_price = bid_amount,
+            Item_id=item_id,
+            Bidder_id=user_id,
+            Successful_bid=True,
+            Bid_datetime=datetime.datetime.now(datetime.UTC),
+            Winning_bid=False,
+            Bid_price=bid_amount,
         )
 
         # Adds the user to the database and commits the changes
@@ -582,13 +582,18 @@ def outbid_notification():
         # Main query to get the most recent bids for each Item_id for the specified Bidder_id
         item_bids_list = (
             db.session.query(Bidding_history)
-            .join(subquery, (Bidding_history.Item_id == subquery.c.Item_id) & (Bidding_history.Bid_datetime == subquery.c.max_bid_datetime))
+            .join(
+                subquery,
+                (Bidding_history.Item_id == subquery.c.Item_id)
+                & (Bidding_history.Bid_datetime == subquery.c.max_bid_datetime),
+            )
             .join(Items, Bidding_history.Item_id == Items.Item_id)
             .filter(
                 Bidding_history.Bidder_id == user_to_notify,
                 Items.Sold == False,
-                Items.Available_until > datetime.datetime.now() # prevents notifications on expired items
-                )
+                Items.Available_until
+                > datetime.datetime.now(),  # prevents notifications on expired items
+            )
             .order_by(Bidding_history.Bid_datetime.desc())
             .all()
         )
@@ -677,29 +682,58 @@ def get_notify_bid_end():
         # Get all items where the auction time has ended
         logger.info("Processing expired auctions for notifications...\n")
         expired_items = Items.query.filter(
-            Items.Available_until < datetime.datetime.now(), 
-            Items.Sold == False, #check that they have not been sold
-            ).all()
+            Items.Available_until < datetime.datetime.now(),
+            Items.Sold == False,  # check that they have not been sold
+        ).all()
         expired_items_list = []
         # Process each expired item
         for item in expired_items:
             # Get the highest bid from the bidding history
             # not doing Winning_bid = True because this is also to let people know that they have won, not just that they've been charged
-            highest_bid = Bidding_history.query.filter_by(Item_id=item.Item_id).order_by(Bidding_history.Bid_price.desc()).first()
+            highest_bid = (
+                Bidding_history.query.filter_by(Item_id=item.Item_id)
+                .order_by(Bidding_history.Bid_price.desc())
+                .first()
+            )
             if highest_bid:
                 winning_bidder_id = highest_bid.Bidder_id
-                losing_bidders = Bidding_history.query.filter(Bidding_history.Item_id==item.Item_id, Bidding_history.Bidder_id != winning_bidder_id).all()
+                losing_bidders = Bidding_history.query.filter(
+                    Bidding_history.Item_id == item.Item_id,
+                    Bidding_history.Bidder_id != winning_bidder_id,
+                ).all()
                 losing_bidders_id = list(set(bid.Bidder_id for bid in losing_bidders))
                 # add the info to the list
-                expired_items_list.append({"item_id": item.Item_id, "item_name": item.Listing_name, "user_won_id": winning_bidder_id, "users_lost_id_list": losing_bidders_id})
+                expired_items_list.append(
+                    {
+                        "item_id": item.Item_id,
+                        "item_name": item.Listing_name,
+                        "user_won_id": winning_bidder_id,
+                        "users_lost_id_list": losing_bidders_id,
+                    }
+                )
         print("\nProcessed expired auctions for notifications! \n")
         print("\nExpired items list: ", expired_items_list, "-------------\n\n")
-        return jsonify({"expired_items_list": expired_items_list, "message": "Processed expired auctions for notifications!"}), 200
+        return (
+            jsonify(
+                {
+                    "expired_items_list": expired_items_list,
+                    "message": "Processed expired auctions for notifications!",
+                }
+            ),
+            200,
+        )
 
     except Exception as e:
         print(f"Error processing expired auctions for notifications: {e}")
-        return jsonify({"error": "Failed to process expired auctions for auctions", "exception": str(e)}), 500
-
+        return (
+            jsonify(
+                {
+                    "error": "Failed to process expired auctions for auctions",
+                    "exception": str(e),
+                }
+            ),
+            500,
+        )
 
 
 @app.route("/api/logout", methods=["POST"])
@@ -970,6 +1004,12 @@ def update_level():
                 return jsonify({"error": "User no found"}), 404
 
             user.Level_of_access = new_levels[i]
+            print(new_levels[i])
+            if new_levels[i] == "2":
+                print("changed to expert")
+                user.Is_expert = 1
+            else:
+                user.Is_expert = 0
             db.session.commit()
 
         return jsonify({"message": "Levels updated successfully"}), 200
@@ -1015,17 +1055,39 @@ def get_search_filter():
     filtered_users = []
 
     if item:
+        available_items = (
+            db.session.query(Items, User.Username)
+            .join(User, Items.Seller_id == User.User_id)
+            .filter(
+                Items.Available_until > datetime.datetime.now(),
+                db.or_(
+                    db.and_(
+                        Items.Authentication_request == False,
+                        Items.Verified == True,
+                        Items.Authentication_request_approved == True,
+                    ),
+                    db.and_(
+                        Items.Authentication_request == False,
+                        Items.Verified == False,
+                        Items.Authentication_request_approved == None,
+                    ),
+                ),
+            )
+            .all()
+        )
         # print("in item bool")
-        if not searchQuery:
+        if searchQuery == " ":
             # Return all items
-            # print("Empty search Query")
-            filtered_items = db.session.query(Items).all()
+            print("Empty search Query")
+            filtered_items = available_items
             # print(filtered_items)
         else:
             # filter by item name, works with space seperated strings
-            item_names_and_Ids = db.session.query(
-                Items.Listing_name, Items.Item_id
-            ).all()
+            # item_names_and_Ids = db.session.query(Items.Listing_name, Items.Item_id).all()
+            item_names_and_Ids = [
+                (item.Listing_name, item.Item_id) for item, _ in available_items
+            ]
+            # print(item_names_and_Ids)
             for name, item_id in item_names_and_Ids:
                 name_tokens = name.split()
                 search_tokens = searchQuery.split()
@@ -1088,7 +1150,7 @@ def get_search_filter():
         # Ensure Items model has a to_dict() method
     elif user:
         # for now just returns all
-        if not searchQuery:
+        if not searchQuery or searchQuery == " ":
             filtered_users = db.session.query(User).all()
             print(filtered_users)
 
@@ -1101,8 +1163,12 @@ def get_search_filter():
                 User.First_name, User.Middle_name, User.Surname, User.User_id
             ).all()
             for first, middle, last, user_id in user_names_and_Ids:
-                name_tokens = [first.lower(), middle.lower(), last.lower()]
-                # print("NAME", name_tokens)
+                if middle == "" or middle == None:
+                    name_tokens = [first.lower(), middle, last.lower()]
+                else:
+                    name_tokens = [first.lower(), middle.lower(), last.lower()]
+
+                    # print("NAME", name_tokens)
                 search_tokens = searchQuery.lower().split()
 
                 # if searchQuery has two tokens, it matches both in the same sequence to the name token
@@ -1112,7 +1178,7 @@ def get_search_filter():
                     if len(search_tokens) <= len(name_tokens):
                         # if name_tokens is greater than two, it matches first search_token to first name,
                         # second to middle name, third to last
-                        if name_tokens[1] != "":
+                        if name_tokens[1] != "" and name_tokens[1] != None:
                             for i in range(len(search_tokens)):
                                 if (
                                     not name_tokens[i]
@@ -1146,8 +1212,9 @@ def get_search_filter():
 
                 elif len(search_tokens) == 1:
                     for i in range(len(name_tokens)):
-                        if name_tokens[i].lower().startswith(search_tokens[0]):
-                            filtered_user_ids.append(user_id)
+                        if name_tokens[i] != None:
+                            if name_tokens[i].lower().startswith(search_tokens[0]):
+                                filtered_user_ids.append(user_id)
 
             filtered_users = (
                 db.session.query(User).filter(User.User_id.in_(filtered_user_ids)).all()
@@ -1158,14 +1225,16 @@ def get_search_filter():
             # if user.Is_expert : filter by tags
         users_list = []
         for user in filtered_users:
-
+            middle_name = user.Middle_name
+            if user.Middle_name == None:
+                middle_name = ""
             user_details_dict = {
                 "User_id": user.User_id,
                 "Username": user.Username,
                 "Password": user.Password,
                 "Email": user.Email,
                 "First_name": user.First_name,
-                "Middle_name": user.Middle_name,
+                "Middle_name": middle_name,
                 "Surname": user.Surname,
                 "DOB": user.DOB,
                 "Level_of_access": user.Level_of_access,
@@ -1199,30 +1268,22 @@ def get_filtered_listings():
 
     try:
         data = request.json
-        price_range = data.get("price_range", "")
+        min_price = data.get("min_price", "")
+        max_price = data.get("max_price", "")
         listing_Ids = data.get("listing_Ids", [])
         listing_Ids = list(map(int, listing_Ids))
         filtered_listing_Ids = []
         # print("DATAAAA", data)
-        if price_range != "":
+        if min_price != "" and max_price != "":
             for Id in listing_Ids:
                 item = Items.query.filter_by(Item_id=Id).first()
                 print(item.Listing_name)
-                if price_range == "less_than_50":
-                    if get_listing_price(item) < 50:
-                        filtered_listing_Ids.append(Id)
-                elif price_range == "50_200":
-                    if get_listing_price(item) >= 50 and get_listing_price(item) < 200:
-                        filtered_listing_Ids.append(Id)
-                elif price_range == "200_500":
-                    if (
-                        get_listing_price(item) >= 200
-                        and get_listing_price(item) <= 500
-                    ):
-                        filtered_listing_Ids.append(Id)
-                elif price_range == "more_than_500":
-                    if get_listing_price(item) > 500:
-                        filtered_listing_Ids.append(Id)
+
+                if (
+                    get_listing_price(item) <= max_price
+                    and get_listing_price(item) >= min_price
+                ):
+                    filtered_listing_Ids.append(Id)
 
         return jsonify(filtered_listing_Ids)
 
@@ -1557,6 +1618,18 @@ def get_seller_listings():
             .filter(
                 Items.Seller_id == current_user.User_id,
                 Items.Available_until > datetime.datetime.now(),
+                db.or_(
+                    db.and_(
+                        Items.Authentication_request == False,
+                        Items.Verified == True,
+                        Items.Authentication_request_approved == True,
+                    ),
+                    db.and_(
+                        Items.Authentication_request == False,
+                        Items.Verified == False,
+                        Items.Authentication_request_approved == None,
+                    ),
+                ),
             )
             .all()
         )
@@ -2083,6 +2156,7 @@ def get_sold():
                         Items.Current_bid,
                         Items.Structure_id,
                         Items.Expert_id,
+                        Items.Verified,
                         Profit_structure.Expert_split,
                         Profit_structure.Manager_split,
                         Profit_structure.Enforced_datetime,
@@ -2093,23 +2167,21 @@ def get_sold():
 
                 sold_items_data = []
                 for item in sold_items:
-                    if item.Authentication_request == 0:
-                        eSplit = 0
+
+                    if item.Authentication_request_approved == 1 and item.Verified == 1:
+                        if item.Structure_id is None:
+                            eSplit = 0.04
+                            mSplit = 0.01
+                        else:
+                            eSplit = item.Expert_split
+                            mSplit = item.Manager_split
+                    else:
                         if item.Structure_id:
                             mSplit = item.Manager_split
+                            eSplit = 0
                         else:
                             mSplit = 0.01
-                    else:
-                        if item.Authentication_request_approved == 1:
-                            if item.Structure_id is None:
-                                eSplit = 0.04
-                                mSplit = 0.01
-                            else:
-                                eSplit = item.Expert_split
-                                mSplit = item.Manager_split
-                        else:
                             eSplit = 0
-                            mSplit = item.Manager_split
 
                     sold_items_data.append(
                         {

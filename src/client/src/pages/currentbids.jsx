@@ -74,6 +74,7 @@ const CurrentBids = () => {
                         {bids.map((item) => (
                             <ItemListing
                                 key={item.Bid_id}
+                                itemId={item.Item_id}
                                 title={item.Listing_name}
                                 seller={item.Seller_name}
                                 description={item.Description}
