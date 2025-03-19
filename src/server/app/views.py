@@ -608,14 +608,16 @@ def get_search_filter():
             # if user.Is_expert : filter by tags
         users_list = []
         for user in filtered_users:
-
+            middle_name = user.Middle_name
+            if user.Middle_name == None :
+                middle_name = ""
             user_details_dict = {
                 "User_id": user.User_id,
                 "Username": user.Username,
                 "Password" : user.Password,
                 "Email": user.Email, 
                 "First_name": user.First_name,
-                "Middle_name": user.Middle_name,
+                "Middle_name": middle_name,
                 "Surname": user.Surname,
                 "DOB": user.DOB,
                 "Level_of_access": user.Level_of_access,
