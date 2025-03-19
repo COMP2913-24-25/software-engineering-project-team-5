@@ -44,12 +44,12 @@ export default function CurrentListings({}) {
                 );
 
                 const filtered_items = await search_filter_response.json();
-                console.log("Filtered items", filtered_items);
+                // console.log("Filtered items", filtered_items);
 
                 if (search_filter_response.ok) {
                     set_listings(filtered_items);
                     setprice_filtered_listings(filtered_items);
-                    console.log("Fetched Listings: ", listings);
+                    // console.log("Fetched Listings: ", listings);
                 } else {
                     console.error("Failed to fetch listings");
                 }
@@ -61,9 +61,9 @@ export default function CurrentListings({}) {
     }, [searchQuery]);
 
     //no committed yet
-    const handleItemClick = (item) => {
-        navigate("/enlarge_listing", { state: { item } });
-    };
+    // const handleItemClick = (item) => {
+    //     navigate("/enlarge_listing", { state: { item } });
+    // };
 
     const calculate_time_remaining = (availableUntil) => {
         const endTime = new Date(availableUntil).getTime();
@@ -149,28 +149,19 @@ export default function CurrentListings({}) {
                                 key={item.id}
                                 className="min-w-[40%] sm:min-w-0 sm:w-auto"
                             >
-                                <div className="relative flex items-center gap-2 bg-white-100 shadow-md p-4 rounded-lg">
-                                    {/* Navigation Arrow Button */}
-                                    <button
-                                        className="absolute top-2 right-2 bg-gray-200 p-1 rounded-full hover:bg-gray-300"
-                                        onClick={() => handleItemClick(item)}
-                                    >
-                                        <ChevronRight size={20} />
-                                    </button>
 
                                     <Listing_item key={item.id} item={item} />
-                                </div>
                             </div>
                         ))}
                     </div>
                 )}
                 
-                <button
+                {/* <button
                     className="absolute left-2 bg-white shadow-md p-2 sm:p-3 rounded-full text-gray-600 hover:bg-gray-200 transition sm:flex"
                     onClick={() => prevPage("price_filtered")}
                 >
                     <ChevronLeft size={28} />
-                </button>
+                </button> */}
 
                 <button
                     className="absolute right-2 bg-white shadow-md p-2 sm:p-3 rounded-full text-gray-600 hover:bg-gray-200 transition sm:flex"
