@@ -53,9 +53,17 @@ logger = logging.getLogger(__name__)
 from sqlalchemy.orm import aliased
 from sqlalchemy import func
 
-# periodic checking of expired auctions
-# from celery import Celery
-# from celery.schedules import crontab
+# Email
+
+from flask_mail import Mail, Message
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USERNAME'] = ''
+app.config['MAIL_PASSWORD'] = ''
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USE_SSL'] = False
+app.config['MAIL_DEFAULT_SENDER'] = 'your_email@example.com'
+mail = Mail(app)
 
 # Admin mode accessed using "http://<url>/admin"
 # Used to view database on website instead of app.db
@@ -301,42 +309,6 @@ def create_setup_intent():
         return jsonify({"error": e}), 400
 
 
-# so this will be needed if we want multiple cards linked to the same person??
-# #may not work mila or Isnt needed??
-# @app.route("/api/save-card", methods=["POST"])
-# @login_required
-# def save_card():
-#     try:
-#         data = request.get_json()
-#         # token = data.get('token')
-#         user_id = data.get('userId')
-#         payment_method_id = data.get('payment_method_id')
-
-
-#         # Check for missing payment method or user ID
-#         if not payment_method_id or not user_id:
-#             return jsonify({"error": "Missing payment method ID or user ID"}), 400
-#         user = User.query.get(user_id)
-#         if not user:
-#             return jsonify({"error": "User not found"}), 404
-
-#         payment_method = stripe.PaymentMethod.retrieve(payment_method_id)
-#         print("are they the same: ", payment_method_id == payment_method.id)
-#         stripe.PaymentMethod.attach(
-#             payment_method_id,
-#             customer=user.Customer_ID
-#         )
-#         # Set the payment method as the default for future payments
-#         stripe.Customer.modify(
-#             user.Customer_ID,
-#             invoice_settings={"default_payment_method": payment_method_id},
-#         )
-#         return jsonify({"success": True}), 200
-
-#     except Exception as e:
-#         print(f"Error: {e}")
-#         return jsonify({"error": "Failed to save card"}), 400
-
 
 def update_item_bid(item_id, bid_amount, user_id):
     """
@@ -426,6 +398,24 @@ def place_bid():
         print(f"Error: {e}")
         return jsonify({"error": "Failed to place bid"}), 400
 
+def send_email(recipient, subject, body):
+    """
+    Sends an email to the specified recipient with the given subject and body.
+
+    Args:
+    - subject (str): The subject of the email.
+    - recipient (str): The email address of the recipient.
+    - body (str): The body of the email.
+    """
+    try:
+        msg = Message(subject, recipients=[recipient])
+        msg.body = body
+        mail.send(msg)
+        print("Email sent successfully (in send_email!\n")
+        return True
+    except Exception as e:
+        print(f"Error sending email: {e}")
+        return False
 
 # @app.route("/api/charge-user", methods=["POST"])
 def charge_user(
@@ -464,10 +454,12 @@ def charge_user(
             "payment_intent_id": payment_intent.id,
             "client_secret": payment_intent.client_secret,
             "status": payment_intent.status,
+            "success": True,
         }  # }), 200
     except Exception as e:
         print(f"Error: {e}")
-        return jsonify({"error": "Failed to charge user"}), 400
+        return {"error": "Failed to charge user", "success": False}
+        #return jsonify({"error": "Failed to charge user"}), 400
 
 
 @app.route("/api/charge-expired-auctions", methods=["POST"])
@@ -506,12 +498,25 @@ def charge_expired_auctions():
                     # Call the charge function
                     try:
                         charge_response = charge_user(bidder, bid_price)
+                        if charge_response["success"] == True:
 
-                        # After charging the user, update the item status: Sold = True 
-                        item.Sold = True  
-                        highest_bid.Winning_bid = True
-                        db.session.commit()
-                        logger.info("Charged user for item {item.Item_id}!\n")
+                            # After charging the user, update the item status: Sold = True 
+                            item.Sold = True  
+                            highest_bid.Winning_bid = True
+                            db.session.commit()
+                            logger.info("Charged user for item {item.Item_id}!\n")
+                            # send email to user
+                            #
+                            #msg.body = ("Congratulations " + user_name + "! You have won the auction for the item " + item_name + " at a price of £" + item_price + ".")
+                            email_body = "Congratulations " + bidder.First_name + "! You have won the auction for the item " + item.Listing_name + " at a price of £" + str(bid_price) + "."
+                            email_sent = send_email(bidder.Email, "Auction Won!", email_body)
+                            if email_sent == True:
+                                print("Email sent successfully!\n")
+                            else:
+                                print("Error sending email!\n")
+                                raise Exception("Failed to send email")
+                        else:
+                            raise Exception("Failed to charge user")
 
                     except Exception as e:
                         print(f"Error charging user for item {item.Item_id}: {e}")
