@@ -99,67 +99,73 @@ console.log("Data List:", data);
     }, [user]);
 
     return (
-        <div className="max-w-5xl mx-auto p-4 sm:p-6 bg-white shadow-lg rounded-lg overflow-x-auto">
-        <h2 className="text-2xl font-bold mb-4 text-center">Customer Information</h2>
-        
-        <div className="mb-4 flex items-center justify-start gap-4">
-                <h3 className="text-lg font-semibold">Search for Users</h3>
-                <Search_Component user={true} item={false} update_search={handle_search} />
-            </div>
-
-        <div className="overflow-auto">
+        <div className="relative min-h-screen bg-gray-100 px-[5%] md:px-[10%] py-8">
+          <div className="text-center mb-8">
+            <h1 className="text-2xl font-semibold text-center text-gray-800 mb-4">
+              Customer Information
+            </h1>
+            <p className="text-xl text-gray-500 mt-2">Search and manage customer details.</p>
+          </div>
+      
+          <div className="mb-4 flex items-center justify-start gap-4">
+            <h3 className="text-lg font-semibold">Search for Users</h3>
+            <Search_Component user={true} item={false} update_search={handle_search} />
+          </div>
+      
+          <div className="overflow-auto">
             <table className="min-w-full bg-white border border-gray-300 rounded-lg text-sm sm:text-base">
-                <thead>
-                    <tr className="bg-gray-100 text-left text-xs sm:text-sm">
-                        <th className="p-2 sm:p-3 border text-center">Select</th>
-                        <th className="p-2 sm:p-3 border">Name</th>
-                        <th className="p-2 sm:p-3 border">Email</th>
-                        <th className="p-2 sm:p-3 border">Level</th>
+              <thead>
+                <tr className="bg-gray-100 text-left text-xs sm:text-sm">
+                  <th className="p-2 sm:p-3 border text-center">Select</th>
+                  <th className="p-2 sm:p-3 border">Name</th>
+                  <th className="p-2 sm:p-3 border">Email</th>
+                  <th className="p-2 sm:p-3 border">Level</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.length > 0 ? (
+                  data.filter(user_display => user_display.User_id !== user.user_id).map((user_display) => (
+                    <tr key={user_display.User_id} className="border-b hover:bg-gray-50">
+                      <td className="p-2 sm:p-3 border text-center">
+                        <input
+                          type="checkbox"
+                          checked={selectedUsers.includes(user_display.User_id)}
+                          onChange={() => toggleSelect(user_display.User_id)}
+                        />
+                      </td>
+                      <td className="p-2 sm:p-3 border">{`${user_display.First_name} ${user_display.Middle_name} ${user_display.Surname}`}</td>
+                      <td className="p-2 sm:p-3 border">{user_display.Email}</td>
+                      <td className="p-2 sm:p-3 border">
+                        <select
+                          className="border rounded p-1 w-full sm:w-auto"
+                          value={newLevels[user_display.User_id] || user_display.Level_of_access}
+                          onChange={(e) => handleLevelChange(user_display.User_id, e.target.value)}
+                        >
+                          <option value="1">1</option>
+                          <option value="2">2</option>
+                          <option value="3">3</option>
+                        </select>
+                      </td>
                     </tr>
-                </thead>
-                <tbody>
-                    {data.length > 0 ? (
-                        data.filter(user_display => user_display.User_id != user.user_id ).map((user_display) => (
-                            <tr key={user_display.User_id} className="border-b hover:bg-gray-50">
-                                <td className="p-2 sm:p-3 border text-center">
-                                    <input
-                                        type="checkbox"
-                                        checked={selectedUsers.includes(user_display.User_id)}
-                                        onChange={() => toggleSelect(user_display.User_id)}
-                                    />
-                                </td>
-                                <td className="p-2 sm:p-3 border">{`${user_display.First_name} ${user_display.Middle_name} ${user_display.Surname}`}</td>
-                                <td className="p-2 sm:p-3 border">{user_display.Email}</td>
-                                <td className="p-2 sm:p-3 border">
-                                    <select
-                                        className="border rounded p-1 w-full sm:w-auto"
-                                        value={newLevels[user_display.User_id] || user_display.Level_of_access}
-                                        onChange={(e) => handleLevelChange(user_display.User_id, e.target.value)}
-                                    >
-                                        <option value="1">1</option>
-                                        <option value="2">2</option>
-                                        <option value="3">3</option>
-                                    </select>
-                                </td>
-                            </tr>
-                        ))
-                    ) : (
-                        <tr>
-                            <td colSpan="4" className="p-3 text-center text-gray-500">Loading...</td>
-                        </tr>
-                    )}
-                </tbody>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="4" className="p-3 text-center text-gray-500">Loading...</td>
+                  </tr>
+                )}
+              </tbody>
             </table>
-        </div>
-
-        <div className="mt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
+          </div>
+      
+          <div className="mt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
             <button
-                onClick={handleSave}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition w-full sm:w-auto"
+              onClick={handleSave}
+              className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition w-full sm:w-auto"
             >
-                Save
+              Save
             </button>
+          </div>
         </div>
-    </div>
-    );
+      );
+      
 }
