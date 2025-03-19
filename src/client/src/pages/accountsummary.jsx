@@ -215,27 +215,27 @@ const AccountSummary = () => {
             </div>
 
             {/* Card Details Section */}
-            <div className="p-6 mb-8">
-                <h2 className="text-2xl font-semibold text-gray-800 mb-4">Card Details</h2>
-                <p className="text-gray-500">Please ensure your card details have been entered before placing any bids.</p>
-                <div id="payment-form">
-
-                    {/* Card details form to be added here */}
-                    {/* to do/consider: */}
-                    {/*     remove if user is manager/expert */}
-                    {/*     only allow them to do it once */}
+            {user && user.level_of_access === 1 && (
+                <div className="p-6 mb-8">
+                    <h2 className="text-2xl font-semibold text-gray-800 mb-4">Card Details</h2>
+                    {!user.Setup_intent_ID ? (
+                        <p className="text-gray-500">Please enter your card details before placing any bids.</p>
+                    ) : (
+                        <p className="text-gray-500">Your card details have been saved!</p>
+                    )}
+                    <div id="payment-form">
+                        <div className="mb-4"></div>
+                        <div id="card-element">
+                            {/* A Stripe Element will be inserted here. */}
+                            <Elements stripe={stripePromise} >
+                                <PaymentForm userId={user?.User_id}/>
+                            </Elements>
+                        </div>
+                        <div id="card-errors" role="alert"></div>
                     
-                    <div className="mb-4"></div>
-                    <div id="card-element">
-                        {/* A Stripe Element will be inserted here. */}
-                        <Elements stripe={stripePromise} >
-                            <PaymentForm userId={user?.User_id}/>
-                        </Elements>
                     </div>
-                    <div id="card-errors" role="alert"></div>
-                
                 </div>
-            </div>
+            )}
 
             {/* Expert View Availability Section (Visible only for experts)*/}
             {is_expert && (

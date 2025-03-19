@@ -14,7 +14,10 @@ const PaymentForm = ({ userId }) => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     
-    
+    const agreeToTerms = window.confirm("By clicking OK, you agree to the terms and conditions of the website. \nYou agree to us saving your card for future purposes."); 
+    if (!agreeToTerms) {
+      return;
+    }
 
     if (!stripe || !elements) {
       // Stripe.js has not loaded yet

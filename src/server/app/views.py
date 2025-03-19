@@ -640,6 +640,7 @@ def get_current_user():
                     "first_name": current_user.First_name,
                     "level_of_access": current_user.Level_of_access,
                     "is_expert": current_user.Is_expert,
+                    "Setup_intent_ID": current_user.Setup_intent_ID,
                 }
             ),
             200,
