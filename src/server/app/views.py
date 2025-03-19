@@ -541,7 +541,12 @@ def outbid_notification():
         item_bids_list = (
             db.session.query(Bidding_history)
             .join(subquery, (Bidding_history.Item_id == subquery.c.Item_id) & (Bidding_history.Bid_datetime == subquery.c.max_bid_datetime))
-            .filter(Bidding_history.Bidder_id == user_to_notify)
+            .join(Items, Bidding_history.Item_id == Items.Item_id)
+            .filter(
+                Bidding_history.Bidder_id == user_to_notify,
+                Items.Sold == False,
+                Items.Available_until > datetime.datetime.now() # prevents notifications on expired items
+                )
             .order_by(Bidding_history.Bid_datetime.desc())
             .all()
         )
@@ -593,7 +598,8 @@ def get_notify_bid_end():
         # Get all items where the auction time has ended
         logger.info("Processing expired auctions for notifications...\n")
         expired_items = Items.query.filter(
-            Items.Available_until < datetime.datetime.now()
+            Items.Available_until < datetime.datetime.now(), 
+            Items.Sold == False, #check that they have not been sold
             ).all()
         expired_items_list = []
         # Process each expired item

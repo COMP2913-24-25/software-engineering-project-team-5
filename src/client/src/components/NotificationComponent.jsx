@@ -217,8 +217,10 @@ console.log("\n-----------------");
 
     // Log the state after it has been updated
     useEffect(() => {
+        if (user?.level_of_access === 1) {
         console.log("ITEM PAIRS: ", notifiedItemsBidPair);
         console.log("LOSS WIN ITEMS: ", lossWinItems);
+        }
     }, [notifiedItemsBidPair, lossWinItems]);
 
     useEffect(() => {
@@ -230,20 +232,24 @@ console.log("\n-----------------");
 
     // useEffect to charge expired auctions for all users
     useEffect(() => {
-        const interval = setInterval(chargeExpiredAuctions, 10000); // every 10 seconds check
+        const interval = setInterval(chargeExpiredAuctions, 60000); // every 60 seconds check
         return () => clearInterval(interval);
     }, []);
 
-    // useEffect to check for outbiddings for all users
+    // useEffect to check for outbiddings for level 1 users
     useEffect(() => {
+        if (user?.level_of_access === 1) {
         const interval = setInterval(check_for_outbiddings, 10000); // every 10 seconds check
         return () => clearInterval(interval);
+        }
     }, []);
 
-    // useEffect to check for win/loss for all users
+    // useEffect to check for win/loss for level 1 users
     useEffect(() => {
+        if (user?.level_of_access === 1) {
         const interval = setInterval(check_for_winning_or_losing, 10000); // every 10 seconds check
         return () => clearInterval(interval);
+        }
     }, []);
 
     return (
