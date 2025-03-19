@@ -8,36 +8,23 @@ import { useNavigate } from "react-router-dom";
 import { useCSRF } from "../App"; // Calls the user
 import Listing_item from "../components/listing_items";
 import "../App.css";
-// import ItemListing from "../components/itemlisting";
 import Filter_component from "../components/Filter_Sidebar";
 // import Navbar from "../components/navbar";
-export default function CurrentListings({ searchQuery }) {
+export default function CurrentListings({}) {
     const [listings, set_listings] = useState([]);
     const [price_filtered_listings, setprice_filtered_listings] = useState([]); // Stores price-filtered data
-    // const [minPrice, setMinPrice] = useState(4);
-    // const [maxPrice, setMaxPrice] = useState(100000);
-    // max min will be used when price filtering is through sliding convention
     const navigate = useNavigate();
-    // console.log("Listings Recieved :", listings_recieved);
-    // console.log("SEARCH QUERY", searchQuery);
-    // const [middle_type, set_middletype] = useState([]);
-    // const [types, set_types] = useState([]);
     const { csrfToken } = useCSRF();
-    // useEffect(() => {
-    //     set_listings(listings_recieved);
-    // },[listings_recieved]);
+ 
     const location = useLocation();
-    const searchQuery_current = location.state?.searchQuery || "";
+    const searchQuery = location.state?.searchQuery || ""; 
+    //default is not actually "" but " "
+  
 
-    // useEffect(() => {
-    //     // console.log("Listings Recieved :", listings_recieved);
-    //     // console.log("Listings Set :", listings);
-    //     console.log("Updated Listings:", listings);
-    // }, [listings]); // This effect runs whenever `listings` changes
 
     useEffect(() => {
         const fetchListings = async () => {
-            console.log("SEARCH IN CURRENT LISTING", searchQuery_current);
+            // console.log("SEARCH IN CURRENT LISTING :", searchQuery);
             try {
                 const search_filter_response = await fetch(
                     "http://localhost:5000/api/get_search_filter",
@@ -50,38 +37,16 @@ export default function CurrentListings({ searchQuery }) {
                         body: JSON.stringify({
                             item: true,
                             user: false,
-                            searchQuery: searchQuery_current,
+                            searchQuery: searchQuery,
                         }),
                         credentials: "include",
                     }
                 );
 
                 const filtered_items = await search_filter_response.json();
-                // console.log("FILTERED ID RESPONSE", filtered_Ids);
-                // const filteredListings_search = listings.filter(listing => filtered_Ids.includes(listing.Item_id));
                 console.log("Filtered items", filtered_items);
 
                 if (search_filter_response.ok) {
-                    //Filter works only for a single word searchQuery
-                    //Need to move into database for filtering
-                    //Filtering by name
-                    //Item name : adidas shoe, then it would work for any letters entered in the right sequence
-                    // works for : adi, a, adidas, s, sho, shoe
-                    // does not work for : did, ho, adidas shoe
-                    // should work for : adidas shoe
-                    //     const filteredListings_search = searchQuery
-                    //     ? listings_data.filter((listings) =>{
-                    //         if (!listings?.Listing_name) return false;
-
-                    //             const name_tokens = listings.Listing_name.toLowerCase().split(/\s+/); // Tokenize name
-                    //             const search = searchQuery.toLowerCase().trim();
-                    //             console.log("tokens ", name_tokens);
-                    //             return name_tokens.some(token => token.startsWith(search));
-
-                    // })
-                    //     : listings_data;
-
-                    // set only by search Query
                     set_listings(filtered_items);
                     setprice_filtered_listings(filtered_items);
                     console.log("Fetched Listings: ", listings);
@@ -93,7 +58,7 @@ export default function CurrentListings({ searchQuery }) {
             }
         };
         fetchListings();
-    }, [searchQuery_current]);
+    }, [searchQuery]);
 
     //no committed yet
     const handleItemClick = (item) => {
