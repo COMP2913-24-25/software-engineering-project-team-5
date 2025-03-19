@@ -33,13 +33,39 @@ const AccountSummary = () => {
     const { user } = useUser();
     const { csrfToken } = useCSRF();
 
+    // Setup intent ID for the user
+    const [setupIntentId, setSetupIntentId] = useState(user?.Setup_intent_ID);
+
     // Check if user is logged in and redirect if not
     useEffect(() => {
         if (user === null) {
             navigate("/invalid-access-rights");
         }
     }, [user, navigate]);
+    // Fetch the latest user data when the component mounts
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                const response = await fetch('http://localhost:5000/api/get-user-details', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        "X-CSRF-TOKEN": csrfToken,
+                    },
+                    credentials: "include",
+                });
+                const updatedUser = await response.json();
+                
+                setSetupIntentId(updatedUser.Setup_intent_ID);
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+            }
+        };
 
+        if (user) {
+            fetchUserData();
+        }
+    }, [user, csrfToken]);
     // Variable to store address information
     const [addresses, set_addresses] = useState([]);
 
@@ -157,6 +183,12 @@ const AccountSummary = () => {
         return week_start_date.toISOString().split("T")[0];
     };
 
+    // Function to handle the card details submitted info shown
+    const handleCardDetailsSubmitted = (newSetupIntentId) => {
+        console.log("New setup intent id: ", newSetupIntentId);
+        setSetupIntentId(newSetupIntentId);
+    };
+
     const is_expert = user?.level_of_access === 2;
     const is_sunday = new Date().getDay() === 0; // 0 is representing Sunday in this case
     //const is_sunday = true; // For testing purposes
@@ -218,7 +250,7 @@ const AccountSummary = () => {
             {user && user.level_of_access === 1 && (
                 <div className="p-6 mb-8">
                     <h2 className="text-2xl font-semibold text-gray-800 mb-4">Card Details</h2>
-                    {!user.Setup_intent_ID ? (
+                    {!setupIntentId ? (
                         <p className="text-gray-500">Please enter your card details before placing any bids.</p>
                     ) : (
                         <p className="text-gray-500">Your card details have been saved!</p>
@@ -228,7 +260,7 @@ const AccountSummary = () => {
                         <div id="card-element">
                             {/* A Stripe Element will be inserted here. */}
                             <Elements stripe={stripePromise} >
-                                <PaymentForm userId={user?.User_id}/>
+                                <PaymentForm userId={user?.User_id} onCardDetailsSubmitted={handleCardDetailsSubmitted}/>
                             </Elements>
                         </div>
                         <div id="card-errors" role="alert"></div>
