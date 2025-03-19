@@ -64,8 +64,7 @@ class Items(db.Model):
     # Columns
     Item_id = db.Column(db.Integer, primary_key=True)
     Listing_name = db.Column(db.String(50), nullable=False)
-    Seller_id = db.Column(db.Integer, db.ForeignKey('user.User_id'), nullable=True) #just for testing
-    #Seller_id = db.Column(db.Integer, db.ForeignKey('user.User_id'), nullable=False)
+    Seller_id = db.Column(db.Integer, db.ForeignKey('user.User_id'), nullable=False)
     Upload_datetime = db.Column(db.DateTime, default=datetime.datetime.now(datetime.UTC))
     Available_until = db.Column(db.DateTime, nullable=False)
     Min_price = db.Column(db.Float, nullable=False)

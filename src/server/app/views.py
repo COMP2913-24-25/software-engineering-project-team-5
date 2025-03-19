@@ -785,6 +785,9 @@ def get_user_details():
             "Username": user_details.Username,
             "Level_of_access": user_details.Level_of_access,
             "is_expert": user_details.Is_expert,
+            "Customer_ID": user_details.Customer_ID,
+            "Setup_intent_ID": user_details.Setup_intent_ID,
+            "Payment_method_ID": user_details.Payment_method_ID
         }
 
         # If the user is an expert, retrieve their expertise types
