@@ -501,7 +501,7 @@ def get_search_filter():
             .all()
         )
         # print("in item bool")
-        if not searchQuery:
+        if searchQuery == " ":
                 # Return all items
             print("Empty search Query")
             filtered_items = available_items
@@ -558,7 +558,7 @@ def get_search_filter():
         # Ensure Items model has a to_dict() method
     elif user :
         #for now just returns all
-        if not searchQuery:
+        if not searchQuery or searchQuery == " ":
             filtered_users = db.session.query(User).all()
             print(filtered_users)
             
