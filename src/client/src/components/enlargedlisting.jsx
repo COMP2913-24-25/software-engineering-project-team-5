@@ -200,6 +200,7 @@ const EnlargedListingPage = () => {
 
     // bidding 
     const handleBidChange = (e) => {
+        console.log("EEEEEE = ", e.target.value);
         setBidAmount(e.target.value);
     };
     const handlePlaceBid = async () => {
