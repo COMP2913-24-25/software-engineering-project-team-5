@@ -434,6 +434,12 @@ def update_level():
                 return jsonify({"error" : "User no found"}), 404
             
             user.Level_of_access = new_levels[i]
+            print(new_levels[i])
+            if(new_levels[i] == "2"):
+                print("changed to expert")
+                user.Is_expert = 1
+            else:
+                user.Is_expert = 0
             db.session.commit()
         
         return jsonify({"message": "Levels updated successfully"}), 200
