@@ -20,7 +20,7 @@ const CreateListing = () => {
 
     const { csrfToken } = useCSRF();
 
-    const [fee, setFee] = useState(5);
+    const [eFee, setEFee] = useState(5);
 
     const [mFee, setMFee] = useState(1);
 
@@ -121,7 +121,7 @@ const CreateListing = () => {
             if (response.ok) {
                 const { manager_split, expert_split } = data.profit_data;
                 setMFee(manager_split);
-                setFee(expert_split + manager_split);
+                setEFee(expert_split);
 
             } else {
                 alert(data.Error || "Failed to fetch profit structure");
@@ -298,6 +298,9 @@ const CreateListing = () => {
                                     </p>
                                 ))}
                         </div>
+                        <span className="text-gray-600">
+                            {Math.round(mFee * 100)}% Standard fee charged
+                        </span>
                     </div>
 
                     {/* Tag Selector */}
@@ -343,9 +346,6 @@ const CreateListing = () => {
                         <label className="block text-gray-700 text-xl font-medium mt-5">
                             Authentication Request
                         </label>
-                        <span className="text-gray-600">
-                            {Math.round(mFee * 100)}% Standard fee charged
-                        </span>
                         <label className="flex items-center space-x-2">
                             <input
                                 type="checkbox"
@@ -355,7 +355,7 @@ const CreateListing = () => {
                                 className="focus:ring-blue-500 h-4 w-4"
                             />
                             <span className="text-gray-600">
-                                Enable Authentication ({Math.round(fee * 100)}% fee of winning bid if approved - Standard fee included)
+                                Enable Authentication ({Math.round(eFee * 100)}% Expert fee added to winning bid ➜ {Math.round(eFee*100 + mFee*100)}% Total listing fee)
                             </span>
                         </label>
                     </div>
