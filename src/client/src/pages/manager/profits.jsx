@@ -131,7 +131,7 @@ export default function Dashboard() {
 
             weeklyData[weekNumber].expertProfit += expertProfit;
             weeklyData[weekNumber].managerProfit += managerProfit;
-            weeklyData[weekNumber].totalProfit += current_bid;
+            weeklyData[weekNumber].totalProfit += expertProfit + managerProfit;
         });
 
         return Object.keys(weeklyData).map((week) => ({

@@ -107,7 +107,9 @@ const ItemListing = ({
                     {labels.map((label, index) => (
                         <p key={index} className="text-gray-800 font-semibold">{label}</p>
                     ))}
-                    <p className="text-gray-800 font-semibold">Time Remaining: {timeRemaining}</p>
+                    {availableUntil && (
+                        <p className="text-gray-800 font-semibold">Time Remaining: {timeRemaining}</p>
+                    )}
                 </div>
             </div>
 
