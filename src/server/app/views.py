@@ -547,8 +547,12 @@ def get_search_filter():
             # filtering by first, middle, last name
             user_names_and_Ids = db.session.query(User.First_name, User.Middle_name, User.Surname, User.User_id).all()
             for first, middle, last, user_id in user_names_and_Ids:
-                name_tokens = [first.lower(), middle.lower(), last.lower()]
-                # print("NAME", name_tokens)
+                if middle == ""  or middle == None :
+                    name_tokens = [first.lower(), middle, last.lower()]
+                else :
+                    name_tokens = [first.lower(), middle.lower(), last.lower()]    
+                    
+                    # print("NAME", name_tokens)
                 search_tokens = searchQuery.lower().split()
         
                 # if searchQuery has two tokens, it matches both in the same sequence to the name token
@@ -558,7 +562,7 @@ def get_search_filter():
                     if len(search_tokens) <= len(name_tokens): 
                         # if name_tokens is greater than two, it matches first search_token to first name,
                         # second to middle name, third to last
-                        if name_tokens[1] != "" :
+                        if name_tokens[1] != "" and name_tokens[1] != None:
                             for i in range(len(search_tokens)):
                                 if not name_tokens[i].lower().startswith(search_tokens[i]):
                                     matched = False
@@ -590,8 +594,9 @@ def get_search_filter():
                         
                 elif len(search_tokens) == 1 :
                     for i in range(len(name_tokens)):
-                        if name_tokens[i].lower().startswith(search_tokens[0]):
-                            filtered_user_ids.append(user_id)
+                        if name_tokens[i] != None:
+                            if name_tokens[i].lower().startswith(search_tokens[0]):
+                                filtered_user_ids.append(user_id)
 
                         
                             
@@ -995,12 +1000,25 @@ def get_seller_listings():
             .filter(
                 Items.Seller_id == current_user.User_id,
                 Items.Available_until > datetime.datetime.now(),
+                db.or_(
+                    db.and_(
+                        Items.Authentication_request == False,
+                        Items.Verified == True,
+                        Items.Authentication_request_approved == True,
+                    ),
+                    db.and_(
+                        Items.Authentication_request == False,
+                        Items.Verified == False,
+                        Items.Authentication_request_approved == None,
+                    )
+                ), 
             )
             .all()
         )
 
         items_list = []
         for item, username in available_items:
+
 
             image = Images.query.filter(Images.Item_id == item.Item_id).first()
 
@@ -1506,6 +1524,7 @@ def get_sold():
                         Items.Current_bid,
                         Items.Structure_id,
                         Items.Expert_id,
+                        Items.Verified,
                         Profit_structure.Expert_split,
                         Profit_structure.Manager_split,
                         Profit_structure.Enforced_datetime,
@@ -1515,24 +1534,22 @@ def get_sold():
                 )
 
                 sold_items_data = []
-                for item in sold_items:
-                    if item.Authentication_request == 0:
-                        eSplit = 0
+                for item in sold_items:    
+
+                    if item.Authentication_request_approved == 1 and item.Verified == 1: 
+                        if item.Structure_id is None:
+                            eSplit = 0.04
+                            mSplit = 0.01   
+                        else:
+                            eSplit = item.Expert_split
+                            mSplit = item.Manager_split
+                    else:
                         if item.Structure_id:
                             mSplit = item.Manager_split
+                            eSplit = 0
                         else:
                             mSplit = 0.01
-                    else:
-                        if item.Authentication_request_approved == 1:
-                            if item.Structure_id is None:
-                                eSplit = 0.04
-                                mSplit = 0.01   
-                            else:
-                                eSplit = item.Expert_split
-                                mSplit = item.Manager_split                                                       
-                        else:
-                            eSplit = 0
-                            mSplit = item.Manager_split                           
+                            eSplit = 0                                             
 
                     sold_items_data.append(
                         {
