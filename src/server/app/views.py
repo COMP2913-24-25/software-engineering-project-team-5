@@ -41,15 +41,18 @@ from werkzeug.utils import secure_filename
 import datetime
 
 # Stripe API/payment related imports
-import stripe 
-stripe.api_key = 'sk_test_51QvN8MIrwvA3VrIBU92sndiPG7ZWIgYImzVxVP2ofd1xEDLpwPgF4fgWNsWpVm46klGLfcfbjTvbec7Vfi11p9vk00ODQbcday'
+import stripe
+
+stripe.api_key = "sk_test_51QvN8MIrwvA3VrIBU92sndiPG7ZWIgYImzVxVP2ofd1xEDLpwPgF4fgWNsWpVm46klGLfcfbjTvbec7Vfi11p9vk00ODQbcday"
 
 import traceback
 import logging
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 from sqlalchemy.orm import aliased
 from sqlalchemy import func
+
 # periodic checking of expired auctions
 # from celery import Celery
 # from celery.schedules import crontab
@@ -167,7 +170,11 @@ def signup():
     # Creates a new user with given data
     user = User(
         First_name=data["first_name"].capitalize(),
-        Middle_name=data["middle_name"].capitalize(),
+        Middle_name=(
+            None
+            if data["middle_name"].strip() == ""
+            else data["middle_name"].capitalize()
+        ),
         Surname=data["surname"].capitalize(),
         DOB=DOB,
         Username=data["username"],
@@ -187,6 +194,7 @@ def signup():
     # Returns a success message and a status code of 200 (ok)
     return jsonify({"message": "User created successfully"}), 200
 
+
 @app.route("/api/create-stripe-customer", methods=["POST"])
 def create_stripe_customer():
     """
@@ -201,21 +209,22 @@ def create_stripe_customer():
     try:
         # Checks if the user is logged in
         if current_user.is_authenticated:
-            
+
             # gets user's name, and email
-            
+
             user_id = current_user.User_id
             user_details = User.query.filter_by(User_id=user_id).first()
 
             f_name = user_details.First_name
             s_name = user_details.Surname
             user_email = user_details.Email
-            
+
             # Creates a new customer in the Stripe database
 
             new_customer = stripe.Customer.create(
-                name = f_name + " " + s_name,
-                email = user_email,)
+                name=f_name + " " + s_name,
+                email=user_email,
+            )
             # Adds the customer ID to the user in the local database
 
             user = User.query.get(user_id)
@@ -225,12 +234,16 @@ def create_stripe_customer():
 
             return jsonify({"message": "Stripe customer created!"}), 200
 
-        return jsonify({"message": "No user logged in, unable to create stripe customer"}), 401
+        return (
+            jsonify({"message": "No user logged in, unable to create stripe customer"}),
+            401,
+        )
     except Exception as e:
         print(f"Error: {e}")
         print(traceback.format_exc())
         return jsonify({"error": "Failed to create Stripe customer"}), 500
-    
+
+
 @app.route("/api/create-setup-intent", methods=["POST"])
 def create_setup_intent():
     """
@@ -246,7 +259,7 @@ def create_setup_intent():
         # Checks if the user is logged in
         if current_user.is_authenticated:
             data = request.json
-            payment_method_id = data.get('payment_method_id')
+            payment_method_id = data.get("payment_method_id")
             user_id = current_user.User_id
             user_details = User.query.filter_by(User_id=user_id).first()
             customer_id = user_details.Customer_ID
@@ -254,19 +267,15 @@ def create_setup_intent():
             # Creates a new setup intent in the Stripe database
             setup_intent = stripe.SetupIntent.create(
                 confirm=True,
-                customer = customer_id,
-                #currency = 'gbp',
+                customer=customer_id,
+                # currency = 'gbp',
                 payment_method=payment_method_id,
                 # payment_method_types = ['card'],
                 # receipt_email = user_details.Email,
-                usage = 'off_session',
-                automatic_payment_methods={
-                    "enabled": True,
-                    "allow_redirects": "never"
-                }
-                
+                usage="off_session",
+                automatic_payment_methods={"enabled": True, "allow_redirects": "never"},
             )
-            #setup_future_usage, receipt_email, currency
+            # setup_future_usage, receipt_email, currency
 
             # Adds the setup intent ID to the user in the local database
             user = User.query.get(user_id)
@@ -275,13 +284,22 @@ def create_setup_intent():
 
             db.session.commit()
 
-            return jsonify(id=setup_intent.id, client_secret=setup_intent.client_secret), 200
+            return (
+                jsonify(id=setup_intent.id, client_secret=setup_intent.client_secret),
+                200,
+            )
 
-        return jsonify({"message": "No user logged in, unable to create stripe setup intent"}), 401
+        return (
+            jsonify(
+                {"message": "No user logged in, unable to create stripe setup intent"}
+            ),
+            401,
+        )
     except Exception as e:
         logger.error(f"Error: {e}")
         logger.error(traceback.format_exc())
         return jsonify({"error": e}), 400
+
 
 # so this will be needed if we want multiple cards linked to the same person??
 # #may not work mila or Isnt needed??
@@ -294,7 +312,7 @@ def create_setup_intent():
 #         user_id = data.get('userId')
 #         payment_method_id = data.get('payment_method_id')
 
-        
+
 #         # Check for missing payment method or user ID
 #         if not payment_method_id or not user_id:
 #             return jsonify({"error": "Missing payment method ID or user ID"}), 400
@@ -306,7 +324,7 @@ def create_setup_intent():
 #         print("are they the same: ", payment_method_id == payment_method.id)
 #         stripe.PaymentMethod.attach(
 #             payment_method_id,
-#             customer=user.Customer_ID  
+#             customer=user.Customer_ID
 #         )
 #         # Set the payment method as the default for future payments
 #         stripe.Customer.modify(
@@ -318,6 +336,7 @@ def create_setup_intent():
 #     except Exception as e:
 #         print(f"Error: {e}")
 #         return jsonify({"error": "Failed to save card"}), 400
+
 
 def update_item_bid(item_id, bid_amount, user_id):
     """
@@ -337,7 +356,11 @@ def update_item_bid(item_id, bid_amount, user_id):
         db.session.commit()
 
         # makes previous bid (if exists) unsuccessful
-        prev_bid = Bidding_history.query.filter_by(Item_id=item_id, Successful_bid=True).order_by(Bidding_history.Bid_datetime.desc()).first()
+        prev_bid = (
+            Bidding_history.query.filter_by(Item_id=item_id, Successful_bid=True)
+            .order_by(Bidding_history.Bid_datetime.desc())
+            .first()
+        )
         if prev_bid is not None:
             prev_bid.Successful_bid = False
             db.session.commit()
@@ -362,8 +385,7 @@ def update_item_bid(item_id, bid_amount, user_id):
         print(f"Error: {e}")
 
 
-
-@app.route('/api/place-bid', methods=['POST'])
+@app.route("/api/place-bid", methods=["POST"])
 def place_bid():
     """
     Places a bid on an auction item.
@@ -373,20 +395,29 @@ def place_bid():
     item_id = data.get("Item_id")
     bid_amount = data.get("Bid_amount")
     user_id = data.get("User_id")
-    try: 
-        if (current_user.Setup_intent_ID == None or current_user.Payment_method_ID == None):
-            return jsonify({"message": "Please add a payment method to place a bid"}), 402 #402 Payment Required
+    try:
+        if (
+            current_user.Setup_intent_ID == None
+            or current_user.Payment_method_ID == None
+        ):
+            return (
+                jsonify({"message": "Please add a payment method to place a bid"}),
+                402,
+            )  # 402 Payment Required
         item = Items.query.filter_by(Item_id=item_id).first()
         if not item:
             return jsonify({"message": "Item not found"}), 404
-        
+
         # Validate bid (check if the bid is higher than the current minimum price)
-        
+
         if float(bid_amount) < float(item.Min_price):
-            return jsonify({"message": "Bid must be higher than the minimum price"}), 400
+            return (
+                jsonify({"message": "Bid must be higher than the minimum price"}),
+                400,
+            )
         if float(bid_amount) <= float(item.Current_bid):
             return jsonify({"message": "Bid must be higher than the current bid"}), 400
-        
+
         # Place the bid and update the item price
         update_item_bid(item_id, bid_amount, user_id)
 
@@ -396,8 +427,11 @@ def place_bid():
         return jsonify({"error": "Failed to place bid"}), 400
 
 
-#@app.route("/api/charge-user", methods=["POST"])
-def charge_user(user_tbc, bid_price, ):
+# @app.route("/api/charge-user", methods=["POST"])
+def charge_user(
+    user_tbc,
+    bid_price,
+):
     """
     Args:
     - user_tbc: user to be charged
@@ -414,31 +448,27 @@ def charge_user(user_tbc, bid_price, ):
     # -if successful bid
     # bidder_id = None # user id to be charged
     try:
-        
 
         payment_intent = stripe.PaymentIntent.create(
             amount=int(bid_price * 100),  # convert to pence
-            currency='gbp',
+            currency="gbp",
             confirm=True,
             customer=user_tbc.Customer_ID,
             payment_method=user_tbc.Payment_method_ID,
             receipt_email=user_tbc.Email,
-            #off_session=True
-            automatic_payment_methods={
-                "enabled": True,
-                "allow_redirects": "never"
-            }
+            # off_session=True
+            automatic_payment_methods={"enabled": True, "allow_redirects": "never"},
         )
         print("Charged user in charge_user()!\n")
-        return{ # jsonify({
+        return {  # jsonify({
             "payment_intent_id": payment_intent.id,
             "client_secret": payment_intent.client_secret,
             "status": payment_intent.status,
-        } #}), 200
+        }  # }), 200
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({"error": "Failed to charge user"}), 400
-    
+
 
 @app.route("/api/charge-expired-auctions", methods=["POST"])
 def charge_expired_auctions():
@@ -451,16 +481,22 @@ def charge_expired_auctions():
         logger.info("Processing expired auctions...\n")
         expired_items = Items.query.filter(
             Items.Available_until < datetime.datetime.now(),
-            Items.Sold == False, #check that they have not been sold
-            ).all()
+            Items.Sold == False,  # check that they have not been sold
+        ).all()
 
         # Process each expired item
         for item in expired_items:
             # Get the highest bid from the bidding history
-            highest_bid = Bidding_history.query.filter_by(Item_id=item.Item_id).order_by(Bidding_history.Bid_price.desc()).first()
-            
+            highest_bid = (
+                Bidding_history.query.filter_by(Item_id=item.Item_id)
+                .order_by(Bidding_history.Bid_price.desc())
+                .first()
+            )
+
             if highest_bid:
-                bidder_id = highest_bid.Bidder_id  # Get the user who placed the highest bid
+                bidder_id = (
+                    highest_bid.Bidder_id
+                )  # Get the user who placed the highest bid
                 bid_price = highest_bid.Bid_price  # Get the bid amount
 
                 # Get the bidder's details (e.g., Customer ID, Payment Method ID, etc.)
@@ -469,7 +505,7 @@ def charge_expired_auctions():
                 if bidder:
                     # Call the charge function
                     try:
-                        charge_response = charge_user(bidder, bid_price)  
+                        charge_response = charge_user(bidder, bid_price)
 
                         # After charging the user, update the item status: Sold = True 
                         item.Sold = True  
@@ -486,6 +522,7 @@ def charge_expired_auctions():
     except Exception as e:
         print(f"Error processing expired auctions: {e}")
         return jsonify({"error": "Failed to process expired auctions"}), 500
+
 
 @app.route("/api/charge-manual", methods=["POST"])
 def charge_manual():
@@ -523,14 +560,14 @@ def outbid_notification():
     try:
         notification_list = []
         # Check for expired auctions and charge the highest bidder
-        user_to_notify = current_user.User_id 
+        user_to_notify = current_user.User_id
         # trying to fix
-        
+
         # Subquery to get the most recent bid for each Item_id by the user
         subquery = (
             db.session.query(
                 Bidding_history.Item_id,
-                func.max(Bidding_history.Bid_datetime).label('max_bid_datetime')
+                func.max(Bidding_history.Bid_datetime).label("max_bid_datetime"),
             )
             .filter(Bidding_history.Bidder_id == user_to_notify)
             .group_by(Bidding_history.Item_id)
@@ -553,32 +590,69 @@ def outbid_notification():
         # Print the results
         print("\nItem_bid_list: ", item_bids_list, "-------------\n\n")
         for item_bid in item_bids_list:
-            print("Item bid is :", item_bid, "with id of ", item_bid.Item_id, "for user with id ", item_bid.Bidder_id)
+            print(
+                "Item bid is :",
+                item_bid,
+                "with id of ",
+                item_bid.Item_id,
+                "for user with id ",
+                item_bid.Bidder_id,
+            )
         # end trying to fix
         # get the most recent bid of unique items that user has bid on
-        #item_bids_list = Bidding_history.query.filter_by(Bidder_id=user_to_notify).distinct(Bidding_history.Item_id).order_by(Bidding_history.Bid_datetime.desc()).all()
+        # item_bids_list = Bidding_history.query.filter_by(Bidder_id=user_to_notify).distinct(Bidding_history.Item_id).order_by(Bidding_history.Bid_datetime.desc()).all()
         # get the items that user has the highest/latest bid on
-        #logger.info("Item_bid_list: ",  item_bids_list)
-        print("\nItem_bid_list: ",  item_bids_list, "-------------\n\n")
+        # logger.info("Item_bid_list: ",  item_bids_list)
+        print("\nItem_bid_list: ", item_bids_list, "-------------\n\n")
         for item_bid in item_bids_list:
-            print("ITem bid is :", item_bid, "with id of ", item_bid.Item_id, "for user with id ", item_bid.Bidder_id)
-            print("     Price is :", item_bid.Bid_price, "at time ", item_bid.Bid_datetime)
+            print(
+                "ITem bid is :",
+                item_bid,
+                "with id of ",
+                item_bid.Item_id,
+                "for user with id ",
+                item_bid.Bidder_id,
+            )
+            print(
+                "     Price is :", item_bid.Bid_price, "at time ", item_bid.Bid_datetime
+            )
             item_id = item_bid.Item_id
-            #logger.info("   Item id in list: ",  item_id)
+            # logger.info("   Item id in list: ",  item_id)
             item_obj = Items.query.filter_by(Item_id=item_id).first()
-            #get the latest bid for that item
-            latest_bid = Bidding_history.query.filter_by(Item_id=item_id).order_by(Bidding_history.Bid_datetime.desc()).first()
+            # get the latest bid for that item
+            latest_bid = (
+                Bidding_history.query.filter_by(Item_id=item_id)
+                .order_by(Bidding_history.Bid_datetime.desc())
+                .first()
+            )
             if latest_bid.Bidder_id == user_to_notify:
                 # this is the users own bid, send no notification
                 # return jsonify({"status": 2, "message": "Notification checks complete"}), 200
 
                 pass
             else:
-                notification_list.append({"status": 1, "User_ID_outbid": current_user.User_id, "Item_ID": item_id, "Item_Name": item_obj.Listing_name, "Outbid_Price": item_obj.Current_bid, "message": "You have been out bid in an auction"})
+                notification_list.append(
+                    {
+                        "status": 1,
+                        "User_ID_outbid": current_user.User_id,
+                        "Item_ID": item_id,
+                        "Item_Name": item_obj.Listing_name,
+                        "Outbid_Price": item_obj.Current_bid,
+                        "message": "You have been out bid in an auction",
+                    }
+                )
                 # send outbid notification
                 # return jsonify({"status": 1, "ItemName": item_obj.Listing_name, "message": "You have been out bid in an auction"}), 200
                 pass
-        return jsonify({"outbid_notification_list": notification_list, "message": "Notification checks complete"}), 200
+        return (
+            jsonify(
+                {
+                    "outbid_notification_list": notification_list,
+                    "message": "Notification checks complete",
+                }
+            ),
+            200,
+        )
 
     except Exception as e:
         print(f"Error processing notifications: {e}")
@@ -654,15 +728,14 @@ def get_all_users():
     print("Wuery reached")
 
     users = User.query.all()
-    print("USERS:",users)
+    print("USERS:", users)
     user_details_list = []
-    
+
     if not users:
         return jsonify({"message": "No users found"}), 404
-    
-    
+
     for user in users:
-        
+
         user_details_dict = {
             "User_id": user.User_id,
             "First_name": user.First_name,
@@ -676,24 +749,27 @@ def get_all_users():
         }
         user_details_list.append(user_details_dict)
     print(user_details_list)
-    
-    return jsonify(user_details_list), 200 
- 
+
+    return jsonify(user_details_list), 200
+
+
 @app.route("/api/get-user-details", methods=["POST"])
 def get_user_details():
     """
-    Retrieves the user's details from the database, if they
-    are currently logged in.
+    Retrieves the user's details from the database, including expertise types
+    if they are an expert (Level_of_access == 2).
 
     Returns:
-        json_object: dictionary containing the user's details
-        status_code: HTTP status code (200 for success,
-                                       401 for unauthorized access)
+        json_object: dictionary containing the user's details (and expertise types if applicable)
+        status_code: HTTP status code (200 for success, 401 for unauthorized access)
     """
 
     if current_user.is_authenticated:
         user_id = current_user.User_id
         user_details = User.query.filter_by(User_id=user_id).first()
+
+        if not user_details:
+            return jsonify({"message": "User not found"}), 404
 
         user_details_dict = {
             "First_name": user_details.First_name,
@@ -702,9 +778,21 @@ def get_user_details():
             "DOB": user_details.DOB.strftime("%Y-%m-%d"),
             "Email": user_details.Email,
             "Username": user_details.Username,
-            "Level_of_access" : user_details.Level_of_access,
+            "Level_of_access": user_details.Level_of_access,
             "is_expert": user_details.Is_expert,
         }
+
+        # If the user is an expert, retrieve their expertise types
+        if user_details.Level_of_access == 2:
+            expertise_types = (
+                db.session.query(Types.Type_name)
+                .join(Middle_expertise, Types.Type_id == Middle_expertise.Type_id)
+                .filter(Middle_expertise.Expert_id == user_id)
+                .all()
+            )
+            user_details_dict["expertise_types"] = [
+                type_name[0] for type_name in expertise_types
+            ]
 
         return jsonify(user_details_dict), 200
 
@@ -858,33 +946,34 @@ def update_user_details():
 
     return jsonify({"message": "No user logged in"}), 401
 
-@app.route("/api/update_level", methods = ["POST"])
+
+@app.route("/api/update_level", methods=["POST"])
 def update_level():
     print("REACHED update_level")
-    try :
+    try:
         data = request.json
         user_ids = data.get("user_id", "")
         new_levels = data.get("level_of_access", "")
-        for i in range(len(user_ids)) :
-            user = User.query.filter_by(User_id = user_ids[i]).first()
+        for i in range(len(user_ids)):
+            user = User.query.filter_by(User_id=user_ids[i]).first()
             # print(f"will update user_id {user_ids[i]} to level : {new_levels[i]}")
 
-            if not user :
-                return jsonify({"error" : "User no found"}), 404
-            
+            if not user:
+                return jsonify({"error": "User no found"}), 404
+
             user.Level_of_access = new_levels[i]
             db.session.commit()
-        
+
         return jsonify({"message": "Levels updated successfully"}), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 
-@app.route("/api/get_search_filter", methods =["POST"])
+@app.route("/api/get_search_filter", methods=["POST"])
 def get_search_filter():
     """
-    This endpoint handles filtering of items based on the search query provided by the user. 
+    This endpoint handles filtering of items based on the search query provided by the user.
     It can filter either by user or item based on the input flags (`user` or `item`) and search query.
 
     Request Body (JSON):
@@ -893,15 +982,15 @@ def get_search_filter():
     - searchQuery (str): The search term used to filter item names and item tags.
 
     Response Body:
-    - A list of dictionaries containing filtered item details, including the item ID, listing name, 
+    - A list of dictionaries containing filtered item details, including the item ID, listing name,
       seller ID, availability, verification status, minimum price, current bid, and item image (if available).
 
     Returns:
         JSON: A list of filtered item details (based on the search query).
     """
-    
+
     data = request.json
-    user = data.get("user","")
+    user = data.get("user", "")
     item = data.get("item", "")
     searchQuery = (data.get("searchQuery", "")).strip().lower()
     # print("SEARCH QUERY IN BACKEND", searchQuery)
@@ -913,46 +1002,60 @@ def get_search_filter():
     #     print("item :true")
     # else :
     #     print("both false")
-    
+
     filtered_items = []
-    filtered_users =[]
-   
+    filtered_users = []
 
     if item:
         # print("in item bool")
         if not searchQuery:
-                # Return all items
+            # Return all items
             # print("Empty search Query")
             filtered_items = db.session.query(Items).all()
             # print(filtered_items)
-        else:     
-        # filter by item name, works with space seperated strings
-            item_names_and_Ids = (db.session.query(Items.Listing_name,Items.Item_id).all())
-            for name, item_id in item_names_and_Ids :
+        else:
+            # filter by item name, works with space seperated strings
+            item_names_and_Ids = db.session.query(
+                Items.Listing_name, Items.Item_id
+            ).all()
+            for name, item_id in item_names_and_Ids:
                 name_tokens = name.split()
                 search_tokens = searchQuery.split()
 
                 # print(name_tokens)
                 for i in range(len(name_tokens) - len(search_tokens) + 1):
-                    if all(name_tokens[i + j].startswith(search_tokens[j]) for j in range(len(search_tokens))): 
+                    if all(
+                        name_tokens[i + j].startswith(search_tokens[j])
+                        for j in range(len(search_tokens))
+                    ):
                         filtered_ids.append(item_id)
-            
+
             # filter by item_tags, works for tags that have more than one word
-            type_names = (db.session.query(Types.Type_name, Items.Item_id).join(Middle_type, Middle_type.Item_id == Items.Item_id).join(Types, Types.Type_id == Middle_type.Type_id).all())
-            
+            type_names = (
+                db.session.query(Types.Type_name, Items.Item_id)
+                .join(Middle_type, Middle_type.Item_id == Items.Item_id)
+                .join(Types, Types.Type_id == Middle_type.Type_id)
+                .all()
+            )
+
             for tag_name, item_id in type_names:
                 tag_name_tokens = tag_name.split()
                 for i in range(len(tag_name_tokens) - len(search_tokens) + 1):
                     # print("Search tags",search_tokens)
-                    if all(tag_name_tokens[i + j].startswith(search_tokens[j]) for j in range(len(search_tokens))):
-                    # ensure no duplicates of item_ids
-                        if item_id not in filtered_ids: 
+                    if all(
+                        tag_name_tokens[i + j].startswith(search_tokens[j])
+                        for j in range(len(search_tokens))
+                    ):
+                        # ensure no duplicates of item_ids
+                        if item_id not in filtered_ids:
                             filtered_ids.append(item_id)
-                            
-            # print("Item Ids",filtered_ids) 
-            #get items from filtered Ids
-            filtered_items = db.session.query(Items).filter(Items.Item_id.in_(filtered_ids)).all()
-            
+
+            # print("Item Ids",filtered_ids)
+            # get items from filtered Ids
+            filtered_items = (
+                db.session.query(Items).filter(Items.Item_id.in_(filtered_ids)).all()
+            )
+
         # Turn into dict
         items_list = []
         for item in filtered_items:
@@ -966,47 +1069,55 @@ def get_search_filter():
                 "Verified": item.Verified,
                 "Min_price": item.Min_price,
                 "Current_bid": item.Current_bid,
-                "Image": base64.b64encode(image.Image).decode("utf-8") if image else None,
+                "Image": (
+                    base64.b64encode(image.Image).decode("utf-8") if image else None
+                ),
             }
 
-            items_list.append(item_details_dict)                
-            
+            items_list.append(item_details_dict)
+
         return jsonify(items_list), 200
         # Ensure Items model has a to_dict() method
-    elif user :
-        #for now just returns all
+    elif user:
+        # for now just returns all
         if not searchQuery:
             filtered_users = db.session.query(User).all()
             print(filtered_users)
-            
+
         else:
             # print("Searching users")
             filtered_user_ids = []
-            
+
             # filtering by first, middle, last name
-            user_names_and_Ids = db.session.query(User.First_name, User.Middle_name, User.Surname, User.User_id).all()
+            user_names_and_Ids = db.session.query(
+                User.First_name, User.Middle_name, User.Surname, User.User_id
+            ).all()
             for first, middle, last, user_id in user_names_and_Ids:
                 name_tokens = [first.lower(), middle.lower(), last.lower()]
                 # print("NAME", name_tokens)
                 search_tokens = searchQuery.lower().split()
-        
+
                 # if searchQuery has two tokens, it matches both in the same sequence to the name token
-                if len(search_tokens) > 1 :
+                if len(search_tokens) > 1:
                     # print("SEARCH", search_tokens)
                     matched = False
-                    if len(search_tokens) <= len(name_tokens): 
+                    if len(search_tokens) <= len(name_tokens):
                         # if name_tokens is greater than two, it matches first search_token to first name,
                         # second to middle name, third to last
-                        if name_tokens[1] != "" :
+                        if name_tokens[1] != "":
                             for i in range(len(search_tokens)):
-                                if not name_tokens[i].lower().startswith(search_tokens[i]):
+                                if (
+                                    not name_tokens[i]
+                                    .lower()
+                                    .startswith(search_tokens[i])
+                                ):
                                     matched = False
                                     # print("NOT MATCHED : comparing name_toke", name_tokens[i], " with search query token ", search_tokens[i])
                                     break
                                 else:
                                     # print("MATCHED : comparing name_toke", name_tokens[i], " with search query token ", search_tokens[i])
                                     matched = True
-            
+
                         else:
                             #  if name has no middle name, then second search token should match with last name not middle name
                             if name_tokens[0] == search_tokens[0]:
@@ -1014,31 +1125,28 @@ def get_search_filter():
                                 if name_tokens[2].startswith(search_tokens[1]):
                                     # print("MATCHED : comparing name", name_tokens[2], " with search query token ", search_tokens[1])
                                     matched = True
-                                else :
+                                else:
                                     matched = False
                                     # print("NOT MATCHED : comparing name_toke", name_tokens[2], " with search query token ", search_tokens[1])
-                            else :
+                            else:
                                 matched = False
                                 # print("NOT MATCHED : comparing name_toke", name_tokens[0], " with search query token ", search_tokens[0])
 
-                            
                     if matched:
                         filtered_user_ids.append(user_id)
                         # print("ID added", user_id)
-                        
-                        
-                elif len(search_tokens) == 1 :
+
+                elif len(search_tokens) == 1:
                     for i in range(len(name_tokens)):
                         if name_tokens[i].lower().startswith(search_tokens[0]):
                             filtered_user_ids.append(user_id)
 
-                        
-                            
-            
-            filtered_users = db.session.query(User).filter(User.User_id.in_(filtered_user_ids)).all()
+            filtered_users = (
+                db.session.query(User).filter(User.User_id.in_(filtered_user_ids)).all()
+            )
             # print(filtered_users)
-            
-            #filtering by expert tags, not yet implemnetd in db
+
+            # filtering by expert tags, not yet implemnetd in db
             # if user.Is_expert : filter by tags
         users_list = []
         for user in filtered_users:
@@ -1046,28 +1154,24 @@ def get_search_filter():
             user_details_dict = {
                 "User_id": user.User_id,
                 "Username": user.Username,
-                "Password" : user.Password,
-                "Email": user.Email, 
+                "Password": user.Password,
+                "Email": user.Email,
                 "First_name": user.First_name,
                 "Middle_name": user.Middle_name,
                 "Surname": user.Surname,
                 "DOB": user.DOB,
                 "Level_of_access": user.Level_of_access,
-                "Is_expert": user.Is_expert
+                "Is_expert": user.Is_expert,
             }
 
-            users_list.append(user_details_dict)                
+            users_list.append(user_details_dict)
 
         return jsonify(users_list), 200
 
-
-
-    
-                
-            
     # print([item_id for item_id, in db.session.query(Items.Item_id).all()])
     # all_items = db.session.query(Items).all()
     # return jsonify([item.to_dict() for item in all_items])
+
 
 @app.route("/api/get_filtered_listings", methods=["POST"])
 def get_filtered_listings():
@@ -1387,7 +1491,7 @@ def get_listings():
                 Items.Available_until > datetime.datetime.now(),
                 db.or_(
                     db.and_(
-                        Items.Authentication_request == True,
+                        Items.Authentication_request == False,
                         Items.Verified == True,
                         Items.Authentication_request_approved == True,
                     ),
@@ -1395,7 +1499,7 @@ def get_listings():
                         Items.Authentication_request == False,
                         Items.Verified == False,
                         Items.Authentication_request_approved == None,
-                    )
+                    ),
                 ),
             )
             .all()
@@ -1466,7 +1570,7 @@ def get_seller_listings():
                 "Image": base64.b64encode(image.Image).decode("utf-8"),
                 "Expert_id": item.Expert_id,
                 "Authentication_request_approved": item.Authentication_request_approved,
-                "Authentication_request": item.Authentication_request
+                "Authentication_request": item.Authentication_request,
             }
             items_list.append(item_details_dict)
         return jsonify(items_list), 200
@@ -1757,7 +1861,7 @@ def get_pending_auth():
 @app.route("/api/get-expert-id", methods=["GET"])
 def get_expert_id():
     """
-    Retrieves all available experts (users with Level_of_access == 2) for assignment.
+    Retrieves all available experts (users with Level_of_access == 2) for assignment plus their tags.
     """
     if not current_user.is_authenticated:
         return jsonify({"message": "No user logged in"}), 401
@@ -1766,22 +1870,30 @@ def get_expert_id():
     if current_user.Level_of_access == 3:
         try:
             # Fetch experts available for assignment
-            available_experts = (
-                User.query.filter(
-                    User.Level_of_access == 2
-                )  # Use correct attribute and numeric comparison
-                .with_entities(User.User_id, User.Username)
-                .all()
-            )
+            experts = User.query.filter(User.Level_of_access == 2).all()
 
-            if not available_experts:
+            if not experts:
                 return jsonify({"message": "No available experts found"}), 200
 
-            expert_data = [
-                {"Expert_id": expert.User_id, "Username": expert.Username}
-                for expert in available_experts
-            ]
+            expert_data = []
+            for expert in experts:
+                # Fetch all expertise tags for the expert
+                tags = (
+                    db.session.query(Types.Type_name)
+                    .join(Middle_expertise, Types.Type_id == Middle_expertise.Type_id)
+                    .filter(Middle_expertise.Expert_id == expert.User_id)
+                    .all()
+                )
+                # Convert list of tuples to a flat list
+                tag_names = [tag.Type_name for tag in tags]
 
+                expert_data.append(
+                    {
+                        "Expert_id": expert.User_id,
+                        "Username": expert.Username,
+                        "Tags": tag_names,
+                    }
+                )
             return jsonify({"Available Experts": expert_data}), 200
 
         except Exception as e:
@@ -1838,35 +1950,45 @@ def get_profit_structure():
         status_code: HTTP status code (200 for success, 404 for incorrect level of access / no user, 500 for server error)
     """
     if current_user.is_authenticated:
-        if current_user.Level_of_access == 3:
-            try:
-                # Fetch the most recent profit structure, ordering by enforced_datetime descending
-                prof_struct = Profit_structure.query.order_by(
-                    Profit_structure.Enforced_datetime.desc()
-                ).first()
+        try:
+            # Fetch the most recent profit structure, ordering by enforced_datetime descending
+            prof_struct = Profit_structure.query.order_by(
+                Profit_structure.Enforced_datetime.desc()
+            ).first()
 
-                if prof_struct:
-                    # Create a dictionary to return the profit structure details
-                    profit_data = {
-                        "structure_id": prof_struct.Structure_id,
-                        "expert_split": prof_struct.Expert_split,
-                        "manager_split": prof_struct.Manager_split,
-                        "enforced_datetime": prof_struct.Enforced_datetime,
-                    }
+            if prof_struct:
+                # Create a dictionary to return the profit structure details
+                profit_data = {
+                    "structure_id": prof_struct.Structure_id,
+                    "expert_split": prof_struct.Expert_split,
+                    "manager_split": prof_struct.Manager_split,
+                    "enforced_datetime": prof_struct.Enforced_datetime,
+                }
 
-                    return jsonify({"profit_data": profit_data}), 200
-                else:
-                    return jsonify({"message": "no profit structures reccorded"}), 200
+                return jsonify({"profit_data": profit_data}), 200
+            else:
+                return (
+                    jsonify(
+                        {
+                            "profit_data": {
+                                "expert_split": 0.04,
+                                "manager_split": 0.01,
+                                "enforced_datetime": datetime.datetime.now(
+                                    datetime.UTC
+                                ),
+                            }
+                        }
+                    ),
+                    200,
+                )
 
-            except Exception as e:
-                import traceback
+        except Exception as e:
+            import traceback
 
-                print(
-                    "Error retrieving profit structure:", traceback.format_exc()
-                )  # Print full error stack
-                return jsonify({"Error": "Failed to retrieve profit structure"}), 500
-        else:
-            return jsonify({"message": "User is not on correct level of access!"}), 401
+            print(
+                "Error retrieving profit structure:", traceback.format_exc()
+            )  # Print full error stack
+            return jsonify({"Error": "Failed to retrieve profit structure"}), 500
     else:
         return jsonify({"message": "No user logged in"}), 401
 
@@ -1898,10 +2020,15 @@ def update_profit_structure():
                 if not (0 <= expert_split <= 1) or not (0 <= manager_split <= 1):
                     return jsonify({"message": "Splits must be between 0 and 1."}), 400
 
+                user = 1 - (expert_split + manager_split)
+
+                if user < 0:
+                    return jsonify({"message": "User split cannot be below zero"}), 400
+
                 new_profit_structure = Profit_structure(
                     Expert_split=expert_split,
                     Manager_split=manager_split,
-                    Enforced_datetime=datetime.datetime.now(datetime.UTC)
+                    Enforced_datetime=datetime.datetime.now(datetime.UTC),
                 )
 
                 db.session.add(new_profit_structure)
@@ -1951,22 +2078,30 @@ def get_sold():
                         Profit_structure.Expert_split,
                         Profit_structure.Manager_split,
                         Profit_structure.Enforced_datetime,
+                        Items.Authentication_request,
                         Items.Authentication_request_approved,
                     )
                 )
 
                 sold_items_data = []
                 for item in sold_items:
-                    eSplit = item.Expert_split
-                    mSplit = item.Manager_split
-
-                    if item.Authentication_request_approved is False:
+                    if item.Authentication_request == 0:
                         eSplit = 0
-                        mSplit = 0.01
-                    else:
-                        if item.Structure_id is None:
-                            eSplit = 0.04
+                        if item.Structure_id:
+                            mSplit = item.Manager_split
+                        else:
                             mSplit = 0.01
+                    else:
+                        if item.Authentication_request_approved == 1:
+                            if item.Structure_id is None:
+                                eSplit = 0.04
+                                mSplit = 0.01
+                            else:
+                                eSplit = item.Expert_split
+                                mSplit = item.Manager_split
+                        else:
+                            eSplit = 0
+                            mSplit = item.Manager_split
 
                     sold_items_data.append(
                         {
@@ -1982,6 +2117,7 @@ def get_sold():
                             "Expert_split": eSplit,
                             "Manager_split": mSplit,
                             "Enforced_datetime": item.Enforced_datetime,
+                            "Authentication_request": item.Authentication_request,
                             "Authentication_request_approved": item.Authentication_request_approved,
                         }
                     )
@@ -2015,6 +2151,7 @@ def get_single_listing():
         images = Images.query.filter_by(Item_id=item.Item_id).all()
 
         item_details = {
+            "Current_bid": item.Current_bid,
             "Item_id": item.Item_id,
             "Listing_name": item.Listing_name,
             "Description": item.Description,
@@ -2030,7 +2167,7 @@ def get_single_listing():
             "Images": [
                 base64.b64encode(image.Image).decode("utf-8") for image in images
             ],
-            "Available_until" : item.Available_until
+            "Available_until": item.Available_until,
         }
 
         return jsonify(item_details), 200
@@ -2327,7 +2464,7 @@ def set_availability():
         return jsonify({"error": "Failed to set availability"}), 500
 
 
-@app.route('/api/get-availabilities', methods=["POST"])
+@app.route("/api/get-availabilities", methods=["POST"])
 def get_availabilites():
     """
     Gets all the availabilities for a certain expert for a certain week.
@@ -2339,28 +2476,35 @@ def get_availabilites():
 
     try:
         data = request.get_json()
-        week_start_date = data.get('week_start_date')
+        week_start_date = data.get("week_start_date")
 
-        availabilities = Availabilities.query.filter_by(Expert_id = current_user.User_id, Week_start_date = week_start_date).all()
+        availabilities = Availabilities.query.filter_by(
+            Expert_id=current_user.User_id, Week_start_date=week_start_date
+        ).all()
 
         availability_data = []
         for availability in availabilities:
             print(availability)
-            availability_data.append({
-                'Availability_id': availability.Availability_id,
-                'Expert_id': availability.Expert_id,
-                'Day_of_week': availability.Day_of_week,
-                'Start_time': availability.Start_time.strftime('%H:%M'),
-                'End_time': availability.End_time.strftime('%H:%M'),
-                'Week_start_date': availability.Week_start_date.strftime('%Y-%m-%d')
-            })
-    
+            availability_data.append(
+                {
+                    "Availability_id": availability.Availability_id,
+                    "Expert_id": availability.Expert_id,
+                    "Day_of_week": availability.Day_of_week,
+                    "Start_time": availability.Start_time.strftime("%H:%M"),
+                    "End_time": availability.End_time.strftime("%H:%M"),
+                    "Week_start_date": availability.Week_start_date.strftime(
+                        "%Y-%m-%d"
+                    ),
+                }
+            )
+
         return jsonify(availability_data), 200
     except Exception as e:
         print("Error: ", e)
         return jsonify({"Error: Failed to retrieve availabilities"}), 400
 
-@app.route('/api/get-experts', methods=["POST"])
+
+@app.route("/api/get-experts", methods=["POST"])
 def get_experts():
     """
     Gets all the experts and whether they are available this week or not.
@@ -2372,10 +2516,10 @@ def get_experts():
 
     try:
         data = request.get_json()
-        week_start_date = data.get('week_start_date')
+        week_start_date = data.get("week_start_date")
         current_day = data.get("current_day")
 
-        experts = User.query.filter_by(Level_of_access = 2).all()
+        experts = User.query.filter_by(Level_of_access=2).all()
 
         experts_data = []
         for expert in experts:
@@ -2385,7 +2529,7 @@ def get_experts():
                     and_(
                         Availabilities.Expert_id == expert.User_id,
                         Availabilities.Week_start_date == week_start_date,
-                        Availabilities.Day_of_week >= current_day
+                        Availabilities.Day_of_week >= current_day,
                     )
                 )
             ).scalar()
@@ -2394,51 +2538,53 @@ def get_experts():
 
             expertise = Middle_expertise.query.filter_by(Expert_id=expert.User_id).all()
             for this_expertise in expertise:
-                this_expertise_name = Types.query.filter_by(Type_id=this_expertise.Type_id).first()
-                all_expertise.append(
-                    this_expertise_name.Type_name
-                )
+                this_expertise_name = Types.query.filter_by(
+                    Type_id=this_expertise.Type_id
+                ).first()
+                all_expertise.append(this_expertise_name.Type_name)
 
-            experts_data.append({
-                'User_id': expert.User_id,
-                'First_name': expert.First_name,
-                'Middle_name': expert.Middle_name,
-                'Surname': expert.Surname,
-                'Email': expert.Email,
-                'DOB': expert.DOB.strftime('%Y-%m-%d'),
-                'is_available': is_available,
-                'Expertise': all_expertise
-            })
+            experts_data.append(
+                {
+                    "User_id": expert.User_id,
+                    "First_name": expert.First_name,
+                    "Middle_name": expert.Middle_name,
+                    "Surname": expert.Surname,
+                    "Email": expert.Email,
+                    "DOB": expert.DOB.strftime("%Y-%m-%d"),
+                    "is_available": is_available,
+                    "Expertise": all_expertise,
+                }
+            )
 
         return jsonify(experts_data), 200
-    
+
     except Exception as e:
         print("Error: ", e)
         return jsonify({"Error": "Failed to retrieve experts"}), 400
-    
-@app.route('/api/add-expertise', methods=["POST"])
+
+
+@app.route("/api/add-expertise", methods=["POST"])
 def add_expertise():
-    """    
+    """
     Adds all the tags to the expert.
 
     Returns:
         status_code: HTTP status code (200 for success, 400 for bad request)
-    
+
     """
     try:
         data = request.get_json()
-        expertise_ids = data.get('expertise_ids', [])
-        expert_id = data.get('expert_id')
+        expertise_ids = data.get("expertise_ids", [])
+        expert_id = data.get("expert_id")
 
         for type_id in expertise_ids:
             print(type_id)
             existing_expertise = Middle_expertise.query.filter_by(
-                Expert_id = expert_id,
-                Type_id = type_id
+                Expert_id=expert_id, Type_id=type_id
             ).first()
-        
+
             if not existing_expertise:
-                new_expertise = Middle_expertise(Expert_id = expert_id, Type_id = type_id)
+                new_expertise = Middle_expertise(Expert_id=expert_id, Type_id=type_id)
                 db.session.add(new_expertise)
 
         db.session.commit()
@@ -2447,27 +2593,27 @@ def add_expertise():
     except Exception as e:
         print("Error: ", e)
         return jsonify({"Error": "Failed to add expertise"}), 400
-    
-@app.route('/api/remove-expertise', methods=["POST"])
+
+
+@app.route("/api/remove-expertise", methods=["POST"])
 def remove_expertise():
-    """    
+    """
     Removes all the tags to the expert.
 
     Returns:
         status_code: HTTP status code (200 for success, 400 for bad request)
-    
+
     """
     try:
         data = request.get_json()
-        expertise_ids = data.get('expertise_ids', [])
-        expert_id = data.get('expert_id')
+        expertise_ids = data.get("expertise_ids", [])
+        expert_id = data.get("expert_id")
 
         for type_id in expertise_ids:
             existing_expertise = Middle_expertise.query.filter_by(
-                Expert_id = expert_id,
-                Type_id = type_id
+                Expert_id=expert_id, Type_id=type_id
             ).first()
-        
+
             if existing_expertise:
                 db.session.delete(existing_expertise)
 
@@ -2477,4 +2623,3 @@ def remove_expertise():
     except Exception as e:
         print("Error: ", e)
         return jsonify({"Error": "Failed to remove expertise"}), 400
-

@@ -62,8 +62,6 @@ export const NotificationProvider = ({ children }) => {
         } catch (error) {
             console.error("Error checking authentication requests:", error);
         }
-
-        console.log("CSRF Token: ", csrfToken);
         console.log("User: ", user);
     };
 
