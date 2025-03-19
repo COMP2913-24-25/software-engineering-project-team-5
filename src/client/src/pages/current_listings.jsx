@@ -2,13 +2,13 @@ import React, { useState, useEffect } from "react";
 //useState : to create and update state variables like searchQuery here
 //useEffect : to render data/ execute "side effects" in the component
 import { useLocation } from "react-router-dom";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { useNavigate } from "react-router-dom";
 import { useCSRF } from "../App"; // Calls the user
 import Listing_item from "../components/listing_items";
 import "../App.css";
 // import ItemListing from "../components/itemlisting";
-import { ChevronRight } from "lucide-react";
 import Filter_component from "../components/Filter_Sidebar";
 // import Navbar from "../components/navbar";
 export default function CurrentListings({ searchQuery }) {
@@ -174,28 +174,47 @@ export default function CurrentListings({ searchQuery }) {
             <Filter_component update_listings={handle_filtered_listings} listings={listings} />
             {/* <h3 className="text-lg mb-4">Search Query: {searchQuery}</h3> */}
             <h1 className="text-3xl font-bold mb-6">Current Listings</h1>
-            {price_filtered_listings.length === 0 ? (
-                <p className="text-gray-600">No current listings available.</p>
-            ) : (
-                price_filtered_listings.map((item) => (
-                    <div
-                        key={item.id}
-                        className="bid-item p-4 border rounded-lg shadow-md flex gap-2 bg-yellow-100 relative" // Added relative for positioning arrow
-                    >
-                        {/* Navigation Arrow Button : not working since enlarge lsiting not pushed */}
-                        <button
-                            className="absolute top-2 right-2 bg-gray-200 p-1 rounded-full hover:bg-gray-300"
-                            onClick={() => handleItemClick(item)}
-                        >
-                            <ChevronRight size={20} />
-                        </button>
+            <div className="relative flex items-center justify-center">
+                {price_filtered_listings.length === 0 ? (
+                    <p className="text-gray-600">No current listings available.</p>
+                ) : (
+                    <div className="flex overflow-x-auto space-x-4 sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 scrollbar-hide">
+                        {price_filtered_listings.map((item) => (
+                            <div
+                                key={item.id}
+                                className="min-w-[40%] sm:min-w-0 sm:w-auto"
+                            >
+                                <div className="relative flex items-center gap-2 bg-white-100 shadow-md p-4 rounded-lg">
+                                    {/* Navigation Arrow Button */}
+                                    <button
+                                        className="absolute top-2 right-2 bg-gray-200 p-1 rounded-full hover:bg-gray-300"
+                                        onClick={() => handleItemClick(item)}
+                                    >
+                                        <ChevronRight size={20} />
+                                    </button>
 
-                        <div className="flex items-center gap-2 p-4 border rounded-lg shadow-md bg-green-100 w-full">
-                            <Listing_item key={item.id} item={item} />
-                        </div>
+                                    <Listing_item key={item.id} item={item} />
+                                </div>
+                            </div>
+                        ))}
                     </div>
-                ))
-            )}
+                )}
+                
+                <button
+                    className="absolute left-2 bg-white shadow-md p-2 sm:p-3 rounded-full text-gray-600 hover:bg-gray-200 transition sm:flex"
+                    onClick={() => prevPage("price_filtered")}
+                >
+                    <ChevronLeft size={28} />
+                </button>
+
+                <button
+                    className="absolute right-2 bg-white shadow-md p-2 sm:p-3 rounded-full text-gray-600 hover:bg-gray-200 transition sm:flex"
+                    onClick={() => nextPage("price_filtered")}
+                >
+                    <ChevronRight size={28} />
+                </button>
+            </div>
+
         </div>
     );
 }
