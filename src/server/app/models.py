@@ -121,10 +121,10 @@ class Bidding_history(db.Model):
     Bid_id = db.Column(db.Integer, primary_key=True)
     Item_id = db.Column(db.Integer, db.ForeignKey("items.Item_id"), nullable=False)
     Bidder_id = db.Column(db.Integer, db.ForeignKey("user.User_id"), nullable=False)
-    Successful_bid = db.Column(db.Boolean, nullable=False)
+    Successful_bid = db.Column(db.Boolean, nullable=False) # true if this is the highest bid for item
     Bid_datetime = db.Column(db.DateTime, default=datetime.datetime.now(datetime.UTC))
     Bid_price = db.Column(db.Float, nullable=False)
-
+    Winning_bid = db.Column(db.Boolean, nullable=False) # true if this bid won the autction for the item
 
 # This is for ID24, enforcing different profit structures for the website
 class Profit_structure(db.Model):

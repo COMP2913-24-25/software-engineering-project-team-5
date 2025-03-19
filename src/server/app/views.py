@@ -329,6 +329,8 @@ def update_item_bid(item_id, bid_amount, user_id):
     - user_id (int): The ID of the user placing the bid.
     """
     try:
+        print("Updating item bid...\n")
+        logger.error("Updating item bid...\n")
         # Updates the item's current bid
         item = Items.query.filter_by(Item_id=item_id).first()
         item.Current_bid = bid_amount
@@ -346,12 +348,14 @@ def update_item_bid(item_id, bid_amount, user_id):
             Bidder_id = user_id,
             Successful_bid = True,
             Bid_datetime = datetime.datetime.now(datetime.UTC),
+            Winning_bid = False,
             Bid_price = bid_amount,
         )
 
         # Adds the user to the database and commits the changes
         db.session.add(new_bid)
         db.session.commit()
+        print("Updated item bid successfully!\n")
     except Exception as e:
         logger.error(f"Error: {e}")
         logger.error(traceback.format_exc())
@@ -469,6 +473,7 @@ def charge_expired_auctions():
 
                         # After charging the user, update the item status: Sold = True 
                         item.Sold = True  
+                        highest_bid.Winning_bid = True
                         db.session.commit()
                         logger.info("Charged user for item {item.Item_id}!\n")
 
@@ -573,6 +578,43 @@ def outbid_notification():
     except Exception as e:
         print(f"Error processing notifications: {e}")
         return jsonify({"status": 0, "error": "Failed to process notifications"}), 500
+
+
+@app.route("/api/get-notify-bid-end", methods=["GET"])
+def get_notify_bid_end():
+    """
+    Check expired auctions and return a list containing:
+    - item_id: the item id of the ended auction
+    - user_won_id: the user id of the user who won the auction
+    - users_lost_id_list: a list of users who have bid on the item but lost
+    = return jsonify({"expired_items_list": expired_items_list, "message": "Processed expired auctions for notifications!"}), 200
+    """
+    try:
+        # Get all items where the auction time has ended
+        logger.info("Processing expired auctions for notifications...\n")
+        expired_items = Items.query.filter(
+            Items.Available_until < datetime.datetime.now()
+            ).all()
+        expired_items_list = []
+        # Process each expired item
+        for item in expired_items:
+            # Get the highest bid from the bidding history
+            # not doing Winning_bid = True because this is also to let people know that they have won, not just that they've been charged
+            highest_bid = Bidding_history.query.filter_by(Item_id=item.Item_id).order_by(Bidding_history.Bid_price.desc()).first()
+            if highest_bid:
+                winning_bidder_id = highest_bid.Bidder_id
+                losing_bidders = Bidding_history.query.filter(Bidding_history.Item_id==item.Item_id, Bidding_history.Bidder_id != winning_bidder_id).all()
+                losing_bidders_id = list(set(bid.Bidder_id for bid in losing_bidders))
+                # add the info to the list
+                expired_items_list.append({"item_id": item.Item_id, "item_name": item.Listing_name, "user_won_id": winning_bidder_id, "users_lost_id_list": losing_bidders_id})
+        print("\nProcessed expired auctions for notifications! \n")
+        print("\nExpired items list: ", expired_items_list, "-------------\n\n")
+        return jsonify({"expired_items_list": expired_items_list, "message": "Processed expired auctions for notifications!"}), 200
+
+    except Exception as e:
+        print(f"Error processing expired auctions for notifications: {e}")
+        return jsonify({"error": "Failed to process expired auctions for auctions", "exception": str(e)}), 500
+
 
 
 @app.route("/api/logout", methods=["POST"])
