@@ -89,7 +89,7 @@ def test_get_expert_id_success(client, logged_in_manager):
     data = json.loads(response.data)
     assert "Available Experts" in data
     assert len(data["Available Experts"]) == 1
-    assert data["Available Experts"][0]["Username"] == "testexpert"
+    assert data["Available Experts"][0]["Full_Name"] == "Bob Brown"
 
 
 def test_update_item_auth_success(client, logged_in_manager):
