@@ -137,7 +137,6 @@ export default function CurrentListings({}) {
         </div> */}
             {/* <Navbar user={false} item={true} to_be_filtered={listings} handle_set_filtered={handle_listings_Searchfilter} /> */}
             <Filter_component update_listings={handle_filtered_listings} listings={listings} />
-            {/* <h3 className="text-lg mb-4">Search Query: {searchQuery}</h3> */}
             <h1 className="text-3xl font-bold mb-6">Current Listings</h1>
             <div className="relative flex items-center justify-center">
                 {price_filtered_listings.length === 0 ? (
@@ -149,26 +148,12 @@ export default function CurrentListings({}) {
                                 key={item.id}
                                 className="min-w-[40%] sm:min-w-0 sm:w-auto"
                             >
-
                                     <Listing_item key={item.id} item={item} />
                             </div>
                         ))}
                     </div>
                 )}
                 
-                {/* <button
-                    className="absolute left-2 bg-white shadow-md p-2 sm:p-3 rounded-full text-gray-600 hover:bg-gray-200 transition sm:flex"
-                    onClick={() => prevPage("price_filtered")}
-                >
-                    <ChevronLeft size={28} />
-                </button> */}
-
-                <button
-                    className="absolute right-2 bg-white shadow-md p-2 sm:p-3 rounded-full text-gray-600 hover:bg-gray-200 transition sm:flex"
-                    onClick={() => nextPage("price_filtered")}
-                >
-                    <ChevronRight size={28} />
-                </button>
             </div>
 
         </div>
