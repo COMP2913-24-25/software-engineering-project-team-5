@@ -151,15 +151,15 @@ const AccountSummary = () => {
     };
 
     const get_week_start_date = () => {
-        const today = new Date("2025-03-16");
+        const today = new Date();
         const week_start_date = new Date(today);
         week_start_date.setDate(today.getDate() + 1);
         return week_start_date.toISOString().split("T")[0];
     };
 
     const is_expert = user?.level_of_access === 2;
-    //const is_sunday = new Date().getDay() === 0; // 0 is representing Sunday in this case
-    const is_sunday = true; // For testing purposes
+    const is_sunday = new Date().getDay() === 0; // 0 is representing Sunday in this case
+    //const is_sunday = true; // For testing purposes
    
     return (
         <div className="relative min-h-screen bg-gray-100 px-[5%] md:px-[10%] py-8">
