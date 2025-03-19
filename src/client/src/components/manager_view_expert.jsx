@@ -61,7 +61,9 @@ const Manager_view_expert = ({ expert, refresh_expert }) => {
 
     return (
         <div className="p-4 border rounded shadow-md">
-            <h3 className="text-xl font-bold">{`${expert.First_name} ${expert.Surname}`}</h3>
+        <h3 className="text-xl font-bold">
+        {`${expert.First_name} ${expert.Middle_name && expert.Middle_name !== "" ? expert.Middle_name + " " : ""}${expert.Surname}`}
+        </h3>
             <p className="text-gray-600">{expert.Email}</p>
             <div className="mt-2">
                 <p className="font-semibold">Expertise:</p>

@@ -19,11 +19,19 @@ const Navbar = ({}) => {
 
 
     const handleSearch = useCallback(() => {
-        if (searchQuery.trim()) {
-            const queryParam = encodeURIComponent(searchQuery); // Encode the search query  to safely parse
-            console.log("SEARCH", searchQuery);
+         const queryParam = encodeURIComponent(searchQuery); // Encode the search query  to safely parse
+            // console.log("SEARCH", searchQuery);
             navigate("/current_listings", { state: { searchQuery } });
-        }
+            // if (searchQuery)
+            // {
+            // const queryParam = encodeURIComponent(searchQuery); // Encode the search query  to safely parse
+            // // console.log("SEARCH", searchQuery);
+            // navigate("/current_listings", { state: { searchQuery } });
+            // } else {
+            //     alert("No search query entered. To view all listings navigate to homepage");
+            //     //should i automatically navigate to homepage?
+            // }
+   
     }, [searchQuery, navigate]);
 
     const handleKeyDown = (e) => {

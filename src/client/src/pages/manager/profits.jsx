@@ -131,7 +131,7 @@ export default function Dashboard() {
 
             weeklyData[weekNumber].expertProfit += expertProfit;
             weeklyData[weekNumber].managerProfit += managerProfit;
-            weeklyData[weekNumber].totalProfit += current_bid;
+            weeklyData[weekNumber].totalProfit += expertProfit + managerProfit;
         });
 
         return Object.keys(weeklyData).map((week) => ({
@@ -178,7 +178,7 @@ export default function Dashboard() {
                         <input
                             type="number"
                             id="manager-split"
-                            value={managerSplit * 100}
+                            value={Math.round(managerSplit * 100)}
                             onChange={(e) => {
                                 const value = e.target.value.trim() === "" ? 0 : parseFloat(e.target.value) / 100;
                                 if (!isNaN(value) && validateSplits(value, expertSplit)) {
@@ -189,6 +189,7 @@ export default function Dashboard() {
                             min="0"
                             max="100"
                             className="border border-gray-300 rounded-lg px-4 py-2 w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            step="1"
                             required
                         />
                     </div>
@@ -199,7 +200,7 @@ export default function Dashboard() {
                         <input
                             type="number"
                             id="expert-split"
-                            value={expertSplit * 100}
+                            value={Math.round(expertSplit * 100)}
                             onChange={(e) => {
                                 const value = e.target.value.trim() === "" ? 0 : parseFloat(e.target.value) / 100;
                                 if (!isNaN(value) && validateSplits(managerSplit, value)) {
@@ -210,6 +211,7 @@ export default function Dashboard() {
                             min="0"
                             max="100"
                             className="border border-gray-300 rounded-lg px-4 py-2 w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            step="1"
                             required
                         />
                     </div>
@@ -220,9 +222,10 @@ export default function Dashboard() {
                         <input
                             type="number"
                             id="user-split"
-                            value={(userSplit * 100).toFixed(3)}
+                            value={Math.round(userSplit * 100)}
                             readOnly
                             className="border border-gray-300 bg-gray-100 rounded-lg px-4 py-2 w-full cursor-not-allowed"
+                            step="1"
                         />
                     </div>
                 </div>
@@ -231,7 +234,7 @@ export default function Dashboard() {
                     onClick={updateProfitStructure}
                     disabled={error !== ""}
                     className={`mt-6 w-full md:w-auto px-6 py-3 text-white font-semibold rounded-lg transition duration-300
-                        ${error ? "bg-gray-400 cursor-not-allowed" : "bg-indigo-600 hover:bg-indigo-700"}`}
+                        ${error ? "bg-gray-400 cursor-not-allowed" : "bg-blue-500 hover:bg-blue-600"}`}
                 >
                     Save Changes
                 </button>
