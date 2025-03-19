@@ -60,7 +60,7 @@ const ItemListing = ({
 
     return (
         <div
-            className="flex flex-col md:flex-row border rounded-lg p-4 shadow-md bg-white w-full items-center cursor-pointer hover:shadow-lg transition"
+            className={`flex flex-col md:flex-row border rounded-lg p-4 shadow-md bg-white w-full items-center transition ${user?.level_of_access === 3 ? "cursor-default" : "cursor-pointer hover:shadow-lg"}`}
             onClick={handleNavigation}
         >
             {/* Image Carousel */}
@@ -107,7 +107,9 @@ const ItemListing = ({
                     {labels.map((label, index) => (
                         <p key={index} className="text-gray-800 font-semibold">{label}</p>
                     ))}
-                    <p className="text-gray-800 font-semibold">Time Remaining: {timeRemaining}</p>
+                    {availableUntil && (
+                        <p className="text-gray-800 font-semibold">Time Remaining: {timeRemaining}</p>
+                    )}
                 </div>
             </div>
 

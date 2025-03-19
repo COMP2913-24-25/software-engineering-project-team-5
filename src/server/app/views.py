@@ -1011,12 +1011,25 @@ def get_seller_listings():
             .filter(
                 Items.Seller_id == current_user.User_id,
                 Items.Available_until > datetime.datetime.now(),
+                db.or_(
+                    db.and_(
+                        Items.Authentication_request == False,
+                        Items.Verified == True,
+                        Items.Authentication_request_approved == True,
+                    ),
+                    db.and_(
+                        Items.Authentication_request == False,
+                        Items.Verified == False,
+                        Items.Authentication_request_approved == None,
+                    )
+                ), 
             )
             .all()
         )
 
         items_list = []
         for item, username in available_items:
+
 
             image = Images.query.filter(Images.Item_id == item.Item_id).first()
 
@@ -1522,6 +1535,7 @@ def get_sold():
                         Items.Current_bid,
                         Items.Structure_id,
                         Items.Expert_id,
+                        Items.Verified,
                         Profit_structure.Expert_split,
                         Profit_structure.Manager_split,
                         Profit_structure.Enforced_datetime,
@@ -1531,24 +1545,22 @@ def get_sold():
                 )
 
                 sold_items_data = []
-                for item in sold_items:
-                    if item.Authentication_request == 0:
-                        eSplit = 0
+                for item in sold_items:    
+
+                    if item.Authentication_request_approved == 1 and item.Verified == 1: 
+                        if item.Structure_id is None:
+                            eSplit = 0.04
+                            mSplit = 0.01   
+                        else:
+                            eSplit = item.Expert_split
+                            mSplit = item.Manager_split
+                    else:
                         if item.Structure_id:
                             mSplit = item.Manager_split
+                            eSplit = 0
                         else:
                             mSplit = 0.01
-                    else:
-                        if item.Authentication_request_approved == 1:
-                            if item.Structure_id is None:
-                                eSplit = 0.04
-                                mSplit = 0.01   
-                            else:
-                                eSplit = item.Expert_split
-                                mSplit = item.Manager_split                                                       
-                        else:
-                            eSplit = 0
-                            mSplit = item.Manager_split                           
+                            eSplit = 0                                             
 
                     sold_items_data.append(
                         {

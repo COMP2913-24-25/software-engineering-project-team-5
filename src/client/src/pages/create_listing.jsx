@@ -344,7 +344,7 @@ const CreateListing = () => {
                             Authentication Request
                         </label>
                         <span className="text-gray-600">
-                            {mFee * 100}% Standard fee charged
+                            {Math.round(mFee * 100)}% Standard fee charged
                         </span>
                         <label className="flex items-center space-x-2">
                             <input
@@ -355,7 +355,7 @@ const CreateListing = () => {
                                 className="focus:ring-blue-500 h-4 w-4"
                             />
                             <span className="text-gray-600">
-                                Enable Authentication ({fee * 100}% fee of winning bid if approved - Standard fee included)
+                                Enable Authentication ({Math.round(fee * 100)}% fee of winning bid if approved - Standard fee included)
                             </span>
                         </label>
                     </div>
