@@ -1380,10 +1380,12 @@ def get_expert_id():
                 )
                 # Convert list of tuples to a flat list
                 tag_names = [tag.Type_name for tag in tags]
-
+                full_name = " ".join(
+                    filter(None, [expert.First_name, expert.Middle_name, expert.Surname])
+                )
                 expert_data.append({
                     "Expert_id": expert.User_id,
-                    "Username": expert.Username,
+                    "Full_Name": full_name,
                     "Tags": tag_names
                 })
             return jsonify({"Available Experts": expert_data}), 200

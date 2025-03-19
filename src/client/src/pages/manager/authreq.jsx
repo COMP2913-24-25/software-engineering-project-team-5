@@ -120,8 +120,8 @@ export default function MAuthReq() {
                                     <option value="">Select an expert</option>
                                     {experts.map((expert) => (
                                         <option key={expert.Expert_id} value={expert.Expert_id}>
-                                            {expert.Username} {expert.Tags.length > 0 ? `(${expert.Tags.join(", ")})` : ""}
-                                        </option>
+                                        {expert.Full_Name} {expert.Tags.length > 0 ? `(${expert.Tags.join(", ")})` : ""}
+                                    </option>
                                     ))}
                                 </select>
 
