@@ -10,6 +10,7 @@ from flask import session
 from app.models import User, Items, Bidding_history
 from werkzeug.security import generate_password_hash
 
+
 @pytest.fixture
 def client():
     app.config["TESTING"] = True
@@ -30,7 +31,7 @@ def client():
                 Level_of_access=1,
                 Is_expert=False,
             )
-            
+
             test_seller = User(
                 Username="testseller",
                 Password=generate_password_hash("SellerPass123@"),
@@ -49,6 +50,7 @@ def client():
             db.session.remove()
             db.drop_all()
 
+
 @pytest.fixture
 def logged_in_user(client):
     client.post(
@@ -58,15 +60,18 @@ def logged_in_user(client):
     )
     return User.query.filter_by(Username="testuser").first()
 
+
 def test_get_bids_not_logged_in(client):
     response = client.get("/api/get-bids")
     assert response.status_code == 401
     assert json.loads(response.data)["message"] == "No user logged in"
 
+
 def test_get_bids_no_bids(client, logged_in_user):
     response = client.get("/api/get-bids")
     assert response.status_code == 400
     assert json.loads(response.data)["message"] == "No current bids"
+
 
 def test_get_bids_success(client, logged_in_user):
     test_item = Items(
@@ -89,6 +94,7 @@ def test_get_bids_success(client, logged_in_user):
         Successful_bid=False,
         Bid_datetime=datetime.datetime.now(),
         Bid_price=5200,
+        Winning_bid=True,
     )
     db.session.add(test_bid)
     db.session.commit()

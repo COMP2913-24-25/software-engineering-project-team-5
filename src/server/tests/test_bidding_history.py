@@ -10,6 +10,7 @@ from flask import session
 from app.models import User, Items, Bidding_history
 from werkzeug.security import generate_password_hash
 
+
 @pytest.fixture
 def client():
     app.config["TESTING"] = True
@@ -30,12 +31,13 @@ def client():
                 Level_of_access=1,
                 Is_expert=False,
             )
-            
+
             db.session.add(test_user)
             db.session.commit()
             yield client
             db.session.remove()
             db.drop_all()
+
 
 @pytest.fixture
 def logged_in_user(client):
@@ -46,15 +48,18 @@ def logged_in_user(client):
     )
     return User.query.filter_by(Username="testuser").first()
 
+
 def test_get_history_not_logged_in(client):
     response = client.get("/api/get-history")
     assert response.status_code == 401
     assert json.loads(response.data)["message"] == "No user logged in"
 
+
 def test_get_history_no_bids(client, logged_in_user):
     response = client.get("/api/get-history")
     assert response.status_code == 400
     assert json.loads(response.data)["message"] == "No expired bids"
+
 
 def test_get_history_with_bids(client, logged_in_user):
     test_item = Items(
@@ -70,17 +75,18 @@ def test_get_history_with_bids(client, logged_in_user):
     )
     db.session.add(test_item)
     db.session.commit()
-    
+
     test_bid = Bidding_history(
         Item_id=test_item.Item_id,
         Bidder_id=logged_in_user.User_id,
         Successful_bid=True,
         Bid_datetime=datetime.datetime.now() - datetime.timedelta(days=2),
         Bid_price=250,
+        Winning_bid=True,
     )
     db.session.add(test_bid)
     db.session.commit()
-    
+
     response = client.get("/api/get-history")
     assert response.status_code == 200
     data = json.loads(response.data)

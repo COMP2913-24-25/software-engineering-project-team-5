@@ -136,7 +136,7 @@ def test_get_experts_authentication_requests_success(client, logged_in_expert):
     assert past_request["Item_id"] == item2.Item_id
     assert past_request["Listing_name"] == "Vans Shoes"
     assert past_request["Seller_id"] == seller.User_id
-    assert past_request["Seller_name"] == "John Doe"
+    assert past_request["Seller_name"] == seller.First_name + " " + seller.Surname
     assert past_request["Min_price"] == 200
     assert past_request["Description"] == "Cool Vans Shoes"
     assert past_request["Verified"] is True
