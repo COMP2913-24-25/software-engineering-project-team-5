@@ -10,6 +10,9 @@ class User(UserMixin, db.Model):
     Username = db.Column(db.String(50), nullable=False)
     Password = db.Column(db.String(500), nullable=False)
     Email = db.Column(db.String(50), nullable=False)
+    Customer_ID = db.Column(db.String(100), nullable=True) #this will be used to link to the stripe customer ID
+    Setup_intent_ID = db.Column(db.String(100), nullable=True) #this will be used to link to the stripe setup intent ID
+    Payment_method_ID = db.Column(db.String(100), nullable=True) #this will be used to link to the stripe payment method ID
     First_name = db.Column(db.String(50), nullable=False)
     Middle_name = db.Column(db.String(50), nullable=True)
     Surname = db.Column(db.String(50), nullable=False)
@@ -61,15 +64,15 @@ class Items(db.Model):
     # Columns
     Item_id = db.Column(db.Integer, primary_key=True)
     Listing_name = db.Column(db.String(50), nullable=False)
-    Seller_id = db.Column(db.Integer, db.ForeignKey("user.User_id"), nullable=False)
-    Upload_datetime = db.Column(
-        db.DateTime, default=datetime.datetime.now(datetime.UTC)
-    )
+    Seller_id = db.Column(db.Integer, db.ForeignKey('user.User_id'), nullable=True) #just for testing
+    #Seller_id = db.Column(db.Integer, db.ForeignKey('user.User_id'), nullable=False)
+    Upload_datetime = db.Column(db.DateTime, default=datetime.datetime.now(datetime.UTC))
     Available_until = db.Column(db.DateTime, nullable=False)
     Min_price = db.Column(db.Float, nullable=False)
     Current_bid = db.Column(db.Float, nullable=False)
     Description = db.Column(db.String(500), nullable=False)
     Structure_id = db.Column(db.Integer, db.ForeignKey("profit_structure.Structure_id"))
+    Sold = db.Column(db.Boolean, default=False) #this will be used to determine if the item has been sold/charged
 
     # Item Authentication Fields
     Expert_id = db.Column(db.Integer, db.ForeignKey("user.User_id"), nullable=True)
@@ -118,10 +121,10 @@ class Bidding_history(db.Model):
     Bid_id = db.Column(db.Integer, primary_key=True)
     Item_id = db.Column(db.Integer, db.ForeignKey("items.Item_id"), nullable=False)
     Bidder_id = db.Column(db.Integer, db.ForeignKey("user.User_id"), nullable=False)
-    Successful_bid = db.Column(db.Boolean, nullable=False)
+    Successful_bid = db.Column(db.Boolean, nullable=False) # true if this is the highest bid for item
     Bid_datetime = db.Column(db.DateTime, default=datetime.datetime.now(datetime.UTC))
     Bid_price = db.Column(db.Float, nullable=False)
-
+    Winning_bid = db.Column(db.Boolean, nullable=False) # true if this bid won the autction for the item
 
 # This is for ID24, enforcing different profit structures for the website
 class Profit_structure(db.Model):
