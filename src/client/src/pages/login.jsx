@@ -110,6 +110,7 @@ const Login = () => {
             setUser(data.user);
             navigate("/home-page");
         }
+
     };
 
     // Where the actual html for the web page is described.
@@ -172,6 +173,7 @@ const Login = () => {
                     </p>
                 </div>
             </form>
+     
         </div>
     );
 };
