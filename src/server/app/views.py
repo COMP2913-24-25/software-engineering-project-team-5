@@ -480,15 +480,37 @@ def get_search_filter():
    
 
     if item:
+        available_items = (
+            db.session.query(Items, User.Username)
+            .join(User, Items.Seller_id == User.User_id)
+            .filter(
+                Items.Available_until > datetime.datetime.now(),
+                db.or_(
+                    db.and_(
+                        Items.Authentication_request == False,
+                        Items.Verified == True,
+                        Items.Authentication_request_approved == True,
+                    ),
+                    db.and_(
+                        Items.Authentication_request == False,
+                        Items.Verified == False,
+                        Items.Authentication_request_approved == None,
+                    )
+                ),
+            )
+            .all()
+        )
         # print("in item bool")
         if not searchQuery:
                 # Return all items
-            # print("Empty search Query")
-            filtered_items = db.session.query(Items).all()
+            print("Empty search Query")
+            filtered_items = available_items
             # print(filtered_items)
         else:     
         # filter by item name, works with space seperated strings
-            item_names_and_Ids = (db.session.query(Items.Listing_name,Items.Item_id).all())
+            # item_names_and_Ids = db.session.query(Items.Listing_name, Items.Item_id).all()
+            item_names_and_Ids = [(item.Listing_name, item.Item_id) for item, _ in available_items]            
+            # print(item_names_and_Ids)
             for name, item_id in item_names_and_Ids :
                 name_tokens = name.split()
                 search_tokens = searchQuery.split()
