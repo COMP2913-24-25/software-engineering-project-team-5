@@ -56,13 +56,14 @@ from sqlalchemy import func
 # Email
 
 from flask_mail import Mail, Message
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USERNAME'] = ''
-app.config['MAIL_PASSWORD'] = ''
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USE_SSL'] = False
-app.config['MAIL_DEFAULT_SENDER'] = 'your_email@example.com'
+#from flask_mailman import Mail, EmailMessage
+app.config['MAIL_SERVER'] = 'smtp.fastmail.com'
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USERNAME'] = 'ebuy@fastmail.com'
+app.config['MAIL_PASSWORD'] = '3d3y6d472e2j7635'
+app.config['MAIL_USE_TLS'] = False
+app.config['MAIL_USE_SSL'] = True
+app.config['MAIL_DEFAULT_SENDER'] = 'ebuy@fastmail.com'
 mail = Mail(app)
 
 # Admin mode accessed using "http://<url>/admin"
