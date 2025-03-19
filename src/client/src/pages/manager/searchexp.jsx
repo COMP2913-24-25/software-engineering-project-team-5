@@ -84,49 +84,60 @@ const SearchExperts = () => {
 
     return (
         <div className="relative min-h-screen bg-gray-100 px-[5%] md:px-[10%] py-8">
-            {/* Page Header */}
-            <div className="text-center mb-8">
-                <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-4">Search Experts</h1>
-                <p className="text-lg text-gray-600">Manage and search for experts.</p>
+          {/* Page Header */}
+          <div className="text-center mb-8">
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-4">
+              Search Experts
+            </h1>
+            <p className="text-lg text-gray-600">Manage and search for experts.</p>
+          </div>
+      
+          <div className="mb-8 flex flex-col sm:flex-row gap-6 relative">
+            {/* Search Input */}
+            <div className="flex-1">
+                <input
+                type="text"
+                className="p-3 border rounded-lg w-full shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+                placeholder="Search by name or expertise"
+                value={search}
+                onChange={(e) => set_search(e.target.value)}
+                />
             </div>
 
-            {/* Search and Filter Section */}
-            <div className="mb-8">
-                <div className="flex flex-col sm:flex-row gap-4">
-                    <input
-                        type="text"
-                        className="p-2 border rounded flex-grow"
-                        placeholder="Search by name or expertise"
-                        value={search}
-                        onChange={(e) => set_search(e.target.value)}
-                    />
-                    <label className="flex items-center gap-2 bg-white p-2 border rounded">
-                        <input
-                            type="checkbox"
-                            checked={show_available_only}
-                            onChange={(e) => set_show_available_only(e.target.checked)}
-                            className="form-checkbox h-5 w-5 text-blue-600"
-                        />
-                        <span>Show available only</span>
-                    </label>
-                </div>
+            {/* Show Available Filter Positioned to the Right */}
+            <div className="flex items-center justify-center sm:justify-start sm:ml-4 mt-3 sm:mt-0">
+                <label className="flex items-center gap-2 bg-white p-3 border rounded-lg shadow-md">
+                <input
+                    type="checkbox"
+                    checked={show_available_only}
+                    onChange={(e) => set_show_available_only(e.target.checked)}
+                    className="form-checkbox h-5 w-5 text-blue-600"
+                />
+                <span className="text-sm">Show available only</span>
+                </label>
+            </div>
             </div>
 
-            {/* Experts Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {filteredExperts.map((expert) => (
-                    <Manager_view_expert key={expert.User_id} expert={expert} refresh_expert={fetch_experts}/>
-                ))}
-            </div>
-
-            {/* No Experts Found Message */}
-            {filteredExperts.length === 0 && (
-                <div className="text-center text-gray-500 mt-8">
-                    No experts found matching your search criteria.
-                </div>
+      
+          {/* Experts Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 mb-8">
+            {filteredExperts.length > 0 ? (
+              filteredExperts.map((expert) => (
+                <Manager_view_expert
+                  key={expert.User_id}
+                  expert={expert}
+                  refresh_expert={fetch_experts}
+                />
+              ))
+            ) : (
+              <div className="col-span-full text-center text-gray-500 mt-8">
+                No experts found matching your search criteria.
+              </div>
             )}
+          </div>
         </div>
-    );
+      );
+      
 };
 
 export default SearchExperts;
