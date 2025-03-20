@@ -106,6 +106,7 @@ const AccountSummary = () => {
 
         // Iterate through the days, then the time blocks of each day
         for (const day in availability) {
+            var latest_end_time = 0;
             for (const time_block of availability[day]) {
                 // Split the time block into its hours and then compare.
                 const start_time = time_block.start_time.split(":").map(Number)[0];
@@ -117,6 +118,13 @@ const AccountSummary = () => {
                         `Invalid time block on ${day}. ${start_time} is greater than or equal to ${end_time}`
                     );
                     break;
+                }
+
+                if (latest_end_time > start_time) {
+                    is_valid = false;
+                    alert(`Invalid time block on ${day}. Either one of the time blocks are overlapping or you have later times before the earlier ones.`)
+                } else {
+                    latest_end_time = end_time;
                 }
             }
 
