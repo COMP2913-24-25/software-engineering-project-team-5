@@ -22,7 +22,7 @@ const UnauthorizedAccess = () => {
 
             <div className="flex flex-row gap-4">
                 <Link
-                    to="/"
+                    to="/home-page"
                     className="flex items-center justify-center bg-blue-500 hover:bg-blue-600 text-white py-3 px-6 rounded-lg transition-colors"
                 >
                     <Home size={20} className="mr-2" />
@@ -30,7 +30,7 @@ const UnauthorizedAccess = () => {
                 </Link>
 
                 <Link
-                    to="/"
+                    to="/login"
                     className="flex items-center justify-center bg-blue-500 hover:bg-blue-600 text-white py-3 px-6 rounded-lg transition-colors"
                 >
                     <LogIn size={20} className="mr-2" />

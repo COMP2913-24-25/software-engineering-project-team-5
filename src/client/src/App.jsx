@@ -1,5 +1,5 @@
 import React, { useState, createContext, useEffect, useContext } from "react";
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Link, Navigate } from "react-router-dom";
 import { NotificationProvider } from "./components/NotificationComponent";
 // Import your pages here
 import Login from "./pages/login";
@@ -150,7 +150,8 @@ function App() {
                     )}
 
                     <Routes>
-                        <Route path="/" element={<Login />} />
+                        <Route path="/" element={<Navigate to="/home-page" replace />} />
+                        <Route path="/login" element={<Login />} />
                         <Route path="/signup" element={<Signup />} />
                         <Route path="/logout" element={<LogOut />} />
                         <Route path="/accountsummary" element={<AccountSummary />} />
