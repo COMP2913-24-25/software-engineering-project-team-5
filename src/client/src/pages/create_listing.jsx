@@ -105,6 +105,12 @@ const CreateListing = () => {
         return newErrors;
     };
 
+    const handle_remove_image = (index) => {
+        const new_images = [...formData.images];
+        new_images.splice(index, 1);
+        setFormData((prevData) => ({...prevData, images: new_images}));
+    };
+
     const getProfitStructure = async () => {
         try {
             const response = await fetch("http://localhost:5000/api/get-profit-structure", {
@@ -369,7 +375,7 @@ const CreateListing = () => {
                             className="bg-white w-full py-2 px-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             type="file"
                             name="images"
-                            accept="image/*"
+                            accept="image/jpeg, image/png"
                             multiple
                             onChange={handle_file_change}
                             required
@@ -383,7 +389,7 @@ const CreateListing = () => {
                                 </p>
                                 <ul className="bg-gray-50 rounded-md p-3 border border-gray-200">
                                     {Array.from(formData.images).map((file, index) => (
-                                        <li key={index} className="flex items-center py-1">
+                                        <li key={index} className="flex items-center justify-between py-1">
                                             <div className="flex items-center text-gray-700">
                                                 <Image className="h-5 w-5 mr-2 text-blue-500" />
                                                 <span className="truncate max-w-xs">
@@ -393,6 +399,7 @@ const CreateListing = () => {
                                                     ({(file.size / 1024).toFixed(1)} KB)
                                                 </span>
                                             </div>
+                                            <button className="ml-2 p-2 bg-red-500 text-white rounded right hover:bg-red-600 transition-colors" type="button" onClick={() => handle_remove_image(index)}>Remove</button>
                                         </li>
                                     ))}
                                 </ul>
