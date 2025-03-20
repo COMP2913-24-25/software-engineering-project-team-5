@@ -119,12 +119,6 @@ const ChatWindow = ({ senderId, recipientId, itemId, is_chat_closed }) => {
             return;
         }
 
-        // Validates file type
-        if (!file.type.startsWith("image/")) {
-            set_error("Invalid file type. Please upload an image.");
-            return;
-        }
-
         // Create the payload
         const payload = {
             chat_id: chat_id,
