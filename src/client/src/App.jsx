@@ -14,7 +14,7 @@ import CreateListing from "./pages/create_listing";
 import AccountSummary from "./pages/accountsummary";
 import CurrentListings from "./pages/current_listings";
 import EnlargedListingPage from "./components/enlargedlisting";
-import ChatWindow from "./pages/chatwindow";
+import ChatWindow from "./components/chatwindow";
 import InvalidUrl from "./pages/invalidurl";
 import UnauthorizedAccess from "./pages/unauthorizedaccess";
 
