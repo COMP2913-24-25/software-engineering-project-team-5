@@ -8,6 +8,7 @@ export const get_socket = () => {
     if (!socket) {
         socket = io("http://localhost:5000", {
             withCredentials: true,
+            maxHttpBufferSize: 50 * 1024 * 1024, // Sets payload size limit to 100MB
         });
     }
 
