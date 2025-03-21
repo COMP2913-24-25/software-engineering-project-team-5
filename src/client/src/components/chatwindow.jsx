@@ -110,33 +110,65 @@ const ChatWindow = ({ senderId, recipientId, itemId, is_chat_closed }) => {
         message_end_ref.current?.scrollIntoView({ behavior: "smooth" });
     }, [all_messages]);
 
-    // Handle sending a message
+    // Send message to the chat
     const handle_send_message = (event) => {
         event.preventDefault();
 
-        // If message is empty, don't send
+        // If message is empty and no image, don't send
         if ((!new_message || new_message.trim() === "") && !image) {
             return;
         }
 
-        // Send message via socket
-        socketRef.current.emit("sent_message", {
+        // Create the payload
+        const payload = {
             chat_id: chat_id,
             content: new_message,
-            image: image_preview,
-        });
+            image: image_preview, // Base64-encoded image
+        };
 
-        // Nulls input fields so user can send another message
+        // Calculate the size of the payload in bytes
+        const payload_string = JSON.stringify(payload);
+        const payload_size_bytes = new Blob([payload_string]).size;
+
+        // Define the maximum allowed payload size (50 MB)
+        const max_payload_size_bytes = 50 * 1024 * 1024;
+
+        // Check if the payload exceeds the maximum size
+        if (payload_size_bytes > max_payload_size_bytes) {
+            const error_message =
+                "File size (" +
+                (payload_size_bytes / (1024 * 1024)).toFixed(2) +
+                "MB) exceeds the 50 MB limit.";
+
+            set_error(error_message);
+            return;
+        }
+
+        // Send message via socket
+        console.log("Sending message...");
+        socketRef.current.emit("sent_message", payload);
+
+        // Clear input fields on success
         set_new_message("");
         set_image(null);
         set_image_preview(null);
+        set_error(null); // Clear any previous errors
     };
 
     // Handle image selection
     const handle_image_change = (event) => {
         if (event.target.files && event.target.files[0]) {
             const file = event.target.files[0];
+
+            // Validates file type
+            if (!file.type.startsWith("image/")) {
+                set_error("Invalid file type. Please upload an image.");
+                return;
+            }
+
+            // Set image and clear error message and input field
             set_image(file);
+            set_error(null);
             set_new_message("");
 
             // Create image preview
@@ -166,15 +198,6 @@ const ChatWindow = ({ senderId, recipientId, itemId, is_chat_closed }) => {
         );
     }
 
-    // Show error message when socket doesn't initialise
-    if (error) {
-        return (
-            <div className="flex justify-center items-center h-64">
-                <p className="text-red-500">{error}</p>
-            </div>
-        );
-    }
-
     // Determine if message input should be disabled
     const is_message_input_disabled =
         (user?.level_of_access === 1 && all_messages.length === 0) ||
@@ -187,10 +210,20 @@ const ChatWindow = ({ senderId, recipientId, itemId, is_chat_closed }) => {
         (new_message && new_message.trim() !== "") ||
         is_chat_closed;
 
-    console.log(is_chat_closed);
-
     return (
-        <div className="flex flex-col max-w mx-auto border border-gray-300 rounded-lg bg-white resize-y overflow-hidden min-h-[40vh] max-h-[100vh]">
+        <div className="flex flex-col max-w mx-auto border border-gray-300 rounded-lg bg-white resize-y overflow-hidden min-h-[40vh] max-h-[60vh]">
+            {error && (
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg pl-[1em] pr-[1em] relative">
+                    {error}
+                    <button
+                        onClick={() => set_error(null)} // Clear the error state to hide the notification
+                        className="absolute top-2 right-2 text-red-700 hover:text-red-900"
+                        aria-label="Close error notification"
+                    >
+                        ×
+                    </button>
+                </div>
+            )}
             <div className="px-4 py-3 bg-blue-600 text-white rounded-t-lg">
                 <h3 className="font-medium text-lg">Chat</h3>
             </div>

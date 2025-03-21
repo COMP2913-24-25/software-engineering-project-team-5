@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useCSRF, useUser } from "../App";
 import { useParams, useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import ChatWindow from "../pages/chatwindow";
+import ChatWindow from "./chatwindow";
 
 const EnlargedAuthRequest = () => {
     const { csrfToken } = useCSRF();
@@ -58,7 +58,7 @@ const EnlargedAuthRequest = () => {
                 set_is_chat_closed(true);
             }
         }
-    }, [item]);
+    }, []);
 
     // Updating auth request - approve or deny
     const handle_update = async (action) => {

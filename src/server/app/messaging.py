@@ -7,7 +7,7 @@ import datetime
 import base64
 import json
 
-socketio = SocketIO()
+socketio = SocketIO(maxHttpBufferSize=50 * 1024 * 1024)
 
 
 @socketio.on("connect")
