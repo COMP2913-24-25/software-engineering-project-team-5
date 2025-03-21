@@ -21,7 +21,8 @@ const EAuthReq = () => {
                 navigate("/invalid-access-rights");
             }
         }
-    }, [user]);
+    },[navigate, user]);
+    
 
     // Variables to store pending and past authentication requests
     const [pending_auth_requests, set_pending_auth_requests] = useState([]);
