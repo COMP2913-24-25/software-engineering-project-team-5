@@ -1008,7 +1008,102 @@ def update_level():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/api/get_category_filters", methods = ["POST"])
+def get_category_filters():
+    
+    data = request.json
+    categories_str = data.get("categories", "")
+    print(categories_str)
+    categories_list = categories_str.split(",") if categories_str else []
+    filtered_ids = []
+    filtered_items = []
+    items_list = []
+    available_items = (
+                    db.session.query(Items)
+                    .join(User, Items.Seller_id == User.User_id)
+                    .filter(
+                        Items.Available_until > datetime.datetime.now(),
+                        db.or_(
+                            db.and_(
+                                Items.Authentication_request == False,
+                                Items.Verified == True,
+                                Items.Authentication_request_approved == True,
+                            ),
+                            db.and_(
+                                Items.Authentication_request == False,
+                                Items.Verified == False,
+                                Items.Authentication_request_approved == None,
+                            ),
+                        ),
+                    )
+                    .all()
+                )
+                # print("in item bool")
+                
+                
+    print(available_items)
+    if len(categories_list) == 0:
+        # Return all items
+        print("nothing selected")
+        filtered_items = available_items
+        print(filtered_items)
 
+    
+    type_names = (
+            db.session.query(Types.Type_name, Items.Item_id)
+            .join(Middle_type, Middle_type.Item_id == Items.Item_id)
+            .join(Types, Types.Type_id == Middle_type.Type_id)
+            .all()
+        )
+    for category in categories_list :
+        print("Checking for category: ", category)
+        for tag_name, item_id in type_names:
+            tag_name_tokens = tag_name.split()
+            print(item_id, tag_name)
+            category_tokens = category.split()
+            for i in range(len(tag_name_tokens) - len(category_tokens) + 1):
+                # print("Search tags",search_tokens)
+                print("here")
+                if all(
+                    tag_name_tokens[i + j].startswith(category_tokens[j])
+                    for j in range(len(category_tokens))
+                ):
+                    # ensure no duplicates of item_ids
+                    if item_id not in filtered_ids:
+                        filtered_ids.append(item_id)
+
+        # print("Item Ids",filtered_ids)
+        # get items from filtered Ids
+        
+    print(filtered_ids)
+    if(len(filtered_ids)) != 0:
+        filtered_items = (
+            db.session.query(Items).filter(Items.Item_id.in_(filtered_ids)).all()
+        )
+        
+    print(filtered_items)
+    
+    for item in filtered_items:
+        image = Images.query.filter(Images.Item_id == item.Item_id).first()
+
+        item_details_dict = {
+            "Item_id": item.Item_id,
+            "Listing_name": item.Listing_name,
+            "Seller_id": item.Seller_id,
+            "Available_until": item.Available_until,
+            "Verified": item.Verified,
+            "Min_price": item.Min_price,
+            "Current_bid": item.Current_bid,
+            "Image": (
+                base64.b64encode(image.Image).decode("utf-8") if image else None
+            ),
+        }
+
+        items_list.append(item_details_dict)
+    return jsonify(items_list), 200
+
+            
+            
 @app.route("/api/get_search_filter", methods=["POST"])
 def get_search_filter():
     """
@@ -1032,16 +1127,7 @@ def get_search_filter():
     user = data.get("user", "")
     item = data.get("item", "")
     searchQuery = (data.get("searchQuery", "")).strip().lower()
-    # print("SEARCH QUERY IN BACKEND", searchQuery)
-    # print("ITEM", item)
     filtered_ids = []
-    # if user == True:
-    #     print("user : true")
-    # elif item == True:
-    #     print("item :true")
-    # else :
-    #     print("both false")
-
     filtered_items = []
     filtered_users = []
 
@@ -1066,6 +1152,8 @@ def get_search_filter():
             )
             .all()
         )
+        
+        print(available_items)
         # print("in item bool")
         if searchQuery == " ":
             # Return all items
@@ -1117,6 +1205,8 @@ def get_search_filter():
                 db.session.query(Items).filter(Items.Item_id.in_(filtered_ids)).all()
             )
 
+        # print(filtered_ids)
+
         # Turn into dict
         items_list = []
         for item in filtered_items:
@@ -1136,7 +1226,6 @@ def get_search_filter():
             }
 
             items_list.append(item_details_dict)
-
         return jsonify(items_list), 200
         # Ensure Items model has a to_dict() method
     elif user:
