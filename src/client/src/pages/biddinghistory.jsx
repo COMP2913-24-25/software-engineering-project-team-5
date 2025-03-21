@@ -36,7 +36,6 @@ const BiddingHistory = () => {
             if (response.ok) {
                 if (Array.isArray(data.history)) {
                     setHistory(data.history);
-                    console.log(data.history)
                 } else {
                     console.log("No items in history");
                 }
