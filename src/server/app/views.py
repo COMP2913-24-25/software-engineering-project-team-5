@@ -1240,15 +1240,49 @@ def get_search_filter():
     # all_items = db.session.query(Items).all()
     # return jsonify([item.to_dict() for item in all_items])
 # write tests for this
-@app.route("/api/get_bid_fitering", methods = ["POST"])
+@app.route("/api/get_bid_filtering", methods = ["POST"])
 def get_bid_filtering():
     data = request.json
+    print("IN BID FILTERIN")
     bid_status_selected = data.get("bid_status", "")
     listing_Ids = data.get("listing_Ids", [])
     listing_Ids = list(map(int, listing_Ids))
     filtered_listing_Ids = []
+    print(bid_status_selected)
+    user_id = current_user.User_id
     
-    if bid_status :
+    for Id in listing_Ids:
+        bid_table = db.session.query(Items.Item_id, Items.Available_until, Bidding_history.Successful_bid, Bidding_history.Winning_bid).join(
+                                        Bidding_history, 
+                                        Items.Item_id == Bidding_history.Item_id
+                                    ).filter(
+                                        Bidding_history.Bidder_id == user_id ,
+                                        Items.Item_id == Id
+                                    ).all()
+                    # Items.Available_until < datetime.datetime.now(),  # Only expired bids
+        
+        print("BID", bid_table)
+        for item_id, available_until, successful_bid, winning_bid in bid_table:
+            # Condition to check if the bid has expired
+            if available_until > datetime.datetime.now():  # Check if the bid has expired
+                if bid_status_selected:  # Ensure bid_status_selected is not None
+                    if bid_status_selected == "won":
+                        if successful_bid == True and  winning_bid == True:
+                            filtered_listing_Ids.append(Id)
+                    elif bid_status_selected == "out_bid":
+                        print("in out_bid, checking succesful_bid", successful_bid)
+                        if successful_bid ==False:
+                            filtered_listing_Ids.append(Id)
+                    elif bid_status_selected == "payment_failed":
+                        if successful_bid == True and winning_bid != True:
+                            filtered_listing_Ids.append(Id)
+            else:
+                if bid_status_selected == "expired" :
+                    filtered_listing_Ids.append(Id)
+    print(filtered_listing_Ids)
+    return jsonify(filtered_listing_Ids)
+                
+                    
         
 # write tests for this
 @app.route("/api/get_filtered_listings", methods=["POST"])
@@ -1487,14 +1521,6 @@ def Create_listing():
         time_after_days_available = datetime.datetime.now(
             datetime.UTC
         ) + datetime.timedelta(days=int(request.form["days_available"]))
-
-        struct_id = None
-
-        prof_struct = Profit_structure.query.order_by(Profit_structure.Enforced_datetime.desc()).first()
-
-        if prof_struct:
-            struct_id = prof_struct.Structure_id
-
         # Creates a new listing with given data
         listing = Items(
             Listing_name=request.form["listing_name"],
@@ -1506,7 +1532,6 @@ def Create_listing():
             Current_bid=0,
             Description=request.form["listing_description"],
             Authentication_request=authentication_request,
-            Structure_id=struct_id
         )
         print(
             "Authentication Request:", request.form.get("authentication_request", False)
@@ -1671,56 +1696,6 @@ def get_seller_listings():
         print("Error: ", e)
         return jsonify({"Error": "Failed to retrieve items"}), 401
 
-@app.route("/api/get-sellerss-items", methods=["POST"])
-def get_sellerss_listings():
-    """
-    Retrieves the item details that were sold by user from the database that are still available.
-    ALI's FUNCTION NOT ADAM
-    Returns:
-        json_object:  containing the items details
-        status_code: HTTP status code (200 for success,
-                                       401 for unauthorized access)
-    """
-
-    try:
-        # Checks if the listing is available and doesn't still need authentication.
-        available_items = (
-            db.session.query(Items, User.Username)
-            .join(User, Items.Seller_id == User.User_id)
-            .filter(
-                Items.Seller_id == current_user.User_id,
-                Items.Available_until > datetime.datetime.now(),
-            )
-            .all()
-        )
-
-        items_list = []
-        for item, username in available_items:
-
-
-            image = Images.query.filter(Images.Item_id == item.Item_id).first()
-
-            item_details_dict = {
-                "Item_id": item.Item_id,
-                "Listing_name": item.Listing_name,
-                "Seller_id": item.Seller_id,
-                "Seller_username": username,
-                "Available_until": item.Available_until,
-                "Verified": item.Verified,
-                "Min_price": item.Min_price,
-                "Current_bid": item.Current_bid,
-                "Image": base64.b64encode(image.Image).decode("utf-8"),
-                "Expert_id": item.Expert_id,
-                "Authentication_request_approved": item.Authentication_request_approved,
-                "Authentication_request": item.Authentication_request
-            }
-            items_list.append(item_details_dict)
-        return jsonify(items_list), 200
-
-    except Exception as e:
-        print("Error: ", e)
-        return jsonify({"Error": "Failed to retrieve items"}), 401
-
 
 @app.route("/api/get-bids", methods=["GET"])
 def get_bids():
@@ -1854,7 +1829,6 @@ def get_history():
                 Bidding_history.Bid_price,
                 Bidding_history.Bid_datetime,
                 Bidding_history.Successful_bid,
-                Bidding_history.Winning_bid,
                 Items.Item_id,
                 Items.Listing_name,
                 Items.Description,
@@ -1905,7 +1879,6 @@ def get_history():
                     "Bid_price": item.Bid_price,
                     "Bid_datetime": item.Bid_datetime,
                     "Successful_bid": item.Successful_bid,
-                    "Winning_bid": item.Winning_bid,
                     "Item_id": item.Item_id,
                     "Listing_name": item.Listing_name,
                     "Description": item.Description,
@@ -2030,14 +2003,14 @@ def get_expert_id():
                 )
                 # Convert list of tuples to a flat list
                 tag_names = [tag.Type_name for tag in tags]
-                full_name = " ".join(
-                    filter(None, [expert.First_name, expert.Middle_name, expert.Surname])
+
+                expert_data.append(
+                    {
+                        "Expert_id": expert.User_id,
+                        "Username": expert.Username,
+                        "Tags": tag_names,
+                    }
                 )
-                expert_data.append({
-                    "Expert_id": expert.User_id,
-                    "Full_Name": full_name,
-                    "Tags": tag_names
-                })
             return jsonify({"Available Experts": expert_data}), 200
 
         except Exception as e:
@@ -2208,10 +2181,7 @@ def get_sold():
                         Profit_structure,
                         Items.Structure_id == Profit_structure.Structure_id,
                     )
-                    .join (Bidding_history,
-                           Items.Item_id == Bidding_history.Item_id)
-                    .filter(Items.Available_until < datetime.datetime.now(),
-                            Bidding_history.Winning_bid == 1)
+                    .filter(Items.Available_until < datetime.datetime.now())
                     .with_entities(
                         Items.Item_id,
                         Items.Listing_name,
@@ -2228,7 +2198,6 @@ def get_sold():
                         Profit_structure.Enforced_datetime,
                         Items.Authentication_request,
                         Items.Authentication_request_approved,
-                        Bidding_history.Bid_price
                     )
                 )
 
@@ -2266,7 +2235,6 @@ def get_sold():
                             "Enforced_datetime": item.Enforced_datetime,
                             "Authentication_request": item.Authentication_request,
                             "Authentication_request_approved": item.Authentication_request_approved,
-                            "Bid_price": item.Bid_price
                         }
                     )
 
