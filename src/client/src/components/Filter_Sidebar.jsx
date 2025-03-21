@@ -4,7 +4,7 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 //only price filtering implemented here
 //Need to add bid_status, sorting filters,  verified/non verified, antique? etc
 const Filter_component = ({ update_listings, listings }) => {
-  const [selectedPriceRange, setSelectedPriceRange] = useState("");
+  // const [selectedPriceRange, setSelectedPriceRange] = useState("");
   const { csrfToken } = useCSRF();
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
@@ -76,10 +76,7 @@ const handleApplyFilter = () => {
             console.log("Error Response:", errorText); 
         }
 
-        // else 
-        // {
-        //    console.log("Filter returned");
-        // }
+      
 
         const filtered_Ids = await response.json();
         
@@ -98,7 +95,7 @@ const handleApplyFilter = () => {
     }, [filter_applied]);
 
     return (
-      <div className="p-6 bg-white shadow-lg rounded-lg">
+      <div className="p-3 m-2 bg-white shadow-lg rounded-lg">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold text-gray-800">Price Filter</h2>
           <button
@@ -114,35 +111,35 @@ const handleApplyFilter = () => {
         </div>
     
         {isDropdownOpen && (
-          <div className="mt-6 space-y-4">
+          <div className="mt-3 space-y-4">
             <div className="flex items-center space-x-6">
               <div className="flex items-center space-x-2">
-                <label htmlFor="minPrice" className="text-gray-700 font-medium">Min Price:</label>
+                <label htmlFor="minPrice" className="text-gray-700 font-small">Min price:</label>
                 <input
                   type="number"
                   id="minPrice"
                   value={minPrice}
                   onChange={handleMinPriceChange}
-                  className="border-2 border-gray-300 p-3 rounded-lg w-28 focus:ring-2 focus:ring-blue-500"
-                  placeholder="Min Price"
+                  className="border-2 border-gray-300 p-1 rounded-lg w-28 focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter.."
                 />
               </div>
               <div className="flex items-center space-x-2">
-                <label htmlFor="maxPrice" className="text-gray-700 font-medium">Max Price:</label>
+                <label htmlFor="maxPrice" className="text-gray-700 font-smalls">Max Price:</label>
                 <input
                   type="number"
                   id="maxPrice"
                   value={maxPrice}
                   onChange={handleMaxPriceChange}
-                  className="border-2 border-gray-300 p-3 rounded-lg w-28 focus:ring-2 focus:ring-blue-500"
-                  placeholder="Max Price"
+                  className="border-2 border-gray-300 p-1 rounded-lg w-28 focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter.."
                 />
               </div>
               <button
                 onClick={handleApplyFilter}
-                className="bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition"
+                className="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-600 transition"
               >
-                Apply Filter
+                Apply Price Filter
               </button>
             </div>
           </div>

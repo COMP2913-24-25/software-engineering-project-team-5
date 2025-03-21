@@ -74,7 +74,7 @@ fetch_filteredlistings();
 },[filter_applied]);
 
   return (
-    <div className="p-6 bg-white shadow-lg rounded-lg">
+    <div className="p-3 m-2 bg-white shadow-lg rounded-lg">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold text-gray-800">Category Filter</h2>
         <button
@@ -97,7 +97,7 @@ fetch_filteredlistings();
                   onChange={handleCategoryChange}
                   className="peer hidden"
                 />
-                <div className="w-5 h-5 border-2 border-gray-400 rounded-md flex items-center justify-center peer-checked:bg-blue-600 peer-checked:border-blue-600">
+                <div className="w-4 h-4 border-1 border-gray-400 rounded-md flex items-center justify-center peer-checked:bg-blue-600 peer-checked:border-blue-600">
                   {selectedCategories.includes(category.value) && <span className="text-white font-bold">✔</span>}
                 </div>
                 <span className="text-gray-700 font-medium">{category.label}</span>
@@ -107,7 +107,7 @@ fetch_filteredlistings();
 
           <button
             onClick={handleApplyFilter}
-            className="bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition w-full"
+            className="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 transition w-full"
           >
             Apply Filter
           </button>
