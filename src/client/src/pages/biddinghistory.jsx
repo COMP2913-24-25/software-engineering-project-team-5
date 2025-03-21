@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useUser, useCSRF } from "../App";
 import ItemListing from "../components/itemlisting";
 import { useNavigate } from "react-router-dom";
-
+import Bid_Status_component from "../components/bid_status_filter";
 const BiddingHistory = () => {
     /*  
     Allows user to see items that they previous bidded on (items that have expired), it has functionality
@@ -17,7 +17,7 @@ const BiddingHistory = () => {
     const [history, setHistory] = useState([]);
 
     const { csrfToken } = useCSRF();
-
+    const [filtered_listings, setfiltered_listings] = useState([]); // Stores bid-status-filtered data
     // Function to fetch bidding history from the server
     const getHistory = async () => {
         try {
@@ -36,6 +36,7 @@ const BiddingHistory = () => {
             if (response.ok) {
                 if (Array.isArray(data.history)) {
                     setHistory(data.history);
+                    setfiltered_listings(data.history)
                 } else {
                     console.log("No items in history");
                 }
@@ -54,23 +55,30 @@ const BiddingHistory = () => {
         }
     }, [user]);
 
+    const handle_filtered_listings = (filtered_listings) => {
+        // console.log("Filtered being set ", filtered_listings);
+
+        setfiltered_listings(filtered_listings);
+    };
     return (
         <div className="relative min-h-screen bg-gray-100 px-[5%] md:px-[10%] py-8">
             <div className="text-center mb-8">
                 <h1 className="text-2xl font-semibold text-center text-gray-800 mb-4">
                     Bidding History
                 </h1>
+                <Bid_Status_component update_listings={handle_filtered_listings} listings={history} />
+
                 <p className="text-xl text-gray-500 mt-2">
                     View items that you have previously bidded on.
                 </p>
             </div>
 
             {user ? (
-                history.length === 0 ? (
+                filtered_listings.length === 0 ? (
                     <p className="text-gray-600">You have no expired auctions.</p>
                 ) : (
                     <div className="space-y-4">
-                        {history.map((item, index) => (
+                        {filtered_listings.map((item, index) => (
                             <ItemListing
                                 key={index}
                                 itemId={item.Item_id}
