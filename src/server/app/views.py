@@ -1651,6 +1651,56 @@ def get_seller_listings():
         print("Error: ", e)
         return jsonify({"Error": "Failed to retrieve items"}), 401
 
+@app.route("/api/get-sellerss-items", methods=["POST"])
+def get_sellerss_listings():
+    """
+    Retrieves the item details that were sold by user from the database that are still available.
+    ALI's FUNCTION NOT ADAM
+    Returns:
+        json_object:  containing the items details
+        status_code: HTTP status code (200 for success,
+                                       401 for unauthorized access)
+    """
+
+    try:
+        # Checks if the listing is available and doesn't still need authentication.
+        available_items = (
+            db.session.query(Items, User.Username)
+            .join(User, Items.Seller_id == User.User_id)
+            .filter(
+                Items.Seller_id == current_user.User_id,
+                Items.Available_until > datetime.datetime.now(),
+            )
+            .all()
+        )
+
+        items_list = []
+        for item, username in available_items:
+
+
+            image = Images.query.filter(Images.Item_id == item.Item_id).first()
+
+            item_details_dict = {
+                "Item_id": item.Item_id,
+                "Listing_name": item.Listing_name,
+                "Seller_id": item.Seller_id,
+                "Seller_username": username,
+                "Available_until": item.Available_until,
+                "Verified": item.Verified,
+                "Min_price": item.Min_price,
+                "Current_bid": item.Current_bid,
+                "Image": base64.b64encode(image.Image).decode("utf-8"),
+                "Expert_id": item.Expert_id,
+                "Authentication_request_approved": item.Authentication_request_approved,
+                "Authentication_request": item.Authentication_request
+            }
+            items_list.append(item_details_dict)
+        return jsonify(items_list), 200
+
+    except Exception as e:
+        print("Error: ", e)
+        return jsonify({"Error": "Failed to retrieve items"}), 401
+
 
 @app.route("/api/get-bids", methods=["GET"])
 def get_bids():

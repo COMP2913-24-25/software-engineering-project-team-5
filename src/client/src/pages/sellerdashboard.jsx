@@ -8,7 +8,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 const SellerDashboard = () => {
     const { user } = useUser();
     const { csrfToken } = useCSRF();
-    const { navigate } = useNavigate();
+    const  navigate  = useNavigate();
 
     const [authPendingItems, setAuthPendingItems] = useState([]);
     const [underReviewItems, setUnderReviewItems] = useState([]);
@@ -25,7 +25,7 @@ const SellerDashboard = () => {
     useEffect(() => {
         const fetchItems = async () => {
             try {
-                const response = await fetch("http://localhost:5000/api/get-seller-items", {
+                const response = await fetch("http://localhost:5000/api/get-sellerss-items", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -35,14 +35,16 @@ const SellerDashboard = () => {
                 });
 
                 const data = await response.json();
+                console.log("data :\n", data);
                 if (response.ok) {
                     const authReqItems = data.filter(
                         (item) => item.Authentication_request === true
                     );
+                    console.log("auth req= \n",authReqItems);
                     const noAuthReqItems = data.filter(
                         (item) => item.Authentication_request === false
                     );
-
+                    console.log("no auth req= \n",noAuthReqItems);
                     setAuthPendingItems(authReqItems.filter((item) => item.Expert_id === null));
                     setUnderReviewItems(authReqItems.filter((item) => item.Expert_id !== null));
                     setRejectedItems(
@@ -78,7 +80,7 @@ const SellerDashboard = () => {
         }
 
         fetchItems();
-    }, [user]);
+    },[navigate, user]);
 
     const nextPage = (indexSetter, items) => {
         indexSetter((prev) => (prev + itemsPerPage < items.length ? prev + itemsPerPage : prev));
