@@ -96,7 +96,7 @@ console.log("Data List:", data);
         if (!(user?.level_of_access === 3)) {
             navigate("/invalid-access-rights");
         }
-    }, [user]);
+      }, [navigate, user]);
 
     return (
         <div className="relative min-h-screen bg-gray-100 px-[5%] md:px-[10%] py-8">
