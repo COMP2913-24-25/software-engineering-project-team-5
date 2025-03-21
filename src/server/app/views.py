@@ -1476,6 +1476,14 @@ def Create_listing():
         time_after_days_available = datetime.datetime.now(
             datetime.UTC
         ) + datetime.timedelta(days=int(request.form["days_available"]))
+
+        struct_id = None
+
+        prof_struct = Profit_structure.query.order_by(Profit_structure.Enforced_datetime.desc()).first()
+
+        if prof_struct:
+            struct_id = prof_struct.Structure_id
+
         # Creates a new listing with given data
         listing = Items(
             Listing_name=request.form["listing_name"],
@@ -1487,6 +1495,7 @@ def Create_listing():
             Current_bid=0,
             Description=request.form["listing_description"],
             Authentication_request=authentication_request,
+            Structure_id=struct_id
         )
         print(
             "Authentication Request:", request.form.get("authentication_request", False)
@@ -1784,6 +1793,7 @@ def get_history():
                 Bidding_history.Bid_price,
                 Bidding_history.Bid_datetime,
                 Bidding_history.Successful_bid,
+                Bidding_history.Winning_bid,
                 Items.Item_id,
                 Items.Listing_name,
                 Items.Description,
@@ -1834,6 +1844,7 @@ def get_history():
                     "Bid_price": item.Bid_price,
                     "Bid_datetime": item.Bid_datetime,
                     "Successful_bid": item.Successful_bid,
+                    "Winning_bid": item.Winning_bid,
                     "Item_id": item.Item_id,
                     "Listing_name": item.Listing_name,
                     "Description": item.Description,
@@ -2136,7 +2147,10 @@ def get_sold():
                         Profit_structure,
                         Items.Structure_id == Profit_structure.Structure_id,
                     )
-                    .filter(Items.Available_until < datetime.datetime.now())
+                    .join (Bidding_history,
+                           Items.Item_id == Bidding_history.Item_id)
+                    .filter(Items.Available_until < datetime.datetime.now(),
+                            Bidding_history.Winning_bid == 1)
                     .with_entities(
                         Items.Item_id,
                         Items.Listing_name,
@@ -2153,6 +2167,7 @@ def get_sold():
                         Profit_structure.Enforced_datetime,
                         Items.Authentication_request,
                         Items.Authentication_request_approved,
+                        Bidding_history.Bid_price
                     )
                 )
 
@@ -2190,6 +2205,7 @@ def get_sold():
                             "Enforced_datetime": item.Enforced_datetime,
                             "Authentication_request": item.Authentication_request,
                             "Authentication_request_approved": item.Authentication_request_approved,
+                            "Bid_price": item.Bid_price
                         }
                     )
 

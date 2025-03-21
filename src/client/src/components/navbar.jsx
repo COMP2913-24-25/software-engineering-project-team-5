@@ -42,7 +42,6 @@ const Navbar = ({}) => {
     const menuItems = {
         1: [
             { to: "/watchlist", label: <Heart size={24} /> },
-            { to: "/notifications", label: <Bell size={24} /> },
             { to: "/accountsummary", label: <User size={24} /> },
             { to: "/current-bids", label: <ShoppingCart size={24} /> },
             { to: "/bidding-history", label: <History size={24} /> }
