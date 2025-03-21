@@ -32,6 +32,7 @@ const SearchExperts = () => {
     // Allow the manager to add tags to users, but that will be handled in the manager_view_expert component.
     
     const {user} = useUser();
+    const  navigate  = useNavigate();
     const {csrfToken} = useCSRF();
     const [experts, set_experts] = useState([]);
     const [search, set_search] = useState("");
@@ -80,7 +81,7 @@ const SearchExperts = () => {
         if (!(user?.level_of_access === 3)) {
             navigate("/invalid-access-rights");
         }
-    }, [user]);
+    }, [navigate, user]);
 
     return (
         <div className="relative min-h-screen bg-gray-100 px-[5%] md:px-[10%] py-8">
