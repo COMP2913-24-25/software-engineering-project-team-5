@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useCSRF, useUser } from "../App";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 //only price filtering implemented here
 //Need to add bid_status, sorting filters,  verified/non verified, antique? etc
@@ -8,7 +9,9 @@ const Bid_Status_component = ({ update_listings, listings }) => {
   const [tempBidStatus, setTempBidStatus] = useState("");  // Temporary state for the filter value
   const { csrfToken } = useCSRF();
   const { user } = useUser();
-  
+  const [filter_applied, set_filter_applied] = useState(true);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
   const bid_statuss = [
     { label: "Bid Won", value: "won" },
     { label: "Out Bid", value: "out_bid" },
@@ -23,10 +26,10 @@ const Bid_Status_component = ({ update_listings, listings }) => {
     setTempBidStatus((prevValue) => (prevValue === newValue ? "" : newValue));  
   };
 
-  const applyFilter = () => {
-    setSelectedbid_status(tempBidStatus);
-    console.log("FILTER APPLIED JHJB");
-  };
+  const handleApplyFilter = () => {
+    set_filter_applied(!filter_applied)
+    setSelectedbid_status(tempBidStatus)
+  }
 
   const resetFilter = () => {
     setTempBidStatus("");  
@@ -34,11 +37,14 @@ const Bid_Status_component = ({ update_listings, listings }) => {
   };
 
   //gets ID's of all listings
-  const listingIds = listings.map(listing => listing.Item_id);
- 
+  const listingIds = Array.isArray(listings) ? listings.map(listing => listing.Item_id) : [];
   
   useEffect(() =>
     {
+      if (!listingIds || listingIds.length === 0) {
+        console.log("No listings to filter");
+        return;
+      }
 
     const fetch_filteredlistings = async() =>
     {
@@ -90,35 +96,47 @@ const Bid_Status_component = ({ update_listings, listings }) => {
     } else {
       update_listings(listings); 
     }
-    }, [selectedbid_status]);
+    }, [filter_applied]);
 
     return (
-      <div className="p-4 bg-gray-100 shadow-md w-64">
-        <h2 className="text-lg font-bold mb-4">Bid Status</h2>
-        <div className="space-y-2">
-          {bid_statuss.map((range) => (
-            <div key={range.value} className="flex items-center">
-              <input
-                type="checkbox"
-                id={range.value}
-                name="bid_status"
-                value={range.value}
-                checked={tempBidStatus === range.value}  // Use tempBidStatus for controlling checkbox
-                onChange={handlebid_statusChange}
-                className="mr-2"
-              />
-              <label htmlFor={range.value}>{range.label}</label>
-            </div>
-          ))}
+      <div className="p-6 bg-white shadow-lg rounded-lg">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-gray-800">Bid Status</h2>
+          <button
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            className="text-blue-600 hover:text-blue-700 transition"
+          >
+            {isDropdownOpen ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
+          </button>
         </div>
   
-        {/* Apply Filter button */}
-        <button 
-          onClick={applyFilter}
-          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
-        >
-          Apply Filter
-        </button>
+        {isDropdownOpen && (
+          <div className="mt-6 space-y-4">
+             <div className="mt-4 grid grid-cols-2 gap-4">
+        {bid_statuss.map((status) => (
+          <label key={status.value} className="flex items-center space-x-2 cursor-pointer">
+            <input
+              type="checkbox"
+              value={status.value}
+              checked={tempBidStatus === status.value}
+              onChange={handlebid_statusChange}
+              className="peer hidden"
+            />
+            <div className="w-5 h-5 border-2 border-gray-400 rounded-md flex items-center justify-center peer-checked:bg-blue-600 peer-checked:border-blue-600">
+              {tempBidStatus === status.value && <span className="text-white font-bold">✔</span>}
+            </div>
+            <span className="text-gray-700 font-medium">{status.label}</span>
+          </label>
+        ))}
+      </div>
+            <button
+              onClick={handleApplyFilter}
+              className="bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition w-full"
+            >
+              Apply Filter
+            </button>
+          </div>
+        )}
       </div>
     );
 };
