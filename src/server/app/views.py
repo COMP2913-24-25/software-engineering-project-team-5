@@ -1264,21 +1264,26 @@ def get_bid_filtering():
         print("BID", bid_table)
         for item_id, available_until, successful_bid, winning_bid in bid_table:
             # Condition to check if the bid has expired
-            if available_until > datetime.datetime.now():  # Check if the bid has expired
+            if available_until < datetime.datetime.now():  # Check if the bid has expired
                 if bid_status_selected:  # Ensure bid_status_selected is not None
                     if bid_status_selected == "won":
                         if successful_bid == True and  winning_bid == True:
                             filtered_listing_Ids.append(Id)
-                    elif bid_status_selected == "out_bid":
-                        print("in out_bid, checking succesful_bid", successful_bid)
-                        if successful_bid ==False:
-                            filtered_listing_Ids.append(Id)
                     elif bid_status_selected == "payment_failed":
                         if successful_bid == True and winning_bid != True:
                             filtered_listing_Ids.append(Id)
+                    elif bid_status_selected == "expired" :
+                        filtered_listing_Ids.append(Id)
+                    if bid_status_selected == "out_bid":
+                        print("in out_bid, checking succesful_bid", successful_bid)
+                        if successful_bid ==False:
+                            filtered_listing_Ids.append(Id)
             else:
-                if bid_status_selected == "expired" :
-                    filtered_listing_Ids.append(Id)
+                if bid_status_selected == "out_bid":
+                        print("in out_bid, checking succesful_bid", successful_bid)
+                        if successful_bid ==False:
+                            filtered_listing_Ids.append(Id)
+                
     print(filtered_listing_Ids)
     return jsonify(filtered_listing_Ids)
                 
