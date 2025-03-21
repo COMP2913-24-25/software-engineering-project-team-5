@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 //useEffect : to render data/ execute "side effects" in the component
 import { useLocation } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import CategoryFilter from "../components/category_filter";
 
 import { useNavigate } from "react-router-dom";
 import { useCSRF } from "../App"; // Calls the user
@@ -15,7 +16,7 @@ export default function CurrentListings({}) {
     const [price_filtered_listings, setprice_filtered_listings] = useState([]); // Stores price-filtered data
     const navigate = useNavigate();
     const { csrfToken } = useCSRF();
- 
+
     const location = useLocation();
     const searchQuery = location.state?.searchQuery || ""; 
     //default is not actually "" but " "
@@ -106,13 +107,13 @@ export default function CurrentListings({}) {
 
     const handle_filtered_listings = (filtered_listings) => {
         // console.log("Filtered being set ", filtered_listings);
-
+        // console.log(filtered_listings);
         setprice_filtered_listings(filtered_listings);
     };
-    const handle_listings_Searchfilter = ({ filtered_listings }) => {
-        // const queryParam = encodeURIComponent(searchQuery); // Encode the search query  to safely parse
-        set_listings(filtered_listings);
-    };
+    // const handle_listings_Searchfilter = ({ filtered_listings }) => {
+    //     // const queryParam = encodeURIComponent(searchQuery); // Encode the search query  to safely parse
+    //     set_listings(filtered_listings);
+    // };
 
     // useEffect(() => {
     //     console.log("Filtered after set", price_filtered_listings);
@@ -137,6 +138,8 @@ export default function CurrentListings({}) {
         </div> */}
             {/* <Navbar user={false} item={true} to_be_filtered={listings} handle_set_filtered={handle_listings_Searchfilter} /> */}
             <Filter_component update_listings={handle_filtered_listings} listings={listings} />
+            <CategoryFilter update_listings={handle_filtered_listings} />
+
             <h1 className="text-3xl font-bold mb-6">Current Listings</h1>
             <div className="relative flex items-center justify-center">
                 {price_filtered_listings.length === 0 ? (
