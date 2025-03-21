@@ -1239,8 +1239,18 @@ def get_search_filter():
     # print([item_id for item_id, in db.session.query(Items.Item_id).all()])
     # all_items = db.session.query(Items).all()
     # return jsonify([item.to_dict() for item in all_items])
-
-
+# write tests for this
+@app.route("/api/get_bid_fitering", methods = ["POST"])
+def get_bid_filtering():
+    data = request.json
+    bid_status_selected = data.get("bid_status", "")
+    listing_Ids = data.get("listing_Ids", [])
+    listing_Ids = list(map(int, listing_Ids))
+    filtered_listing_Ids = []
+    
+    if bid_status :
+        
+# write tests for this
 @app.route("/api/get_filtered_listings", methods=["POST"])
 def get_filtered_listings():
     """Filters listings based on the selected price range. (will be implementing more categories)
@@ -1301,6 +1311,7 @@ def get_listing_price(listing):
     else:
         return listing.Current_bid
 
+# write tests for this
 
 @app.route("/api/update-address", methods=["POST"])
 def update_address():
