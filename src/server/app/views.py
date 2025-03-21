@@ -1055,6 +1055,7 @@ def get_bid_filtering():
     print(filtered_listing_Ids)
     return jsonify(filtered_listing_Ids)
 
+
 @app.route("/api/get_category_filters", methods = ["POST"])
 def get_category_filters():
     
