@@ -1013,7 +1013,7 @@ def get_category_filters():
     
     data = request.json
     categories_str = data.get("categories", "")
-    print(categories_str)
+    # print(categories_str)
     categories_list = categories_str.split(",") if categories_str else []
     filtered_ids = []
     filtered_items = []
@@ -1041,12 +1041,12 @@ def get_category_filters():
                 # print("in item bool")
                 
                 
-    print(available_items)
+    # print(available_items)
     if len(categories_list) == 0:
         # Return all items
-        print("nothing selected")
+        # print("nothing selected")
         filtered_items = available_items
-        print(filtered_items)
+        # print(filtered_items)
 
     
     type_names = (
@@ -1056,14 +1056,14 @@ def get_category_filters():
             .all()
         )
     for category in categories_list :
-        print("Checking for category: ", category)
+        # print("Checking for category: ", category)
         for tag_name, item_id in type_names:
             tag_name_tokens = tag_name.split()
-            print(item_id, tag_name)
+            # print(item_id, tag_name)
             category_tokens = category.split()
             for i in range(len(tag_name_tokens) - len(category_tokens) + 1):
                 # print("Search tags",search_tokens)
-                print("here")
+                # print("here")
                 if all(
                     tag_name_tokens[i + j].startswith(category_tokens[j])
                     for j in range(len(category_tokens))
@@ -1075,13 +1075,13 @@ def get_category_filters():
         # print("Item Ids",filtered_ids)
         # get items from filtered Ids
         
-    print(filtered_ids)
+    # print(filtered_ids)
     if(len(filtered_ids)) != 0:
         filtered_items = (
             db.session.query(Items).filter(Items.Item_id.in_(filtered_ids)).all()
         )
         
-    print(filtered_items)
+    # print(filtered_items)
     
     for item in filtered_items:
         image = Images.query.filter(Images.Item_id == item.Item_id).first()
@@ -1153,7 +1153,7 @@ def get_search_filter():
             .all()
         )
         
-        print(available_items)
+        # print(available_items)
         # print("in item bool")
         if searchQuery == " ":
             # Return all items
