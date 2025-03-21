@@ -31,7 +31,7 @@ const LogOut = () => {
                 setUser(null);
 
                 // Navigates to login page
-                navigate("/");
+                navigate("/login");
             }
         };
 

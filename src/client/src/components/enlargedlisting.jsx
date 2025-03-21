@@ -16,7 +16,7 @@ const EnlargedListingPage = () => {
     const [item, setItem] = useState(null);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [imageCount, setImageCount] = useState(0);
-    
+
     // for bidding
     const [bidAmount, setBidAmount] = useState(0);
 
@@ -27,11 +27,14 @@ const EnlargedListingPage = () => {
         if (!user) return;
 
         try {
-            const response = await fetch(`http://localhost:5000/api/check-watchlist?Item_id=${item.Item_id}`, {
-                method: "GET",
-                headers: { "Content-Type": "application/json" },
-                credentials: "include",
-            });
+            const response = await fetch(
+                `http://localhost:5000/api/check-watchlist?Item_id=${item.Item_id}`,
+                {
+                    method: "GET",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                }
+            );
 
             const data = await response.json();
             if (response.ok) {
@@ -49,15 +52,18 @@ const EnlargedListingPage = () => {
         if (!user) return;
 
         try {
-            const response = await fetch(`http://localhost:5000/api/${wishlist ? "remove-watchlist" : "add-watchlist"}`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRF-TOKEN": csrfToken,
-                },
-                credentials: "include",
-                body: JSON.stringify({ item_id }),
-            });
+            const response = await fetch(
+                `http://localhost:5000/api/${wishlist ? "remove-watchlist" : "add-watchlist"}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": csrfToken,
+                    },
+                    credentials: "include",
+                    body: JSON.stringify({ item_id }),
+                }
+            );
 
             const data = await response.json();
             if (response.ok) {
@@ -72,38 +78,70 @@ const EnlargedListingPage = () => {
         }
     };
 
+    const fetchListingInformation = async () => {
+        try {
+            const response = await fetch("http://localhost:5000/api/get-single-listing", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
+                },
+                body: JSON.stringify({ Item_id: item_id }),
+                credentials: "include",
+            });
+            const data = await response.json();
+            console.log("API Response:", data);
 
-    useEffect(() => {
-        const fetchListingInformation = async () => {
-            try {
-                const response = await fetch("http://localhost:5000/api/get-single-listing", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRF-TOKEN": csrfToken,
-                    },
-                    body: JSON.stringify({ Item_id: item_id }),
-                    credentials: "include",
-                });
-                const data = await response.json();
-                console.log("API Response:", data);
+            if (response.ok) {
+                setItem(data);
+                setImageCount(data.Images.length);
+                if (data.Available_until) {
+                    updateTimeRemaining(data.Available_until);
+                } else {
+                    console.warn("Available_until is missing from the response!");
+                }
+            }
+        } catch (error) {
+            console.error("Error fetching listing information:", error);
+        }
+    };
+
+    const fetchSellerListings = async () => {
+        if (!item?.Seller_id) return; // Ensure item is loaded before fetching
+        setSellerListings([]);
+        try {
+            const response = await fetch("http://localhost:5000/api/get-seller-items", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
+                },
+                body: JSON.stringify({ Seller_id: item.Seller_id }),
+                credentials: "include",
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                console.log("Seller Listings API Response:", data);
 
                 if (response.ok) {
-                    setItem(data);
-                    setImageCount(data.Images.length);
-                    if (data.Available_until) {
-                        updateTimeRemaining(data.Available_until);
-                    } else {
-                        console.warn("Available_until is missing from the response!");
-                    }
+                    setSellerListings(data);
+                    console.log(sellerListings);
+                } else {
+                    console.warn("Seller listings is not an array!", data);
+                    setSellerListings();
                 }
-            } catch (error) {
-                console.error("Error fetching listing information:", error);
+            } else {
+                console.error("Error fetching seller listings:", data);
             }
-        };
+        } catch (error) {
+            console.error("Request failed:", error);
+        }
+    };
 
+    useEffect(() => {
         fetchListingInformation();
-    }, [item_id, csrfToken]);
+    }, []);
 
     useEffect(() => {
         if (item?.Available_until) {
@@ -114,55 +152,19 @@ const EnlargedListingPage = () => {
 
             return () => clearInterval(interval);
         }
-    }, [item]);
+    }, []);
 
     useEffect(() => {
         if (user && item) {
             check_watchlist();
         }
-    }, [user, item]);
+    }, []);
 
     useEffect(() => {
-        const fetchSellerListings = async () => {
-            if (!item?.Seller_id) return; // Ensure item is loaded before fetching
-            setSellerListings([]);
-            try {
-                const response = await fetch("http://localhost:5000/api/get-seller-items", {
-
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRF-TOKEN": csrfToken,
-                    },
-                    body: JSON.stringify({ Seller_id: item.Seller_id }),
-                    credentials: "include",
-                });
-
-                const data = await response.json();
-                if (response.ok) {
-                    console.log("Seller Listings API Response:", data);
-
-                    if (response.ok) {
-                        setSellerListings(data)
-                        console.log(sellerListings)
-                    } else {
-                        console.warn("Seller listings is not an array!", data);
-                        setSellerListings();
-                    }
-
-                } else {
-                    console.error("Error fetching seller listings:", data);
-                }
-            } catch (error) {
-                console.error("Request failed:", error);
-            }
-        };
-
         if (item && user) {
             fetchSellerListings();
         }
-    }, [item, user, csrfToken]);
-
+    }, []);
 
     const updateTimeRemaining = (availableUntil) => {
         const endTime = new Date(availableUntil).getTime();
@@ -178,7 +180,11 @@ const EnlargedListingPage = () => {
         const minutes = Math.floor((diffMs / 60000) % 60);
         const seconds = Math.floor((diffMs / 1000) % 60);
 
-        setTimeRemaining(`${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`);
+        setTimeRemaining(
+            `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds
+                .toString()
+                .padStart(2, "0")}`
+        );
     };
 
     const checkIfExpired = (availableUntil) => {
@@ -186,6 +192,7 @@ const EnlargedListingPage = () => {
         const now = new Date().getTime();
         setIsExpired(now >= endTime);
     };
+
     const nextImage = () => {
         if (item && item.Images) {
             setCurrentImageIndex((prev) => (prev + 1 < imageCount ? prev + 1 : 0));
@@ -198,7 +205,7 @@ const EnlargedListingPage = () => {
         }
     };
 
-    // bidding 
+    // bidding
     const handleBidChange = (e) => {
         setBidAmount(e.target.value);
     };
@@ -217,9 +224,9 @@ const EnlargedListingPage = () => {
         console.log("The current minimum price is = ", item.Min_price);
         console.log("The current bid is = ", item.Current_bid);
         console.log("The current item is = ", item_id);
-        console.log("The current user is = ", user.user_id );
+        console.log("The current user is = ", user.user_id);
         // checks that bid amount is valid and also more than minimum/current bid
-       
+
         if (!bidAmount || parseFloat(bidAmount) <= 0) {
             alert("Please enter a valid bid amount.");
             return;
@@ -238,14 +245,19 @@ const EnlargedListingPage = () => {
                     "Content-Type": "application/json",
                     "X-CSRF-TOKEN": csrfToken,
                 },
-                body: JSON.stringify({ Item_id: item_id, Bid_amount: bidAmount, User_id: user.user_id }),
+                body: JSON.stringify({
+                    Item_id: item_id,
+                    Bid_amount: bidAmount,
+                    User_id: user.user_id,
+                }),
                 credentials: "include",
             });
             const data = await response.json();
             if (response.ok) {
                 alert("Bid placed successfully!");
                 setItem((prev) => ({ ...prev, Current_bid: parseFloat(bidAmount) })); //?
-            } else if (response.status === 402) { // 402 Payment Required
+            } else if (response.status === 402) {
+                // 402 Payment Required
                 alert("Please set up your payment method before placing a bid.");
                 navigate("/accountsummary");
             } else {
@@ -282,8 +294,12 @@ const EnlargedListingPage = () => {
     return (
         <div className="bg-gray-50 min-h-screen py-8 px-4 lg:px-6">
             <div className="container mx-auto bg-white shadow-lg rounded-2xl p-6 lg:p-8">
-                <h1 className="text-2xl lg:text-4xl font-bold text-gray-800 mb-4">{item.Listing_name}</h1>
-                <p className="text-gray-600 mb-6 text-sm lg:text-base">Seller: <span className="font-semibold">{item.Seller_username}</span></p>
+                <h1 className="text-2xl lg:text-4xl font-bold text-gray-800 mb-4">
+                    {item.Listing_name}
+                </h1>
+                <p className="text-gray-600 mb-6 text-sm lg:text-base">
+                    Seller: <span className="font-semibold">{item.Seller_username}</span>
+                </p>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-10">
                     <div className="lg:col-span-2">
@@ -292,7 +308,9 @@ const EnlargedListingPage = () => {
                                 <>
                                     <img
                                         src={`data:image/jpeg;base64,${item.Images[currentImageIndex]}`}
-                                        alt={`${item.Listing_name} - Image ${currentImageIndex + 1}`}
+                                        alt={`${item.Listing_name} - Image ${
+                                            currentImageIndex + 1
+                                        }`}
                                         className="w-full h-full object-cover"
                                     />
                                     <div className="absolute inset-0 flex items-center justify-between px-4">
@@ -322,29 +340,53 @@ const EnlargedListingPage = () => {
                     </div>
 
                     <div>
-                        <h2 className="text-xl lg:text-2xl font-semibold mb-6">Product Description</h2>
-                        <p className="text-gray-700 text-sm lg:text-base">{item.Description || "No description available."}</p>
+                        <h2 className="text-xl lg:text-2xl font-semibold mb-6">
+                            Product Description
+                        </h2>
+                        <p className="text-gray-700 text-sm lg:text-base">
+                            {item.Description || "No description available."}
+                        </p>
 
                         <div className="mt-8">
                             <h3 className="text-lg lg:text-xl font-medium mb-4">Listing Details</h3>
                             <ul className="space-y-2 text-sm lg:text-base">
-                                <li className="text-gray-600">Time Remaining: <span className="font-medium">{timeRemaining}</span></li>
-                                <li className="text-gray-600">Listed: <span className="font-medium">{item.Upload_datetime || "N/A"}</span></li>
+                                <li className="text-gray-600">
+                                    Time Remaining:{" "}
+                                    <span className="font-medium">{timeRemaining}</span>
+                                </li>
+                                <li className="text-gray-600">
+                                    Listed:{" "}
+                                    <span className="font-medium">
+                                        {item.Upload_datetime || "N/A"}
+                                    </span>
+                                </li>
 
-                                <li className="text-gray-600">Proposed Price: <span className="font-medium">£{item.Min_price || "0.00"}</span></li>
-                                <li className="text-gray-600">Current Bid: <span className="font-medium">£{item.Current_bid || "0.00"}</span></li>
+                                <li className="text-gray-600">
+                                    Proposed Price:{" "}
+                                    <span className="font-medium">£{item.Min_price || "0.00"}</span>
+                                </li>
+                                <li className="text-gray-600">
+                                    Current Bid:{" "}
+                                    <span className="font-medium">
+                                        £{item.Current_bid || "0.00"}
+                                    </span>
+                                </li>
 
                                 {user && user.level_of_access === 1 && (
                                     <li className="text-gray-600">
                                         <span
-                                            className={`cursor-pointer text-2xl p-2 ${wishlist ? "text-red-600" : "text-gray-500"}`}
-                                            onClick={(e) => { e.stopPropagation(); toggle_wishlist(item.Item_id); }}
+                                            className={`cursor-pointer text-2xl p-2 ${
+                                                wishlist ? "text-red-600" : "text-gray-500"
+                                            }`}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                toggle_wishlist(item.Item_id);
+                                            }}
                                         >
                                             ♥
                                         </span>
                                     </li>
                                 )}
-
                             </ul>
 
                             <div className="mt-10">
@@ -353,7 +395,9 @@ const EnlargedListingPage = () => {
                                         <button className="bg-blue-600 text-white py-3 px-6 rounded-lg text-base lg:text-lg hover:bg-blue-700 transition-all">
                                             Place a Bid
                                         </button>
-                                    ) : (<></>)
+                                    ) : (
+                                        <></>
+                                    )
                                 ) : (
                                     <button
                                         onClick={() => navigate(`/`)}
@@ -367,13 +411,13 @@ const EnlargedListingPage = () => {
                     </div>
                 </div>
 
-
-
                 {/* Bidding Section */}
 
                 <div className="mt-8 text-center">
                     <div className="mb-4">
-                        <label htmlFor="bid-amount-input" className="block text-lg font-semibold">Place a Bid: </label>
+                        <label htmlFor="bid-amount-input" className="block text-lg font-semibold">
+                            Place a Bid:{" "}
+                        </label>
                         <input
                             id="bid-amount-input"
                             type="number"
@@ -386,42 +430,53 @@ const EnlargedListingPage = () => {
                         />
                     </div>
                     {!isExpired ? (
-                        <button onClick={handlePlaceBid} className="bg-blue-600 text-white py-2 px-6 rounded-lg text-lg hover:bg-blue-700 transition">
+                        <button
+                            onClick={handlePlaceBid}
+                            className="bg-blue-600 text-white py-2 px-6 rounded-lg text-lg hover:bg-blue-700 transition"
+                        >
                             Place a Bid
                         </button>
                     ) : (
-
                         <button className="bg-blue-600 text-white py-2 px-6 rounded-lg text-lg hover:bg-blue-700 transition ml-4">
                             Auction Expired
                         </button>
                     )}
                 </div>
-
             </div>
 
-            {user && user.level_of_access === 1 && sellerListings?.filter((listing) => listing.Item_id !== item.Item_id).length > 0 && (
-                <div className="container mx-auto bg-white shadow-lg rounded-2xl p-6 lg:p-8 mt-12">
-                    <h1 className="text-2xl lg:text-3xl font-bold text-gray-800 mb-6">
-                        Other Products by {item.Seller_username}
-                    </h1>
+            {user &&
+                user.level_of_access === 1 &&
+                sellerListings?.filter((listing) => listing.Item_id !== item.Item_id).length >
+                    0 && (
+                    <div className="container mx-auto bg-white shadow-lg rounded-2xl p-6 lg:p-8 mt-12">
+                        <h1 className="text-2xl lg:text-3xl font-bold text-gray-800 mb-6">
+                            Other Products by {item.Seller_username}
+                        </h1>
 
-                    <div id="scrollContainer" className="flex overflow-x-auto space-x-6 p-2 scroll-smooth">
-                        {sellerListings
-                            .filter((listing) =>
-                                listing.Item_id !== item.Item_id && (listing.Authentication_request !== null && listing.Authentication_request_approved !== false)
-                            )
-                            .map((listing) => (
-                                <div key={listing.Item_id} className="min-w-[60%] sm:min-w-[30%] lg:min-w-[20%]">
-                                    <Listing_item item={listing} />
-                                </div>
-                            ))
-                        }
+                        <div
+                            id="scrollContainer"
+                            className="flex overflow-x-auto space-x-6 p-2 scroll-smooth"
+                        >
+                            {sellerListings
+                                .filter(
+                                    (listing) =>
+                                        listing.Item_id !== item.Item_id &&
+                                        listing.Authentication_request !== null &&
+                                        listing.Authentication_request_approved !== false
+                                )
+                                .map((listing) => (
+                                    <div
+                                        key={listing.Item_id}
+                                        className="min-w-[60%] sm:min-w-[30%] lg:min-w-[20%]"
+                                    >
+                                        <Listing_item item={listing} />
+                                    </div>
+                                ))}
+                        </div>
                     </div>
-                </div>
-            )}
+                )}
         </div>
     );
-
 };
 
 export default EnlargedListingPage;
