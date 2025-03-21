@@ -110,20 +110,30 @@ export default function MAuthReq() {
                                 </label>
                                 <Select
                                     className="border border-gray-300 rounded-md w-full"
-                                    value={experts.find(expert => expert.Expert_id === selectedExperts[item.Item_id]) || null}
+                                    value={
+                                        selectedExperts[item.Item_id]
+                                            ? experts.find((expert) => expert.Expert_id === selectedExperts[item.Item_id]) 
+                                                ? {
+                                                    value: selectedExperts[item.Item_id],
+                                                    label: experts.find((expert) => expert.Expert_id === selectedExperts[item.Item_id])?.Full_Name
+                                                }
+                                                : null
+                                            : null
+                                    } 
                                     onChange={(selectedOption) =>
                                         setSelectedExperts({
                                             ...selectedExperts,
-                                            [item.Item_id]: selectedOption ? selectedOption.Expert_id : "",
+                                            [item.Item_id]: selectedOption ? selectedOption.value : "", 
                                         })
                                     }
                                     options={experts.map((expert) => ({
-                                        value: expert.Expert_id,
-                                        label: `${expert.Full_Name} ${expert.Tags.length > 0 ? `(${expert.Tags.join(", ")})` : ""}`,
+                                        value: expert.Expert_id, 
+                                        label: `${expert.Full_Name} ${expert.Tags.length > 0 ? `(${expert.Tags.join(", ")})` : ""}`, 
                                     }))}
                                     isSearchable
                                     placeholder="Select an expert"
                                 />
+
 
                             </div>
                             <button

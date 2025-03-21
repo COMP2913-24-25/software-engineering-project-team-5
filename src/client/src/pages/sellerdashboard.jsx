@@ -35,16 +35,14 @@ const SellerDashboard = () => {
                 });
 
                 const data = await response.json();
-                console.log("data :\n", data);
                 if (response.ok) {
                     const authReqItems = data.filter(
                         (item) => item.Authentication_request === true
                     );
-                    console.log("auth req= \n",authReqItems);
                     const noAuthReqItems = data.filter(
                         (item) => item.Authentication_request === false
                     );
-                    console.log("no auth req= \n",noAuthReqItems);
+                    
                     setAuthPendingItems(authReqItems.filter((item) => item.Expert_id === null));
                     setUnderReviewItems(authReqItems.filter((item) => item.Expert_id !== null));
                     setRejectedItems(
