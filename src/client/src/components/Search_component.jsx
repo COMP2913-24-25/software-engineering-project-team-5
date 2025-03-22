@@ -64,13 +64,6 @@ const Search_component = ({user, item,  update_search}) => { //Filtering is done
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="p-2 rounded-md border border-gray-300 w-1/3"
                             />
-                            <button
-                                type="submit"
-                                onClick={handleSearch}
-                                className="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600"
-                            >
-                                Search
-                            </button>
                         </div>
     );
 };
