@@ -64,7 +64,7 @@ def logged_in_user(client):
 def test_update_level_success(client, logged_in_user):
     data = {
         "user_id": [logged_in_user.User_id],
-        "level_of_access": [2],  # Setting user to expert
+        "level_of_access": ["2"],  # Setting user to expert
     }
 
     response = client.post("/api/update_level", json=data)
@@ -79,7 +79,7 @@ def test_update_level_success(client, logged_in_user):
 def test_update_level_user_not_found(client, logged_in_user):
     data = {
         "user_id": [9999],  # Non-existent user_id
-        "level_of_access": [2],
+        "level_of_access": ["2"],
     }
 
     response = client.post("/api/update_level", json=data)
