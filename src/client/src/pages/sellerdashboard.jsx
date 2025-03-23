@@ -8,7 +8,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 const SellerDashboard = () => {
     const { user } = useUser();
     const { csrfToken } = useCSRF();
-    const  navigate  = useNavigate();
+    const navigate = useNavigate();
 
     const [authPendingItems, setAuthPendingItems] = useState([]);
     const [underReviewItems, setUnderReviewItems] = useState([]);
@@ -90,12 +90,18 @@ const SellerDashboard = () => {
 
     const renderItemsSection = (title, items, index, setIndex) => (
         <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">{title}</h2>
+            <h2 className="text-xl font-semibold mb-4" id={title.replace(/\s+/g, "-").toLowerCase()}>
+                {title}
+            </h2>
             {items.length === 0 ? (
                 <p className="text-gray-500">No items available.</p>
             ) : (
-                <div className="flex items-center gap-4">
-                    <button onClick={() => prevPage(setIndex)}>
+                <div className="flex items-center gap-4" role="region" aria-labelledby={title.replace(/\s+/g, "-").toLowerCase()}>
+                    <button 
+                        onClick={() => prevPage(setIndex)} 
+                        aria-label={`Previous page of ${title}`} 
+                        disabled={index === 0}
+                    >
                         <ChevronLeft />
                     </button>
                     <div className="grid grid-cols-4 gap-4">
@@ -103,7 +109,11 @@ const SellerDashboard = () => {
                             <Listing_item key={item.Item_id} item={item} />
                         ))}
                     </div>
-                    <button onClick={() => nextPage(setIndex, items)}>
+                    <button 
+                        onClick={() => nextPage(setIndex, items)} 
+                        aria-label={`Next page of ${title}`} 
+                        disabled={index + itemsPerPage >= items.length}
+                    >
                         <ChevronRight />
                     </button>
                 </div>
@@ -122,26 +132,11 @@ const SellerDashboard = () => {
 
             {renderItemsSection("Currently Listed Items", normalItems, normalIndex, setNormalIndex)}
 
-            {renderItemsSection(
-                "Authentication Pending",
-                authPendingItems,
-                authPendingIndex,
-                setAuthPendingIndex
-            )}
+            {renderItemsSection("Authentication Pending", authPendingItems, authPendingIndex, setAuthPendingIndex)}
 
-            {renderItemsSection(
-                "Under Review",
-                underReviewItems,
-                underReviewIndex,
-                setUnderReviewIndex
-            )}
+            {renderItemsSection("Under Review", underReviewItems, underReviewIndex, setUnderReviewIndex)}
 
-            {renderItemsSection(
-                "Authentication Rejected",
-                rejectedItems,
-                rejectedIndex,
-                setRejectedIndex
-            )}
+            {renderItemsSection("Authentication Rejected", rejectedItems, rejectedIndex, setRejectedIndex)}
         </div>
     );
 };

@@ -29,6 +29,7 @@ export const NotificationProvider = ({ children }) => {
                 closeOnClick: true,
                 pauseOnHover: true,
                 draggable: true,
+                role: "alert",
             }
         );
         setNotifications((prev) => [...prev, message]);
@@ -253,7 +254,7 @@ console.log("\n-----------------");
     return (
         <NotificationContext.Provider value={{ notify }}>
             {children}
-            <ToastContainer />
+            <ToastContainer aria-live="polite" role="alert" />
         </NotificationContext.Provider>
     );
 };
