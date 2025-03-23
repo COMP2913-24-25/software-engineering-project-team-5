@@ -141,9 +141,6 @@ const EnlargedListingPage = () => {
 
     useEffect(() => {
         fetchListingInformation();
-    }, []);
-
-    useEffect(() => {
         if (item?.Available_until) {
             const interval = setInterval(() => {
                 updateTimeRemaining(item.Available_until);
@@ -152,16 +149,11 @@ const EnlargedListingPage = () => {
 
             return () => clearInterval(interval);
         }
-    }, []);
+    }, [item?.Available_until]);
 
     useEffect(() => {
         if (user && item) {
             check_watchlist();
-        }
-    }, []);
-
-    useEffect(() => {
-        if (item && user) {
             fetchSellerListings();
         }
     }, []);
@@ -308,9 +300,8 @@ const EnlargedListingPage = () => {
                                 <>
                                     <img
                                         src={`data:image/jpeg;base64,${item.Images[currentImageIndex]}`}
-                                        alt={`${item.Listing_name} - Image ${
-                                            currentImageIndex + 1
-                                        }`}
+                                        alt={`${item.Listing_name} - Image ${currentImageIndex + 1
+                                            }`}
                                         className="w-full h-full object-cover"
                                     />
                                     <div className="absolute inset-0 flex items-center justify-between px-4">
@@ -375,9 +366,8 @@ const EnlargedListingPage = () => {
                                 {user && user.level_of_access === 1 && (
                                     <li className="text-gray-600">
                                         <span
-                                            className={`cursor-pointer text-2xl p-2 ${
-                                                wishlist ? "text-red-600" : "text-gray-500"
-                                            }`}
+                                            className={`cursor-pointer text-2xl p-2 ${wishlist ? "text-red-600" : "text-gray-500"
+                                                }`}
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 toggle_wishlist(item.Item_id);
@@ -426,7 +416,7 @@ const EnlargedListingPage = () => {
                             onChange={handleBidChange}
                             //className="w-48 py-2 px-4 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
                             className="px-4 py-2 border border-gray-300 rounded-lg"
-                            //min={parseFloat(item.Min_price) + 0.01}
+                        //min={parseFloat(item.Min_price) + 0.01}
                         />
                     </div>
                     {!isExpired ? (
@@ -447,7 +437,7 @@ const EnlargedListingPage = () => {
             {user &&
                 user.level_of_access === 1 &&
                 sellerListings?.filter((listing) => listing.Item_id !== item.Item_id).length >
-                    0 && (
+                0 && (
                     <div className="container mx-auto bg-white shadow-lg rounded-2xl p-6 lg:p-8 mt-12">
                         <h1 className="text-2xl lg:text-3xl font-bold text-gray-800 mb-6">
                             Other Products by {item.Seller_username}
