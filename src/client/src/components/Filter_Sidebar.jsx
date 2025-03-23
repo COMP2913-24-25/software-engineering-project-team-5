@@ -97,10 +97,16 @@ const handleApplyFilter = () => {
     return (
       <div className="p-3 m-2 bg-white shadow-lg rounded-lg">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-gray-800">Price Filter</h2>
+          <h2 className="text-xl font-semibold text-gray-800"
+          id="price-filter-heading"
+          >Price Filter</h2>
           <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             className="text-blue-600 hover:text-blue-700 transition"
+            aria-expanded={isDropdownOpen ? "true" : "false"}
+            aria-controls="price-filter-content"
+            aria-label={isDropdownOpen ? "Close Price Filter dropdown" : "Open Price Filter dropdown"}
+    
           >
             {isDropdownOpen ? (
               <ChevronUp size={24} />
@@ -111,10 +117,14 @@ const handleApplyFilter = () => {
         </div>
     
         {isDropdownOpen && (
-          <div className="mt-3 space-y-4">
+          <div 
+          id="price-filter-content"
+          className="mt-3 space-y-4"
+          aria-labelledby="price-filter-heading"
+          >
             <div className="flex items-center space-x-6">
               <div className="flex items-center space-x-2">
-                <label htmlFor="minPrice" className="text-gray-700 font-small">Min price:</label>
+                <label htmlFor="minPrice" className="text-gray-700 font-small" id="minPrice-label">Min price:</label>
                 <input
                   type="number"
                   id="minPrice"
@@ -122,10 +132,11 @@ const handleApplyFilter = () => {
                   onChange={handleMinPriceChange}
                   className="border-2 border-gray-300 p-1 rounded-lg w-28 focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter.."
+                  aria-labelledby="minPrice-label"
                 />
               </div>
               <div className="flex items-center space-x-2">
-                <label htmlFor="maxPrice" className="text-gray-700 font-smalls">Max Price:</label>
+                <label htmlFor="maxPrice" className="text-gray-700 font-smalls" id="maxPrice-label">Max Price:</label>
                 <input
                   type="number"
                   id="maxPrice"
@@ -133,11 +144,14 @@ const handleApplyFilter = () => {
                   onChange={handleMaxPriceChange}
                   className="border-2 border-gray-300 p-1 rounded-lg w-28 focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter.."
+                  aria-labelledby="maxPrice-label"
                 />
               </div>
               <button
                 onClick={handleApplyFilter}
                 className="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-600 transition"
+                aria-label="Apply selected price filter"
+
               >
                 Apply Price Filter
               </button>
