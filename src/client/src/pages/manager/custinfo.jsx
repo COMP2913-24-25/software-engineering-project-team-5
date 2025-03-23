@@ -158,8 +158,8 @@ export default function CustomerTable() {
                         <input
                           type="checkbox"
 
-                          checked={selectedUsers.includes(user_display.User_id)}
-                          onChange={() => toggleSelect(user_display.User_id)}
+                          checked={selected_users.includes(user_display.User_id)}
+                          onChange={() => toggle_select(user_display.User_id)}
                           aria-label={`Select user ${user_display.First_name} ${user_display.Surname}`}
 
                         />
@@ -170,8 +170,8 @@ export default function CustomerTable() {
                         <select
                           id={`level-select-${user_display.User_id}`}
                           className="border rounded p-1 w-full sm:w-auto"
+                          value={new_levels[user_display.User_id] || user_display.Level_of_access}
 
-                          value={newLevels[user_display.User_id] || user_display.Level_of_access}
                           onChange={(e) => handleLevelChange(user_display.User_id, e.target.value)}
                           aria-label={`Select access level for ${user_display.First_name}`}
 
