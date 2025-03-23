@@ -49,16 +49,17 @@ def client():
             
             # Create test items
             test_item = Items(
-                Listing_name="Vintage Watch",
+                Listing_name="Smartphone",
                 Seller_id=test_seller.User_id,
-                Available_until=datetime.datetime.now() + datetime.timedelta(days=30),
+                Upload_datetime=datetime.datetime.now(),
+                Available_until=datetime.datetime.now() + datetime.timedelta(days=2),
+                Min_price=700,
+                Current_bid=750,
+                Description="Latest Model Smartphone with 128GB Storage",
                 Verified=True,
                 Authentication_request=False,
-                Authentication_request_approved=True,
-                Min_price=200,
-                Current_bid=250,
+                Authentication_request_approved = True
             )
-            
             db.session.add(test_item)
             db.session.commit()
             
@@ -77,17 +78,20 @@ def logged_in_user(client):
     return User.query.filter_by(Username="testuser").first()
 
 def test_get_search_filter_no_query(client, logged_in_user):
-    response = client.post("/api/get_search_filter", json={"item": True, "searchQuery": ""})
+    # item_check = db.session.query(Items).all()
+    # print("Items in DB after commit:", item_check)  # Debugging
+
+    response = client.post("/api/get_search_filter", json={"item": True, "user" : False, "searchQuery": ""})
     assert response.status_code == 200
     data = json.loads(response.data)
     assert len(data) > 0  # Expecting at least one item
 
 def test_get_search_filter_with_query(client, logged_in_user):
-    response = client.post("/api/get_search_filter", json={"item": True, "searchQuery": "Vintage"})
+    response = client.post("/api/get_search_filter", json={"item": True, "searchQuery": "Smart"})
     assert response.status_code == 200
     data = json.loads(response.data)
     assert len(data) > 0
-    assert data[0]["Listing_name"] == "Vintage Watch"
+    assert data[0]["Listing_name"] == "Smartphone"
 
 def test_get_search_filter_no_results(client, logged_in_user):
     response = client.post("/api/get_search_filter", json={"item": True, "searchQuery": "NonExistentItem"})
