@@ -54,6 +54,7 @@ def client():
                 Verified=True,
                 Authentication_request=False,
                 Authentication_request_approved=True,
+                Description="old watch",
                 Min_price=200,
                 Current_bid=250,
             )

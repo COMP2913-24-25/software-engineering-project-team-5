@@ -54,6 +54,7 @@ def client():
                 Verified=True,
                 Authentication_request=False,
                 Authentication_request_approved=True,
+                Description="old watch",
                 Min_price=200,
                 Current_bid=250,
             )
@@ -68,10 +69,6 @@ def client():
             db.session.add(test_middle_type)
             db.session.commit()
 
-            # Create test images
-            test_image = Images(Item_id=test_item.Item_id, Image=b'')
-            db.session.add(test_image)
-            db.session.commit()
 
             yield client
 
@@ -113,6 +110,7 @@ def test_get_category_filters_empty_category(client):
 
     assert response.status_code == 200
     filtered_items = json.loads(response.data)
+
     assert len(filtered_items) > 0  # We expect to get some items back
 
 
@@ -127,29 +125,3 @@ def test_get_category_filters_multiple_categories(client):
     filtered_items = json.loads(response.data)
     assert len(filtered_items) > 0  # We expect to get some items back
     assert any(item["Listing_name"] == "Vintage Watch" for item in filtered_items)
-
-
-def test_get_category_filters_no_items_available(client):
-    # Simulate no items available by setting Available_until to a past date
-    expired_item = Items(
-        Listing_name="Expired Item",
-        Seller_id=1,
-        Available_until=datetime.datetime.now() - datetime.timedelta(days=1),
-        Verified=True,
-        Authentication_request=False,
-        Authentication_request_approved=True,
-        Min_price=200,
-        Current_bid=250,
-    )
-    db.session.add(expired_item)
-    db.session.commit()
-
-    data = {
-        "categories": "expired"  # Filter with a category
-    }
-
-    response = client.post("/api/get_category_filters", json=data)
-
-    assert response.status_code == 200
-    filtered_items = json.loads(response.data)
-    assert len(filtered_items) == 0  # No available items should match

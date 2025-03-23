@@ -1230,14 +1230,12 @@ def get_search_filter():
             # Return all items
             print("Empty search Query")
             filtered_items = available_items
-            print(filtered_items)
         else:
             # filter by item name, works with space seperated strings
             # item_names_and_Ids = db.session.query(Items.Listing_name, Items.Item_id).all()
             item_names_and_Ids = [
                 (item.Listing_name, item.Item_id) for item in available_items
             ]
-            print(item_names_and_Ids)
             for name, item_id in item_names_and_Ids:
                 name = name.lower()
                 name_tokens = name.split()
@@ -1245,7 +1243,6 @@ def get_search_filter():
 
                 print(name_tokens)
                 for i in range(len(name_tokens) - len(search_tokens) + 1):
-                    print("in loop")
                     if all(
                         name_tokens[i + j].startswith(search_tokens[j])
                         for j in range(len(search_tokens))
