@@ -116,45 +116,66 @@ export default function CustomerTable() {
     return (
         <div className="relative min-h-screen bg-gray-100 px-[5%] md:px-[10%] py-8">
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-semibold text-center text-gray-800 mb-4">
+            <h1 id="customer-info-heading"
+              className="text-2xl font-semibold text-center text-gray-800 mb-4"
+              aria-label="Customer Information"
+        >
               Customer Information
             </h1>
-            <p className="text-xl text-gray-500 mt-2">Search and manage customer details.</p>
+            <p className="text-xl text-gray-500 mt-2" aria-live="polite">
+              Search and manage customer details.
+              </p>
           </div>
       
           <div className="mb-4 flex items-center justify-start gap-4">
-            <h3 className="text-lg font-semibold">Search for Users</h3>
-            <Search_Component user={true} item={false} update_search={handle_search} />
+            <h3 className="text-lg font-semibold" id="search-users-heading"
+            >Search for Users</h3>
+            <Search_Component user={true} item={false} update_search={handle_search} 
+            aria-labelledby="search-users-heading"
+            aria-label="Search component to find users"/>
           </div>
       
           <div className="overflow-auto">
-            <table className="min-w-full bg-white border border-gray-300 rounded-lg text-sm sm:text-base">
+            <table className="min-w-full bg-white border border-gray-300 rounded-lg text-sm 
+            sm:text-base" role="table"
+            aria-describedby="customer-info-heading">
               <thead>
-                <tr className="bg-gray-100 text-left text-xs sm:text-sm">
-                  <th className="p-2 sm:p-3 border text-center">Select</th>
-                  <th className="p-2 sm:p-3 border">Name</th>
-                  <th className="p-2 sm:p-3 border">Email</th>
-                  <th className="p-2 sm:p-3 border">Level</th>
-                </tr>
+              <tr className="bg-gray-100 text-left text-xs sm:text-sm">
+                <th className="p-2 sm:p-3 border text-center" scope="col">Select</th>
+                <th className="p-2 sm:p-3 border" scope="col">Name</th>
+                <th className="p-2 sm:p-3 border" scope="col">Email</th>
+                <th className="p-2 sm:p-3 border" scope="col">Level</th>
+              </tr>
               </thead>
               <tbody>
                 {data.length > 0 ? (
                   data.filter(user_display => user_display.User_id !== user.user_id).map((user_display) => (
-                    <tr key={user_display.User_id} className="border-b hover:bg-gray-50">
+                    <tr key={user_display.User_id} 
+                    className="border-b hover:bg-gray-50"
+                    role="row"
+                    >
                       <td className="p-2 sm:p-3 border text-center">
                         <input
                           type="checkbox"
+
                           checked={selected_users.includes(user_display.User_id)}
                           onChange={() => toggle_select(user_display.User_id)}
+                          aria-label={`Select user ${user_display.First_name} ${user_display.Surname}`}
+
                         />
                       </td>
                       <td className="p-2 sm:p-3 border">{`${user_display.First_name} ${user_display.Middle_name} ${user_display.Surname}`}</td>
                       <td className="p-2 sm:p-3 border">{user_display.Email}</td>
                       <td className="p-2 sm:p-3 border">
                         <select
+                          id={`level-select-${user_display.User_id}`}
                           className="border rounded p-1 w-full sm:w-auto"
+
                           value={new_levels[user_display.User_id] || user_display.Level_of_access}
-                          onChange={(e) => handle_level_change(user_display.User_id, e.target.value)}
+                          onChange={(e) => handleLevelChange(user_display.User_id, e.target.value)}
+                          aria-label={`Select access level for ${user_display.First_name}`}
+
+
                         >
                           <option value="1">1</option>
                           <option value="2">2</option>
@@ -196,6 +217,7 @@ export default function CustomerTable() {
             <button
               onClick={handleSave}
               className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition w-full sm:w-auto"
+              aria-label="Save selected users and their access levels"
             >
               Save
             </button>
