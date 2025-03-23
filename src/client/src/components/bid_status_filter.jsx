@@ -101,37 +101,51 @@ const Bid_Status_component = ({ update_listings, listings }) => {
     return (
       <div className="p-6 bg-white shadow-lg rounded-lg">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-gray-800">Bid Status</h2>
+          <h2 className="text-xl font-semibold text-gray-800" id="bid-status-heading">Bid Status</h2>
           <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             className="text-blue-600 hover:text-blue-700 transition"
+            aria-expanded={isDropdownOpen ? "true" : "false"}
+            aria-controls="dropdown-content"
+            aria-label={isDropdownOpen ? "Close Bid Status filter dropdown" : "Open Bid Status filter dropdown"}
           >
             {isDropdownOpen ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
           </button>
         </div>
   
         {isDropdownOpen && (
-          <div className="mt-6 space-y-4">
+          <div 
+          id="dropdown-content"
+          className="mt-6 space-y-4"
+          aria-labelledby="bid-status-heading"
+          >
              <div className="mt-4 grid grid-cols-2 gap-4">
         {bid_statuss.map((status) => (
-          <label key={status.value} className="flex items-center space-x-2 cursor-pointer">
+          <label
+            key={status.value} 
+            className="flex items-center space-x-2 cursor-pointer"
+            aria-label={`Select bid status: ${status.label}`}
+            >
             <input
               type="checkbox"
               value={status.value}
               checked={tempBidStatus === status.value}
               onChange={handlebid_statusChange}
               className="peer hidden"
+              aria-labelledby={`bid-status-${status.value}`}
             />
-            <div className="w-5 h-5 border-2 border-gray-400 rounded-md flex items-center justify-center peer-checked:bg-blue-600 peer-checked:border-blue-600">
+            <div className="w-5 h-5 border-2 border-gray-400 rounded-md flex items-center justify-center peer-checked:bg-blue-600 peer-checked:border-blue-600"
+            role="presentation">
               {tempBidStatus === status.value && <span className="text-white font-bold">✔</span>}
             </div>
-            <span className="text-gray-700 font-medium">{status.label}</span>
+            <span className="text-gray-700 font-medium" id={`bid-status-${status.value}`}>{status.label}</span>
           </label>
         ))}
       </div>
             <button
               onClick={handleApplyFilter}
               className="bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition w-full"
+              aria-label="Apply selected bid status filters"
             >
               Apply Filter
             </button>

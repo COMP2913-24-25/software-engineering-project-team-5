@@ -60,14 +60,14 @@ const Manager_view_expert = ({ expert, refresh_expert }) => {
     };
 
     return (
-        <div className="p-4 border rounded shadow-md">
-        <h3 className="text-xl font-bold">
+        <div className="p-4 border rounded shadow-md" aria-labelledby="expert-name">
+        <h3 className="text-xl font-bold" id="expert-name">
         {`${expert.First_name} ${expert.Middle_name && expert.Middle_name !== "" ? expert.Middle_name + " " : ""}${expert.Surname}`}
         </h3>
             <p className="text-gray-600">{expert.Email}</p>
             <div className="mt-2">
                 <p className="font-semibold">Expertise:</p>
-                <ul className="list-disc list-inside">
+                <ul className="list-disc list-inside" aria-live="polite">
                     {expert.Expertise.map((exp, index) => (
                         <li key={index}>{exp}</li>
                     ))}
@@ -75,8 +75,14 @@ const Manager_view_expert = ({ expert, refresh_expert }) => {
             </div>
             <div className="mt-4">
                 <Tag_selector selected_tags={selected_tags} set_selected_tags={set_selected_tags} is_item_tags={false} />
-                <button onClick={handle_add_expertise} className="ml-2 p-2 bg-blue-500 text-white rounded"> Add </button>
-                <button onClick={handle_remove_expertise} className="ml-2 p-2 bg-red-500 text-white rounded"> Remove </button>
+                <button 
+                onClick={handle_add_expertise} 
+                className="ml-2 p-2 bg-blue-500 text-white rounded"
+                aria-label="Add expertise"
+                > Add </button>
+                <button onClick={handle_remove_expertise} className="ml-2 p-2 bg-red-500 text-white rounded"
+                aria-label="Remove expertise"
+                > Remove </button>
             </div>
         </div>
     );
