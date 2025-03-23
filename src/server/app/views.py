@@ -983,10 +983,24 @@ def update_user_details():
 @app.route("/api/update_level", methods=["POST"])
 def update_level():
     print("REACHED update_level")
+    data = request.json
+    user_ids = data.get("user_id", "")
+    new_levels = data.get("level_of_access", "")
+    if not user_ids or not new_levels:
+        return jsonify({"error": "Missing user_id or level_of_access in request"}), 400
+
+    if len(user_ids) != len(new_levels):
+        return jsonify({"error": "Mismatch between user_id and level_of_access lengths"}), 400
+    
+    valid_levels = {"1", "2", "3"}  # Using string values here for validation
+    
+    for level in new_levels:
+        if level not in valid_levels:
+            return jsonify({"error": f"Invalid level_of_access value: {level}"}), 500
+    
+        
     try:
-        data = request.json
-        user_ids = data.get("user_id", "")
-        new_levels = data.get("level_of_access", "")
+       
         for i in range(len(user_ids)):
             user = User.query.filter_by(User_id=user_ids[i]).first()
             # print(f"will update user_id {user_ids[i]} to level : {new_levels[i]}")
@@ -1032,12 +1046,15 @@ def get_bid_filtering():
         print("BID", bid_table)
         for item_id, available_until, successful_bid, winning_bid in bid_table:
             # Condition to check if the bid has expired
-            if available_until < datetime.datetime.now():  # Check if the bid has expired
+            if available_until < datetime.datetime.now():  # Check if the bid has expired, won is only possible after expired
                 if bid_status_selected:  # Ensure bid_status_selected is not None
                     if bid_status_selected == "won":
+                        print("in won")
                         if successful_bid == True and  winning_bid == True:
+                            print(successful_bid, winning_bid)
                             filtered_listing_Ids.append(Id)
                     elif bid_status_selected == "payment_failed":
+                        print("in payment failed")
                         if successful_bid == True and winning_bid != True:
                             filtered_listing_Ids.append(Id)
                     elif bid_status_selected == "expired" :
@@ -1047,6 +1064,7 @@ def get_bid_filtering():
                         if successful_bid ==False:
                             filtered_listing_Ids.append(Id)
             else:
+                # print("expired")
                 if bid_status_selected == "out_bid":
                         print("in out_bid, checking succesful_bid", successful_bid)
                         if successful_bid ==False:
@@ -1168,7 +1186,7 @@ def get_search_filter():
     Returns:
         JSON: A list of filtered item details (based on the search query).
     """
-
+    # print("in search")
     data = request.json
     user = data.get("user", "")
     item = data.get("item", "")
@@ -1176,19 +1194,13 @@ def get_search_filter():
     # print("SEARCH QUERY IN BACKEND", searchQuery)
     # print("ITEM", item)
     filtered_ids = []
-    # if user == True:
-    #     print("user : true")
-    # elif item == True:
-    #     print("item :true")
-    # else :
-    #     print("both false")
-    search_tokens = []
+    
     filtered_items = []
     filtered_users = []
 
     if item:
         available_items = (
-            db.session.query(Items, User.Username)
+            db.session.query(Items)
             .join(User, Items.Seller_id == User.User_id)
             .filter(
                 Items.Available_until > datetime.datetime.now(),
@@ -1208,16 +1220,16 @@ def get_search_filter():
             .all()
         )
         # print("in item bool")
-        if searchQuery == " ":
+        if searchQuery == "":
             # Return all items
-            print("Empty search Query")
+            # print("Empty search Query")
             filtered_items = available_items
             # print(filtered_items)
         else:
             # filter by item name, works with space seperated strings
             # item_names_and_Ids = db.session.query(Items.Listing_name, Items.Item_id).all()
             item_names_and_Ids = [
-                (item.Listing_name, item.Item_id) for item, _ in available_items
+                (item.Listing_name, item.Item_id) for item in available_items
             ]
             # print(item_names_and_Ids)
             for name, item_id in item_names_and_Ids:
@@ -1232,18 +1244,14 @@ def get_search_filter():
                     ):
                         filtered_ids.append(item_id)
 
-             # filter by item_tags, works for tags that have more than one word
+            # filter by item_tags, works for tags that have more than one word
             type_names = (
                 db.session.query(Types.Type_name, Items.Item_id)
                 .join(Middle_type, Middle_type.Item_id == Items.Item_id)
                 .join(Types, Types.Type_id == Middle_type.Type_id)
-                .filter(
-                    Items.Available_until > datetime.datetime.now()  # Ensure item is still available
-                )
                 .all()
             )
-            item_ids_unique = list(set(item_id for _, item_id in type_names)) 
-            print(item_ids_unique)
+
             for tag_name, item_id in type_names:
                 tag_name_tokens = tag_name.split()
                 for i in range(len(tag_name_tokens) - len(search_tokens) + 1):
@@ -1255,38 +1263,12 @@ def get_search_filter():
                         # ensure no duplicates of item_ids
                         if item_id not in filtered_ids:
                             filtered_ids.append(item_id)
-                            
-                
-            # search for multiple tags seperated by " ", tag 1 AND tag 2 AND ...
-            for item_id in item_ids_unique :
-                multiple_tags_count = 0
-                item_types = {type_name.lower() for type_name, id in type_names if id == item_id}
-                print(item_id, item_types)
 
-                for token in search_tokens:
-                    for type_name in item_types:
-                        # print(f"comparing search token {token} with type {type_name}")
-                        if type_name.startswith(token):
-                            multiple_tags_count += 1
-                
-                print(multiple_tags_count)
-                if multiple_tags_count >= len(search_tokens):
-                    if item_id not in filtered_ids:
-                            filtered_ids.append(item_id)
-                    
-                    
-                    
-                
-            print("Item Ids",filtered_ids)
+            # print("Item Ids",filtered_ids)
             # get items from filtered Ids
-            
-            
-            print(type_names)
             filtered_items = (
                 db.session.query(Items).filter(Items.Item_id.in_(filtered_ids)).all()
             )
-            
-            # print("Returned", filtered_items)
 
         # Turn into dict
         items_list = []

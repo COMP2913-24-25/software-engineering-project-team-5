@@ -16,7 +16,6 @@ export default function CurrentListings({}) {
     const { csrfToken } = useCSRF();
     const location = useLocation();
     const searchQuery = location.state?.searchQuery || ""; 
-    //default is not actually "" but " "
   
 
 
