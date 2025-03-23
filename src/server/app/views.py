@@ -1191,7 +1191,7 @@ def get_search_filter():
     user = data.get("user", "")
     item = data.get("item", "")
     searchQuery = (data.get("searchQuery", "")).strip().lower()
-    # print("SEARCH QUERY IN BACKEND", searchQuery)
+    print("SEARCH QUERY IN BACKEND", searchQuery)
     # print("ITEM", item)
     filtered_ids = []
     
@@ -1224,24 +1224,24 @@ def get_search_filter():
             # Return all items
             # print("Empty search Query")
             filtered_items = available_items
-            # print(filtered_items)
         else:
             # filter by item name, works with space seperated strings
             # item_names_and_Ids = db.session.query(Items.Listing_name, Items.Item_id).all()
             item_names_and_Ids = [
                 (item.Listing_name, item.Item_id) for item in available_items
             ]
-            # print(item_names_and_Ids)
             for name, item_id in item_names_and_Ids:
+                name = name.lower()
                 name_tokens = name.split()
                 search_tokens = searchQuery.split()
 
-                # print(name_tokens)
+                print(name_tokens)
                 for i in range(len(name_tokens) - len(search_tokens) + 1):
                     if all(
                         name_tokens[i + j].startswith(search_tokens[j])
                         for j in range(len(search_tokens))
                     ):
+                        print(f"name : {name_tokens} seach : {search_tokens}")
                         filtered_ids.append(item_id)
 
             # filter by item_tags, works for tags that have more than one word
@@ -1269,6 +1269,8 @@ def get_search_filter():
             filtered_items = (
                 db.session.query(Items).filter(Items.Item_id.in_(filtered_ids)).all()
             )
+        
+        print(filtered_items)
 
         # Turn into dict
         items_list = []
