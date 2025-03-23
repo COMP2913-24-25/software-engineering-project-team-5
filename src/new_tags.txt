@@ -93,3 +93,4 @@ Tesla
 Makita
 Bosch
 DeWalt
+Osman
