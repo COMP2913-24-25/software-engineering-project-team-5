@@ -76,31 +76,51 @@ fetch_filteredlistings();
   return (
     <div className="p-3 m-2 bg-white shadow-lg rounded-lg">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-gray-800">Category Filter</h2>
+        <h2 className="text-xl font-semibold text-gray-800"
+        id="category-filter-heading"
+        >
+          Category Filter
+        </h2>
         <button
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
           className="text-blue-600 hover:text-blue-700 transition"
+          aria-expanded={isDropdownOpen ? "true" : "false"}
+          aria-controls="category-dropdown-content"
+          aria-label={isDropdownOpen ? "Close Category Filter dropdown" : "Open Category Filter dropdown"}
         >
           {isDropdownOpen ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
         </button>
       </div>
 
       {isDropdownOpen && (
-        <div className="mt-6 space-y-4">
+        <div 
+        id="category-dropdown-content"
+        className="mt-6 space-y-4"
+        aria-labelledby="category-filter-heading"
+
+        >
           <div className="grid grid-cols-2 gap-4">
             {categories.map((category) => (
-              <label key={category.value} className="flex items-center space-x-2 cursor-pointer">
+              <label key={category.value} 
+              className="flex items-center space-x-2 cursor-pointer"
+              aria-label={`Select category: ${category.label}`}
+              >
                 <input
                   type="checkbox"
                   value={category.value}
                   checked={selectedCategories.includes(category.value)}
                   onChange={handleCategoryChange}
                   className="peer hidden"
+                  aria-labelledby={`category-${category.value}`}
                 />
-                <div className="w-4 h-4 border-1 border-gray-400 rounded-md flex items-center justify-center peer-checked:bg-blue-600 peer-checked:border-blue-600">
+                <div className="w-4 h-4 border-1 border-gray-400 rounded-md flex items-center justify-center peer-checked:bg-blue-600 peer-checked:border-blue-600"
+                role="presentation"
+                >
                   {selectedCategories.includes(category.value) && <span className="text-white font-bold">✔</span>}
                 </div>
-                <span className="text-gray-700 font-medium">{category.label}</span>
+                <span className="text-gray-700 font-medium" id={`category-${category.value}`}>
+                  {category.label}
+                  </span>
               </label>
             ))}
           </div>
@@ -108,6 +128,7 @@ fetch_filteredlistings();
           <button
             onClick={handleApplyFilter}
             className="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 transition w-full"
+            aria-label="Apply selected category filters"
           >
             Apply Filter
           </button>

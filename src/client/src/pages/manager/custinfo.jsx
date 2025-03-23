@@ -170,8 +170,8 @@ export default function CustomerTable() {
                         <select
                           id={`level-select-${user_display.User_id}`}
                           className="border rounded p-1 w-full sm:w-auto"
-
                           value={new_levels[user_display.User_id] || user_display.Level_of_access}
+
                           onChange={(e) => handleLevelChange(user_display.User_id, e.target.value)}
                           aria-label={`Select access level for ${user_display.First_name}`}
 
