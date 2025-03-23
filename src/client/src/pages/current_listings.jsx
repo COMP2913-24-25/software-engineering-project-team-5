@@ -16,7 +16,6 @@ export default function CurrentListings({}) {
     const { csrfToken } = useCSRF();
     const location = useLocation();
     const searchQuery = location.state?.searchQuery || ""; 
-    //default is not actually "" but " "
   
 
 
@@ -70,23 +69,27 @@ export default function CurrentListings({}) {
    
 
     return (
-        <div className="container mx-auto p-6 text-center">
-           <div className="ml-5 mb-10 p-1 bg-gray-100 rounded-lg shadow-md">
-                <Filter_component update_listings={handle_filtered_listings} listings={listings} />
-
-                <CategoryFilter update_listings={handle_filtered_listings} />
-            </div>
-
-            <h1 className="text-3xl font-bold mb-6">Current Listings</h1>
+        <div className="container mx-auto p-8 text-center">
+            <Filter_component update_listings={handle_filtered_listings} 
+            listings={listings}
+            aria-label="Filter listings"
+            />
+            <h1 className="text-3xl font-bold mb-6" aria-live="polite" >Current Listings</h1>
             <div className="relative flex items-center justify-center">
                 {price_filtered_listings.length === 0 ? (
-                    <p className="text-gray-600">No current listings available.</p>
+                    <p className="text-gray-600" aria-live="polite">No current listings available.</p>
                 ) : (
-                    <div className="flex overflow-x-auto space-x-4 sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 scrollbar-hide">
+                    <div className="flex overflow-x-auto space-x-4 sm:grid sm:grid-cols-2 
+                    md:grid-cols-3 lg:grid-cols-4 gap-4 scrollbar-hide"
+                    role="list"
+                    aria-label="List of current listings"
+                    >
                         {price_filtered_listings.map((item) => (
                             <div
                                 key={item.id}
                                 className="min-w-[40%] sm:min-w-0 sm:w-auto"
+                                role="listitem"
+                                aria-label={`Listing for ${item.name || "an item"}`}
                             >
                                     <Listing_item key={item.id} item={item} />
                             </div>
