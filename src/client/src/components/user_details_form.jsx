@@ -168,7 +168,10 @@ const UserDetailsForm = () => {
     return (
         <div className="mx-auto bg-white shadow rounded-lg">
             {error_message && (
-                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 pl-[1em] pr-[1em] pt-[2em]">
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 pl-[1em] pr-[1em] pt-[2em]"
+                aria-live="assertive"
+                role="alert"
+                >
                     {error_message}
                 </div>
             )}
@@ -178,6 +181,8 @@ const UserDetailsForm = () => {
                     <div
                         key={index}
                         className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 pl-[1em] pr-[1em] pt-[2em]"
+                        aria-live="assertive"
+                        role="alert"
                     >
                         {error}
                     </div>
@@ -188,51 +193,57 @@ const UserDetailsForm = () => {
                     <div className="space-y-4">
                         <div className="flex flex-col md:flex-row md:space-x-4 space-y-4 md:space-y-0">
                             <div className="w-full">
-                                <label className="block font-medium mb-1">
+                                <label className="block font-medium mb-1" htmlFor="first-name">
                                     First Name
                                 </label>
                                 <input
+                                    id="first-name"
                                     className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
                                     type="text"
                                     name="First_name"
                                     value={form_data.First_name}
                                     onChange={handle_change}
                                     required
+                                    aria-label="First name"
                                 />
                                 {errors.First_name && (
-                                    <p className="text-red-500 text-sm mt-1">
+                                    <p className="text-red-500 text-sm mt-1" role="alert">
                                         {errors.First_name[0]}
                                     </p>
                                 )}
                             </div>
 
                             <div className="w-full">
-                                <label className="block font-medium mb-1">
+                                <label className="block font-medium mb-1" htmlFor="middle-name">
                                     Middle Name
                                 </label>
                                 <input
+                                    id="middle-name"
                                     className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
                                     type="text"
                                     name="Middle_name"
                                     value={form_data.Middle_name}
                                     onChange={handle_change}
+                                    aria-label="Middle name"
                                 />
                             </div>
 
                             <div className="w-full">
-                                <label className="block font-medium mb-1">
+                                <label className="block font-medium mb-1" htmlFor="surname">
                                     Surname
                                 </label>
                                 <input
+                                    id="surname"
                                     className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
                                     type="text"
                                     name="Surname"
                                     value={form_data.Surname}
                                     onChange={handle_change}
                                     required
+                                    aria-label="Surname"
                                 />
                                 {errors.Surname && (
-                                    <p className="text-red-500 text-sm mt-1">
+                                    <p className="text-red-500 text-sm mt-1" role="alert">
                                         {errors.Surname[0]}
                                     </p>
                                 )}
@@ -240,55 +251,65 @@ const UserDetailsForm = () => {
                         </div>
 
                         <div className="w-full">
-                            <label className="block font-medium mb-1">
+                            <label className="block font-medium mb-1" htmlFor="dob">
                                 Date of Birth
                             </label>
                             <input
+                                id="dob"
                                 className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
                                 type="date"
                                 name="DOB"
                                 value={form_data.DOB}
                                 onChange={handle_change}
                                 required
+                                aria-label="Date of birth"
                             />
                             {errors.DOB && (
-                                <p className="text-red-500 text-sm mt-1">
+                                <p className="text-red-500 text-sm mt-1" role="alert">
                                     {errors.DOB[0]}
                                 </p>
                             )}
                         </div>
 
                         <div className="">
-                            <label className="block font-medium mb-1">
+                            <label className="block font-medium mb-1" htmlFor="email">
                                 Email
                             </label>
                             <input
+                                id="email"
                                 className="w-full px-3 py-2 border rounded-lg bg-gray-100 focus:outline-none"
                                 type="email"
                                 value={user_details.Email}
                                 readOnly
+                                aria-label="Email"
                             />
                         </div>
 
                         <div className="w-full">
-                            <label className="block font-medium mb-1">
+                            <label className="block font-medium mb-1" htmlFor="username">
                                 Username
                             </label>
                             <input
+                                id="username"
                                 className="w-full px-3 py-2 border rounded-lg bg-gray-100 focus:outline-none"
                                 type="text"
                                 value={user_details.Username}
                                 readOnly
+                                aria-label="Username" 
                             />
                         </div>
                         
-                                                {/* Display expertise types only if user is an expert */}
-                                                {is_expert && (
+                            {/* Display expertise types only if user is an expert */}
+                            {is_expert && (
                             <div>
-                                <label className="block font-medium mb-1">
+                                <label className="block font-medium mb-1" htmlFor="expertise">
                                     Expertise
                                 </label>
-                                <ul className="list-disc list-inside">
+                                <ul
+                                id="expertise"
+                                className="list-disc list-inside"
+                                aria-label="User expertise types"
+                                >
                                     {expertise_types.length > 0 ? (
                                         expertise_types.map((type, index) => (
                                             <li key={index} className="text-gray-700">
@@ -304,7 +325,10 @@ const UserDetailsForm = () => {
                     </div>
 
                     {success_message && (
-                        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4 mt-4">
+                        <div 
+                        className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4 mt-4"
+                        aria-live="polite"
+                        >
                             {success_message}
                         </div>
                     )}
@@ -312,6 +336,7 @@ const UserDetailsForm = () => {
                     <button
                         type="submit"
                         className="w-full  bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition duration-300 mt-4"
+                        aria-label="Submit form to update details"
                     >
                         Update Details
                     </button>

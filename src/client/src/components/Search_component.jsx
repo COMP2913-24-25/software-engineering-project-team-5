@@ -63,6 +63,7 @@ const Search_component = ({user, item,  update_search}) => { //Filtering is done
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="p-2 rounded-md border border-gray-300 w-1/3"
+                                aria-label="Search input"
                             />
                         </div>
     );
