@@ -51,8 +51,8 @@ const CurrentBids = () => {
 
     // Gets bidding history when the page loads for the first time
     useEffect(() => {
-        if (user?.level_of_access === 1) {          
-            getBids();  
+        if (user?.level_of_access === 1) {
+            getBids();
             const interval = setInterval(() => {
                 getBids();
             }, 3000);
@@ -64,7 +64,7 @@ const CurrentBids = () => {
     return (
         <div className="relative min-h-screen bg-gray-100 px-[5%] md:px-[10%] py-8">
             <div className="text-center mb-8">
-                <h1 className="text-2xl font-semibold text-center text-gray-800 mb-4">
+                <h1 aria-label="Current Bids Page" className="text-2xl font-semibold text-center text-gray-800 mb-4">
                     Current Bids
                 </h1>
                 <p className="text-xl text-gray-500 mt-2">
@@ -73,7 +73,7 @@ const CurrentBids = () => {
             </div>
             {user ? (
                 bids.length > 0 ? (
-                    <div className="space-y-6">
+                    <div aria-live="polite" className="space-y-6">
                         {bids.map((item) => (
                             <ItemListing
                                 key={item.Bid_id}
@@ -89,10 +89,12 @@ const CurrentBids = () => {
                                             {
                                                 text: "Highest Bidder",
                                                 style: "bg-green-500 text-white",
+                                                "aria-label": "You are the highest bidder"
                                             },
                                             {
                                                 text: `Your Bid: £${item.Bid_price}`,
                                                 style: "bg-gray-200 text-black",
+                                                "aria-label": `Your bid is £${item.Bid_price}`
                                             },
                                         ]
                                         : [
@@ -100,10 +102,12 @@ const CurrentBids = () => {
                                             {
                                                 text: `Your Bid: £${item.Bid_price}`,
                                                 style: "bg-gray-200 text-black",
+                                                "aria-label": "You have been outbid"
                                             },
                                             {
                                                 text: `Highest Bid: £${item.Current_bid}`,
                                                 style: "bg-gray-500 text-white",
+                                                "aria-label": `The highest bid is £${item.Current_bid}`
                                             },
                                         ]
                                 }
@@ -111,10 +115,10 @@ const CurrentBids = () => {
                         ))}
                     </div>
                 ) : (
-                    <p className="text-gray-600">You have no current bids.</p>
+                    <p role="status" className="text-gray-600">You have no current bids.</p>
                 )
             ) : (
-                <p className="text-gray-600">Login to see Current Bids</p>
+                <p role="status" className="text-gray-600">Login to see Current Bids</p>
             )}
         </div>
     );

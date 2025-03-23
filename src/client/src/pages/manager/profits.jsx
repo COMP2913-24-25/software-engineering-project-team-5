@@ -147,13 +147,13 @@ export default function Dashboard() {
     };
 
     return (
-        <div className="relative min-h-screen bg-gray-50 px-4 sm:px-6 lg:px-12 py-8">
+        <div aria-live="polite" className="relative min-h-screen bg-gray-50 px-4 sm:px-6 lg:px-12 py-8">
             <div className="text-center mb-10">
-                <h1 className="text-3xl font-bold text-gray-900">Weekly Profits</h1>
-                <p className="text-lg text-gray-600 mt-2">Monitor profits and adjust distribution settings.</p>
+                <h1 aria-label="Weekly Profits Dashboard" className="text-3xl font-bold text-gray-900">Weekly Profits</h1>
+                <p aria-label="Monitor profits and adjust distribution settings" className="text-lg text-gray-600 mt-2">Monitor profits and adjust distribution settings.</p>
             </div>
 
-            <div className="mb-10 overflow-x-auto mb-10 shadow-lg rounded-lg bg-white p-6">
+            <div aria-labelledby="profit-chart" className="mb-10 overflow-x-auto mb-10 shadow-lg rounded-lg bg-white p-6">
                 <Chart
                     data={weeklyProfits}
                     xKey="week"
@@ -162,17 +162,17 @@ export default function Dashboard() {
                 />
             </div>
 
-            <div className="overflow-x-auto mb-10 shadow-lg rounded-lg bg-white p-6">
+            <div aria-labelledby="profit-table" className="overflow-x-auto mb-10 shadow-lg rounded-lg bg-white p-6">
                 <Table data={weeklyProfits} />
             </div>
 
             <div className="bg-white shadow-lg rounded-lg p-6 md:p-8 max-w-3xl mx-auto">
                 <h2 className="text-2xl font-semibold text-gray-900 mb-6">Update Profit Structure</h2>
-                {error && <p className="text-red-600 font-medium mb-4">{error}</p>}
+                {error && <p className="text-red-600 font-medium mb-4" role="alert">{error}</p>}
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
-                        <label htmlFor="manager-split" className="block text-sm font-medium text-gray-700">
+                        <label aria-label="Manager Split (%)" htmlFor="manager-split" className="block text-sm font-medium text-gray-700">
                             Manager Split (%)
                         </label>
                         <input
@@ -191,10 +191,11 @@ export default function Dashboard() {
                             className="border border-gray-300 rounded-lg px-4 py-2 w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                             step="1"
                             required
+                            aria-describedby="manager-split-description"
                         />
                     </div>
                     <div>
-                        <label htmlFor="expert-split" className="block text-sm font-medium text-gray-700">
+                        <label htmlFor="expert-split" className="block text-sm font-medium text-gray-700" aria-label="Expert Split (%)">
                             Expert Split (%)
                         </label>
                         <input
@@ -213,10 +214,11 @@ export default function Dashboard() {
                             className="border border-gray-300 rounded-lg px-4 py-2 w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                             step="1"
                             required
+                            aria-describedby="expert-split-description"
                         />
                     </div>
                     <div>
-                        <label htmlFor="user-split" className="block text-sm font-medium text-gray-700">
+                        <label htmlFor="user-split" className="block text-sm font-medium text-gray-700" aria-label="User Split (%)">
                             User Split (%)
                         </label>
                         <input
@@ -226,6 +228,7 @@ export default function Dashboard() {
                             readOnly
                             className="border border-gray-300 bg-gray-100 rounded-lg px-4 py-2 w-full cursor-not-allowed"
                             step="1"
+                            aria-describedby="user-split-description"
                         />
                     </div>
                 </div>
@@ -235,6 +238,7 @@ export default function Dashboard() {
                     disabled={error !== ""}
                     className={`mt-6 w-full md:w-auto px-6 py-3 text-white font-semibold rounded-lg transition duration-300
                         ${error ? "bg-gray-400 cursor-not-allowed" : "bg-blue-500 hover:bg-blue-600"}`}
+                    aria-label="Save the profit structure changes"
                 >
                     Save Changes
                 </button>
