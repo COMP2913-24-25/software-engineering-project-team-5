@@ -8,7 +8,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 const SellerDashboard = () => {
     const { user } = useUser();
     const { csrfToken } = useCSRF();
-    const  navigate  = useNavigate();
+    const navigate = useNavigate();
 
     const [authPendingItems, setAuthPendingItems] = useState([]);
     const [underReviewItems, setUnderReviewItems] = useState([]);
@@ -42,7 +42,7 @@ const SellerDashboard = () => {
                     const noAuthReqItems = data.filter(
                         (item) => item.Authentication_request === false
                     );
-                    
+
                     setAuthPendingItems(authReqItems.filter((item) => item.Expert_id === null));
                     setUnderReviewItems(authReqItems.filter((item) => item.Expert_id !== null));
                     setRejectedItems(
@@ -63,12 +63,8 @@ const SellerDashboard = () => {
                                     item.Authentication_request_approved === null)
                         )
                     );
-                } else {
-                    console.error("Failed to get the listings");
                 }
-            } catch (error) {
-                console.error("Network error: ", error);
-            }
+            } catch (error) {}
         };
 
         if (user?.level_of_access === 1) {
@@ -78,7 +74,7 @@ const SellerDashboard = () => {
         }
 
         fetchItems();
-    },[navigate, user]);
+    }, [navigate, user]);
 
     const nextPage = (indexSetter, items) => {
         indexSetter((prev) => (prev + itemsPerPage < items.length ? prev + itemsPerPage : prev));
@@ -91,14 +87,29 @@ const SellerDashboard = () => {
     const renderItemsSection = (title, items, index, setIndex) => (
         <div className="mb-8">
             <h2 className="text-xl font-semibold mb-4">{title}</h2>
-            {items.length === 0 ? (
+            {items.length === 0 && title !== "Currently Listed Items" ? (
                 <p className="text-gray-500">No items available.</p>
             ) : (
                 <div className="flex items-center gap-4">
                     <button onClick={() => prevPage(setIndex)}>
                         <ChevronLeft />
                     </button>
-                    <div className="grid grid-cols-4 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {title === "Currently Listed Items" && (
+                            <div
+                                className="w-full max-w-[300px] h-[286px] border border-gray-300 rounded-lg overflow-hidden bg-gray-100 transition-transform transform hover:scale-105 cursor-pointer flex flex-col items-center justify-center"
+                                onClick={() => navigate("/create-listing")}
+                            >
+                                <div className="w-full h-full bg-gray-200 flex items-center justify-center overflow-hidden relative">
+                                    <span className="text-4xl text-gray-600">+</span>
+                                </div>
+                                <div className="p-4 w-full font-sans text-center">
+                                    <span className="text-blue-600 hover:underline font-bold">
+                                        Create New Listing
+                                    </span>
+                                </div>
+                            </div>
+                        )}
                         {items.slice(index, index + itemsPerPage).map((item) => (
                             <Listing_item key={item.Item_id} item={item} />
                         ))}

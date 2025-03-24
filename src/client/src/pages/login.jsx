@@ -13,6 +13,7 @@ const Login = () => {
 
     const navigate = useNavigate();
     const { setUser } = useUser();
+    const { user } = useUser();
     const { csrfToken } = useCSRF();
 
     // Set up the data that is in the form - should match the variable names used in forms.py
@@ -110,8 +111,13 @@ const Login = () => {
             setUser(data.user);
             navigate("/home-page");
         }
-
     };
+
+    useEffect(() => {
+        if (user) {
+            navigate("/home-page");
+        }
+    }, []);
 
     // Where the actual html for the web page is described.
     return (
@@ -119,47 +125,91 @@ const Login = () => {
             <form
                 onSubmit={handle_submit}
                 className="absolute top-10 w-full max-w-xs sm:max-w-md px-6 space-y-4"
+                aria-labelledby="login-heading"
+                noValidate
             >
-                <h2 className="text-2xl font-semibold text-center text-gray-800 mb-2">Log In</h2>
+                {/* Login Header */}
+                <h2
+                    id="login-heading"
+                    className="text-2xl font-semibold text-center text-gray-800 mb-2"
+                >
+                    Log In
+                </h2>
 
-                {errors.general &&
-                    errors.general.map((error, index) => (
-                        <div key={index} className="text-red-600 text-center">
-                            {error}
-                        </div>
-                    ))}
+                {errors.general && (
+                    <div role="alert" aria-live="assertive" className="text-red-600 text-center">
+                        {errors.general.map((error, index) => (
+                            <div key={index}>{error}</div>
+                        ))}
+                    </div>
+                )}
 
+                {/* Form Fields for Login Form */}
                 {[
                     {
                         name: "email_or_username",
                         type: "text",
                         placeholder: "Email or Username",
                         required: true,
+                        label: "Email or Username",
                     },
-                    { name: "password", type: "password", placeholder: "Password", required: true },
-                ].map(({ name, type, placeholder, required }) => (
-                    <div key={name}>
-                        <input
-                            className="bg-white w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            type={type}
-                            name={name}
-                            placeholder={placeholder}
-                            value={form_data[name]}
-                            onChange={handle_change}
-                            required={required}
-                        />
-                        {errors[name] &&
-                            errors[name].map((error, index) => (
-                                <p key={index} className="text-red-500 text-sm mt-1">
-                                    {error}
-                                </p>
-                            ))}
-                    </div>
-                ))}
+                    {
+                        name: "password",
+                        type: "password",
+                        placeholder: "Password",
+                        required: true,
+                        label: "Password",
+                    },
+                ].map(({ name, type, placeholder, required, label }) => {
+                    const hasError = errors[name] && errors[name].length > 0;
+                    const inputId = `${name}-input`;
+                    const errorId = `${name}-error`;
+
+                    return (
+                        <div key={name}>
+                            <label htmlFor={inputId} className="sr-only">
+                                {label}
+                            </label>
+                            <input
+                                id={inputId}
+                                className="bg-white w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                type={type}
+                                name={name}
+                                placeholder={placeholder}
+                                value={form_data[name]}
+                                onChange={handle_change}
+                                required={required}
+                                aria-required={required}
+                                aria-invalid={hasError ? "true" : "false"}
+                                aria-describedby={hasError ? errorId : undefined}
+                                autoComplete={
+                                    name === "password"
+                                        ? "current-password"
+                                        : name === "email_or_username"
+                                        ? "username"
+                                        : undefined
+                                }
+                            />
+                            {hasError && (
+                                <div
+                                    id={errorId}
+                                    role="alert"
+                                    aria-live="polite"
+                                    className="text-red-500 text-sm mt-1"
+                                >
+                                    {errors[name].map((error, index) => (
+                                        <p key={index}>{error}</p>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
 
                 <button
                     type="submit"
                     className="w-full py-3 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    aria-label="Log in to your account"
                 >
                     Log In
                 </button>
@@ -167,13 +217,16 @@ const Login = () => {
                 <div className="text-center mt-4">
                     <p className="text-sm text-gray-600">
                         Don't have an account?{" "}
-                        <a href="/signup" className="text-blue-600 hover:underline">
+                        <a
+                            href="/signup"
+                            className="text-blue-600 hover:underline"
+                            aria-label="Sign up for a new account"
+                        >
                             Sign Up
                         </a>
                     </p>
                 </div>
             </form>
-     
         </div>
     );
 };
