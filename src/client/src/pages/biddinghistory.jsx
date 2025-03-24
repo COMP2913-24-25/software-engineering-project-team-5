@@ -3,6 +3,8 @@ import { useUser, useCSRF } from "../App";
 import ItemListing from "../components/itemlisting";
 import { useNavigate } from "react-router-dom";
 import Bid_Status_component from "../components/bid_status_filter";
+import config from "../../config";
+
 const BiddingHistory = () => {
     /*  
     Allows user to see items that they previous bidded on (items that have expired), it has functionality
@@ -12,6 +14,7 @@ const BiddingHistory = () => {
 
     const { user } = useUser();
     const navigate = useNavigate();
+    const { api_base_url } = config;
 
     // Variable to store the bids stored and bidding history
     const [history, setHistory] = useState([]);
@@ -21,7 +24,7 @@ const BiddingHistory = () => {
     // Function to fetch bidding history from the server
     const getHistory = async () => {
         try {
-            const response = await fetch("http://localhost:5000/api/get-history", {
+            const response = await fetch(`${api_base_url}/api/get-history`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -36,7 +39,7 @@ const BiddingHistory = () => {
             if (response.ok) {
                 if (Array.isArray(data.history)) {
                     setHistory(data.history);
-                    setfiltered_listings(data.history)
+                    setfiltered_listings(data.history);
                 } else {
                     console.log("No items in history");
                 }
@@ -66,7 +69,10 @@ const BiddingHistory = () => {
                 <h1 className="text-2xl font-semibold text-center text-gray-800 mb-4">
                     Bidding History
                 </h1>
-                <Bid_Status_component update_listings={handle_filtered_listings} listings={history} />
+                <Bid_Status_component
+                    update_listings={handle_filtered_listings}
+                    listings={history}
+                />
 
                 <p className="text-xl text-gray-500 mt-2">
                     View items that you have previously bidded on.
@@ -88,46 +94,42 @@ const BiddingHistory = () => {
                                 images={item.Images}
                                 availableUntil={item.Available_until}
                                 buttons={
-                                    item.Successful_bid == 1 ? (
-                                        item.Winning_bid == 1 ? (
-                                        [
-                                            {
-                                            text: "Highest Bidder",
-                                            style: "bg-green-500 text-white",
-                                            },
-                                            {
-                                            text: `Your Bid: £${item.Bid_price}`,
-                                            style: "bg-gray-200 text-black",
-                                            },
-                                        ]
-                                        ) : (
-                                        [
-                                            {
-                                            text: "Payment Incomplete",
-                                            style: "bg-yellow-500 text-white",
-                                            },
-                                            {
-                                            text: `Your Bid: £${item.Bid_price}`,
-                                            style: "bg-gray-200 text-black",
-                                            },
-                                        ]
-                                        )
-                                    ) : (
-                                        [
-                                        {
-                                            text: "Out Bid",
-                                            style: "bg-red-500 text-white",
-                                        },
-                                        {
-                                            text: `Your Bid: £${item.Bid_price}`,
-                                            style: "bg-gray-200 text-black",
-                                        },
-                                        {
-                                            text: `Highest Bid: £${item.Current_bid}`,
-                                            style: "bg-gray-500 text-white",
-                                        },
-                                        ]
-                                    )                                     
+                                    item.Successful_bid == 1
+                                        ? item.Winning_bid == 1
+                                            ? [
+                                                  {
+                                                      text: "Highest Bidder",
+                                                      style: "bg-green-500 text-white",
+                                                  },
+                                                  {
+                                                      text: `Your Bid: £${item.Bid_price}`,
+                                                      style: "bg-gray-200 text-black",
+                                                  },
+                                              ]
+                                            : [
+                                                  {
+                                                      text: "Payment Incomplete",
+                                                      style: "bg-yellow-500 text-white",
+                                                  },
+                                                  {
+                                                      text: `Your Bid: £${item.Bid_price}`,
+                                                      style: "bg-gray-200 text-black",
+                                                  },
+                                              ]
+                                        : [
+                                              {
+                                                  text: "Out Bid",
+                                                  style: "bg-red-500 text-white",
+                                              },
+                                              {
+                                                  text: `Your Bid: £${item.Bid_price}`,
+                                                  style: "bg-gray-200 text-black",
+                                              },
+                                              {
+                                                  text: `Highest Bid: £${item.Current_bid}`,
+                                                  style: "bg-gray-500 text-white",
+                                              },
+                                          ]
                                 }
                             />
                         ))}
@@ -136,7 +138,6 @@ const BiddingHistory = () => {
             ) : (
                 <p className="text-gray-600">Login to see Bidding History</p>
             )}
-
         </div>
     );
 };

@@ -27,7 +27,7 @@ CORS(
     app,
     resources={
         r"/api/*": {
-            "origins": "http://localhost:5173",
+            "origins": ["http://localhost:5173", "http://localhost:4173"],
             "supports_credentials": True,
             "allow_headers": ["Content-Type", "X-CSRF-TOKEN"],
             "expose_headers": ["Content-Type"],

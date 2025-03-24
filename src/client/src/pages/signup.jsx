@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser, useCSRF } from "../App";
+import config from "../../config";
 
 const Signup = () => {
     const navigate = useNavigate();
     const { user } = useUser(); // Access the user state
     const { csrfToken } = useCSRF(); // Access the CSRF token
+    const { api_base_url } = config;
 
     // Set up form data
     const [form_data, set_form_data] = useState({
@@ -89,9 +91,9 @@ const Signup = () => {
 
         // After client-side validation has been passed, makes a HTTP POST request to the
         // server to authenticate the user
-        // Note: 'http://localhost:5000/api/login' needs to be replaced with actual url once
+        // Note: '${api_base_url}/api/login' needs to be replaced with actual url once
         // the server is set up.
-        const response = await fetch("http://localhost:5000/api/signup", {
+        const response = await fetch(`${api_base_url}/api/signup`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -111,19 +113,15 @@ const Signup = () => {
             }
         } else {
             alert("Signup successful!");
-            navigate("/accountsummary");
             // create customer for stripe
-            const stripe_response = await fetch(
-                "http://localhost:5000/api/create-stripe-customer",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRF-TOKEN": csrfToken,
-                    },
-                    credentials: "include",
-                }
-            );
+            const stripe_response = await fetch(`${api_base_url}/api/create-stripe-customer`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
+                },
+                credentials: "include",
+            });
             if (stripe_response.ok) {
                 // Successful creation of Stripe customer
                 const stripe_responseData = await stripe_response.json();
@@ -132,6 +130,7 @@ const Signup = () => {
                 // Handle errors, e.g., user not logged in
                 const errorData = await stripe_response.json();
             }
+            navigate("/accountsummary");
         }
     };
 
