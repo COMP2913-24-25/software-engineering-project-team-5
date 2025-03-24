@@ -438,74 +438,55 @@ const EnlargedListingPage = () => {
                                     </li>
                                 )}
                             </ul>
-
-                            <div className="mt-10">
-                                {user ? (
-                                    user.level_of_access === 1 ? (
-                                        <button
-                                            className="bg-blue-600 text-white py-3 px-6 rounded-lg text-base lg:text-lg hover:bg-blue-700 transition-all"
-                                            aria-label="Place a bid on this item"
-                                        >
-                                            Place a Bid
-                                        </button>
-                                    ) : (
-                                        <></>
-                                    )
-                                ) : (
-                                    <button
-                                        onClick={() => navigate(`/login`)}
-                                        className="bg-blue-600 text-white py-3 px-6 rounded-lg text-base lg:text-lg hover:bg-blue-700 transition-all"
-                                        aria-label="Login or signup to place a bid"
-                                    >
-                                        Login or Signup to place a Bid
-                                    </button>
-                                )}
-                            </div>
                         </section>
                     </div>
                 </div>
 
+
                 {/* Bidding Section */}
-                <section className="mt-8 text-center" aria-labelledby="bidding-section">
-                    <h2 id="bidding-section" className="sr-only">
-                        Bidding Section
-                    </h2>
-                    <div className="mb-4">
-                        <label htmlFor="bid-amount-input" className="block text-lg font-semibold">
-                            Place a Bid:{" "}
-                        </label>
-                        <input
-                            id="bid-amount-input"
-                            type="number"
-                            placeholder="Enter your bid amount"
-                            onChange={handleBidChange}
-                            className="px-4 py-2 border border-gray-300 rounded-lg"
-                            aria-label="Bid amount"
-                            aria-describedby="bid-instructions"
-                        />
-                        <div id="bid-instructions" className="sr-only">
-                            Enter an amount higher than the current bid
-                        </div>
+                <section class name="mt-8 text-center" aria-labelledby="bidding-section">
+                    <h2 id="bidding-section" className="sr-only">Bidding Section</h2>
+                    <div className="mt-8 text-center">
+                        { user || user.level_of_access === 1 || user.user_id !== item.Seller_id ? ( // if user, user isn't manager/expert, and user isn't seller
+                        <>
+                            <div className="mb-4">
+                                    <label htmlFor="bid-amount-input" className="block text-lg font-semibold">Place a Bid: </label>
+                                    <input
+                                        id="bid-amount-input"
+                                        type="number"
+                                        placeholder="Enter your bid amount"
+                                        onChange={handleBidChange}
+                                        className="px-4 py-2 border border-gray-300 rounded-lg"
+                                        aria-label="Bid amount"
+                                        aria-describedby="bid-instructions"
+                                    />
+                                    <div id="bid-instructions" className="sr-only">
+                                        Enter your bid amount. Must be higher than the minimum price and the current bid.
+                                    </div>
+                            </div>
+                                {!isExpired ? (
+                                    <button onClick={handlePlaceBid} className="bg-blue-600 text-white py-2 px-6 rounded-lg text-lg hover:bg-blue-700 transition" aria-label="Submit your bid">
+                                        Place a Bid
+                                    </button>
+                                ) : (
+                                    <button className="bg-blue-600 text-white py-2 px-6 rounded-lg text-lg hover:bg-blue-700 transition ml-4" aria-label="Auction has expired, bidding no longer available">
+                                        Auction Expired
+                                    </button>
+                                )}
+                            </>
+                        ) : (
+                            <button
+                                onClick={() => navigate(`/signup`)}
+                                className="bg-blue-600 text-white py-3 px-6 rounded-lg text-base lg:text-lg hover:bg-blue-700 transition-all"
+                            >
+                            Login or Signup to place a Bid
+                            </button>
+                        )}
                     </div>
-                    {!isExpired ? (
-                        <button
-                            onClick={handlePlaceBid}
-                            className="bg-blue-600 text-white py-2 px-6 rounded-lg text-lg hover:bg-blue-700 transition"
-                            aria-label="Submit your bid"
-                        >
-                            Place a Bid
-                        </button>
-                    ) : (
-                        <button
-                            className="bg-blue-600 text-white py-2 px-6 rounded-lg text-lg hover:bg-blue-700 transition ml-4"
-                            disabled
-                            aria-label="Auction has expired, bidding no longer available"
-                        >
-                            Auction Expired
-                        </button>
-                    )}
                 </section>
             </div>
+
+
 
             {user &&
                 user.level_of_access === 1 &&
@@ -547,6 +528,7 @@ const EnlargedListingPage = () => {
                         </div>
                     </section>
                 )}
+
         </div>
     );
 };
