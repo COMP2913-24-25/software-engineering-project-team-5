@@ -97,7 +97,7 @@ const EnlargedListingPage = () => {
                     updateTimeRemaining(data.Available_until);
                 }
             }
-        } catch (error) {}
+        } catch (error) { }
     };
 
     const fetchSellerListings = async () => {
@@ -122,7 +122,7 @@ const EnlargedListingPage = () => {
                     setSellerListings();
                 }
             }
-        } catch (error) {}
+        } catch (error) { }
     };
 
     useEffect(() => {
@@ -245,7 +245,7 @@ const EnlargedListingPage = () => {
             } else {
                 alert(`Failed to place bid: ${data.message}`);
             }
-        } catch (error) {}
+        } catch (error) { }
     };
 
     const manualCharge = async () => {
@@ -265,7 +265,7 @@ const EnlargedListingPage = () => {
             } else {
                 alert(`Failed to charge: ${data.message}`);
             }
-        } catch (error) {}
+        } catch (error) { }
     };
 
     if (!item) {
@@ -297,9 +297,8 @@ const EnlargedListingPage = () => {
                                 <>
                                     <img
                                         src={`data:image/jpeg;base64,${item.Images[currentImageIndex]}`}
-                                        alt={`${item.Listing_name} - Image ${
-                                            currentImageIndex + 1
-                                        } of ${imageCount}`}
+                                        alt={`${item.Listing_name} - Image ${currentImageIndex + 1
+                                            } of ${imageCount}`}
                                         className="w-full h-full object-cover"
                                     />
                                     <div
@@ -335,9 +334,8 @@ const EnlargedListingPage = () => {
                                         aria-live="polite"
                                     >
                                         <span
-                                            aria-label={`Image ${
-                                                currentImageIndex + 1
-                                            } of ${imageCount}`}
+                                            aria-label={`Image ${currentImageIndex + 1
+                                                } of ${imageCount}`}
                                         >
                                             {currentImageIndex + 1} / {imageCount}
                                         </span>
@@ -415,13 +413,25 @@ const EnlargedListingPage = () => {
                                         £{item.Current_bid || "0.00"}
                                     </span>
                                 </li>
-
+                                {item.Tags && item.Tags.length > 0 ? (
+                                    <ul className="flex space-x-2">
+                                        {item.Tags.map((tag, index) => (
+                                            <li
+                                                key={index}
+                                                className="px-3 py-1 text-sm text-white bg-gray-600 rounded-full"
+                                            >
+                                                {tag}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <li></li>
+                                )}
                                 {user && user.level_of_access === 1 && (
                                     <li className="text-gray-600">
                                         <button
-                                            className={`cursor-pointer text-2xl p-2 ${
-                                                wishlist ? "text-red-600" : "text-gray-500"
-                                            }`}
+                                            className={`cursor-pointer text-2xl p-2 ${wishlist ? "text-red-600" : "text-gray-500"
+                                                }`}
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 toggle_wishlist(item.Item_id);
@@ -447,9 +457,9 @@ const EnlargedListingPage = () => {
                 <section class name="mt-8 text-center" aria-labelledby="bidding-section">
                     <h2 id="bidding-section" className="sr-only">Bidding Section</h2>
                     <div className="mt-8 text-center">
-                        { user || user.level_of_access === 1 || user.user_id !== item.Seller_id ? ( // if user, user isn't manager/expert, and user isn't seller
-                        <>
-                            <div className="mb-4">
+                        {user || user.level_of_access === 1 || user.user_id !== item.Seller_id ? ( // if user, user isn't manager/expert, and user isn't seller
+                            <>
+                                <div className="mb-4">
                                     <label htmlFor="bid-amount-input" className="block text-lg font-semibold">Place a Bid: </label>
                                     <input
                                         id="bid-amount-input"
@@ -463,7 +473,7 @@ const EnlargedListingPage = () => {
                                     <div id="bid-instructions" className="sr-only">
                                         Enter your bid amount. Must be higher than the minimum price and the current bid.
                                     </div>
-                            </div>
+                                </div>
                                 {!isExpired ? (
                                     <button onClick={handlePlaceBid} className="bg-blue-600 text-white py-2 px-6 rounded-lg text-lg hover:bg-blue-700 transition" aria-label="Submit your bid">
                                         Place a Bid
@@ -479,7 +489,7 @@ const EnlargedListingPage = () => {
                                 onClick={() => navigate(`/signup`)}
                                 className="bg-blue-600 text-white py-3 px-6 rounded-lg text-base lg:text-lg hover:bg-blue-700 transition-all"
                             >
-                            Login or Signup to place a Bid
+                                Login or Signup to place a Bid
                             </button>
                         )}
                     </div>
@@ -491,7 +501,7 @@ const EnlargedListingPage = () => {
             {user &&
                 user.level_of_access === 1 &&
                 sellerListings?.filter((listing) => listing.Item_id !== item.Item_id).length >
-                    0 && (
+                0 && (
                     <section
                         className="container mx-auto bg-white shadow-lg rounded-2xl p-6 lg:p-8 mt-12"
                         aria-labelledby="other-products-heading"

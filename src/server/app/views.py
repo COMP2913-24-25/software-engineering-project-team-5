@@ -2452,6 +2452,13 @@ def get_single_listing():
         seller = User.query.filter_by(User_id=item.Seller_id).first()
         images = Images.query.filter_by(Item_id=item.Item_id).all()
 
+        tags = (
+            db.session.query(Types.Type_name)
+            .join(Middle_type, Types.Type_id == Middle_type.Type_id)
+            .filter(Middle_type.Item_id == data["Item_id"])
+            .all()
+        )
+
         item_details = {
             "Current_bid": item.Current_bid,
             "Item_id": item.Item_id,
@@ -2470,6 +2477,7 @@ def get_single_listing():
                 base64.b64encode(image.Image).decode("utf-8") for image in images
             ],
             "Available_until": item.Available_until,
+            "Tags": [tag[0] for tag in tags],
         }
 
         return jsonify(item_details), 200
