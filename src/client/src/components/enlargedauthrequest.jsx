@@ -315,9 +315,8 @@ const EnlargedAuthRequest = () => {
                                 {/* Image Counter */}
                                 <div className="image-counter" aria-live="polite">
                                     <span
-                                        aria-label={`Image ${
-                                            current_image_index + 1
-                                        } of ${image_count}`}
+                                        aria-label={`Image ${current_image_index + 1
+                                            } of ${image_count}`}
                                     >
                                         {current_image_index + 1} / {image_count}
                                     </span>
@@ -351,6 +350,20 @@ const EnlargedAuthRequest = () => {
                                 <dt>Proposed Price:</dt>
                                 <dd>${item.Min_price || "0.00"}</dd>
                             </div>
+                            {item.Tags && item.Tags.length > 0 ? (
+                                <div className="flex space-x-2">
+                                    {item.Tags.map((tag, index) => (
+                                        <div
+                                            key={index}
+                                            className="px-3 py-1 text-sm text-white bg-gray-600 rounded-full"
+                                        >
+                                            {tag}
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div></div>
+                            )}
                         </dl>
                     </section>
                 </div>
