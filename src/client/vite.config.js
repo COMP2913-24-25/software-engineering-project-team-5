@@ -1,13 +1,24 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+import compression from "vite-plugin-compression";
+import viteImagemin from "vite-plugin-imagemin";
+
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
-    plugins: [react(), tailwindcss()],
+    plugins: [
+        react(),
+        tailwindcss(),
+        viteImagemin({
+            mozjpeg: { quality: 80 },
+            pngquant: { quality: [0.6, 0.8] },
+        }),
+        compression({ algorithm: "brotliCompress" }),
+    ],
     test: {
         environment: "jsdom",
         globals: true,
