@@ -250,7 +250,7 @@ const AccountSummary = () => {
             {user && user.level_of_access === 1 && (
                 <div className="p-6 mb-8">
                     <h2 className="text-2xl font-semibold text-gray-800 mb-4">Card Details</h2>
-                    {!setupIntentId ? (
+                    {!user.Setup_intent_ID ? ( //!setupIntentId ? (
                         <p className="text-gray-500">Please enter your card details before placing any bids.</p>
                     ) : (
                         <p className="text-gray-500">Your card details have been saved!</p>
@@ -285,19 +285,6 @@ const AccountSummary = () => {
                 </div>
             )}
 
-            {/* Notifications Section (Placeholder for now) */}
-            <div className="p-6 mb-8">
-                <h2 className="text-2xl font-semibold text-gray-800 mb-4">Notifications</h2>
-                <p className="text-gray-500">To do: After bidding system is completed.</p>
-            </div>
-
-            {/* Bidding History / Seller Dashboard Section (Placeholder for now) */}
-            <div className="p-6">
-                <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-                    Bidding History & Dashboard
-                </h2>
-                <p className="text-gray-500">To do: After bidding system is completed.</p>
-            </div>
             {addresses.map((address, index) => (
                 <AddressForm
                     key={index}
