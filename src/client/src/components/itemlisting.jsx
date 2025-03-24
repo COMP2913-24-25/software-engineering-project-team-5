@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useUser } from "../App";
+import config from "../../config";
 
 const ItemListing = ({
     itemId,
@@ -11,13 +12,12 @@ const ItemListing = ({
     availableUntil,
     images = [],
     labels = [],
-    buttons = []
+    buttons = [],
 }) => {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [timeRemaining, setTimeRemaining] = useState("");
     const navigate = useNavigate();
     const { user } = useUser();
-
 
     // Function to calculate time remaining
     const calculateTimeRemaining = (availableUntil) => {
@@ -60,7 +60,9 @@ const ItemListing = ({
 
     return (
         <div
-            className={`flex flex-col md:flex-row border rounded-lg p-4 shadow-md bg-white w-full items-center transition ${user?.level_of_access === 3 ? "cursor-default" : "cursor-pointer hover:shadow-lg"}`}
+            className={`flex flex-col md:flex-row border rounded-lg p-4 shadow-md bg-white w-full items-center transition ${
+                user?.level_of_access === 3 ? "cursor-default" : "cursor-pointer hover:shadow-lg"
+            }`}
             onClick={handleNavigation}
         >
             {/* Image Carousel */}
@@ -68,7 +70,12 @@ const ItemListing = ({
                 {images.length > 1 ? (
                     <>
                         <button
-                            onClick={(e) => { e.stopPropagation(); setCurrentImageIndex((prevIndex) => (prevIndex - 1 + images.length) % images.length); }}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setCurrentImageIndex(
+                                    (prevIndex) => (prevIndex - 1 + images.length) % images.length
+                                );
+                            }}
                             className="absolute left-1 bg-white/80 hover:bg-gray-200 rounded-full p-1 shadow-md"
                         >
                             <ChevronLeft className="h-5 w-5 text-gray-800" />
@@ -78,7 +85,12 @@ const ItemListing = ({
                             className="w-full h-full object-cover"
                         />
                         <button
-                            onClick={(e) => { e.stopPropagation(); setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length); }}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setCurrentImageIndex(
+                                    (prevIndex) => (prevIndex + 1) % images.length
+                                );
+                            }}
                             className="absolute right-1 bg-white/80 hover:bg-gray-200 rounded-full p-1 shadow-md"
                         >
                             <ChevronRight className="h-5 w-5 text-gray-800" />
@@ -105,31 +117,39 @@ const ItemListing = ({
                 {/* Labels */}
                 <div className="mt-2 space-y-1">
                     {labels.map((label, index) => (
-                        <p key={index} className="text-gray-800 font-semibold">{label}</p>
+                        <p key={index} className="text-gray-800 font-semibold">
+                            {label}
+                        </p>
                     ))}
                     {availableUntil && (
-                        <p className="text-gray-800 font-semibold">Time Remaining: {timeRemaining}</p>
+                        <p className="text-gray-800 font-semibold">
+                            Time Remaining: {timeRemaining}
+                        </p>
                     )}
                 </div>
             </div>
 
             {/* Buttons */}
             <div className="mt-4 flex flex-wrap gap-2">
-            {buttons.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                    {buttons.map(({ text, onClick, style }, index) => (
-                        <button
-                            key={index}
-                            onClick={(e) => { e.stopPropagation(); onClick(); }}
-                            className={`px-4 py-2 rounded-lg whitespace-nowrap ${style || "bg-blue-500 text-white hover:bg-blue-600"}`}
-                        >
-                            {text}
-                        </button>
-                    ))}
-                </div>
-            )}
-        </div>
-
+                {buttons.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                        {buttons.map(({ text, onClick, style }, index) => (
+                            <button
+                                key={index}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onClick();
+                                }}
+                                className={`px-4 py-2 rounded-lg whitespace-nowrap ${
+                                    style || "bg-blue-500 text-white hover:bg-blue-600"
+                                }`}
+                            >
+                                {text}
+                            </button>
+                        ))}
+                    </div>
+                )}
+            </div>
         </div>
     );
 };

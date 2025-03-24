@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import ItemListing from "../components/itemlisting";
 import { useUser, useCSRF } from "../App";
 import { useNavigate } from "react-router-dom";
+import config from "../../config";
 
 const CurrentBids = () => {
     /*  
@@ -17,11 +18,12 @@ const CurrentBids = () => {
     const navigate = useNavigate();
 
     const { csrfToken } = useCSRF();
+    const { api_base_url } = config;
 
     // Function to fetch bidding history from the server
     const getBids = async () => {
         try {
-            const response = await fetch("http://localhost:5000/api/get-bids", {
+            const response = await fetch(`${api_base_url}/api/get-bids`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -37,7 +39,7 @@ const CurrentBids = () => {
                 if (Array.isArray(data.bids)) {
                     setBids(
                         data.bids.map((item) => ({
-                            ...item
+                            ...item,
                         }))
                     );
                 } else {

@@ -3,11 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { useUser, useCSRF } from "../../App";
 import Chart from "../../components/chart";
 import Table from "../../components/table";
+import config from "../../../config";
 
 export default function Dashboard() {
     const { user } = useUser();
     const navigate = useNavigate();
     const { csrfToken } = useCSRF();
+    const { api_base_url } = config;
 
     const [managerSplit, setManagerSplit] = useState(0.01);
     const [expertSplit, setExpertSplit] = useState(0.04);
@@ -40,7 +42,7 @@ export default function Dashboard() {
 
     const getProfitStructure = async () => {
         try {
-            const response = await fetch("http://localhost:5000/api/get-profit-structure", {
+            const response = await fetch(`${api_base_url}/api/get-profit-structure`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -65,10 +67,12 @@ export default function Dashboard() {
     };
 
     const updateProfitStructure = async () => {
-        if (error !== "") { return }
+        if (error !== "") {
+            return;
+        }
 
         try {
-            const response = await fetch("http://localhost:5000/api/update-profit-structure", {
+            const response = await fetch(`${api_base_url}/api/update-profit-structure`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -92,7 +96,7 @@ export default function Dashboard() {
 
     const getSold = async () => {
         try {
-            const response = await fetch("http://localhost:5000/api/get-sold", {
+            const response = await fetch(`${api_base_url}/api/get-sold`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -180,7 +184,10 @@ export default function Dashboard() {
                             id="manager-split"
                             value={Math.round(managerSplit * 100)}
                             onChange={(e) => {
-                                const value = e.target.value.trim() === "" ? 0 : parseFloat(e.target.value) / 100;
+                                const value =
+                                    e.target.value.trim() === ""
+                                        ? 0
+                                        : parseFloat(e.target.value) / 100;
                                 if (!isNaN(value) && validateSplits(value, expertSplit)) {
                                     setManagerSplit(value);
                                     setUserSplit(1 - value - expertSplit);
@@ -203,7 +210,10 @@ export default function Dashboard() {
                             id="expert-split"
                             value={Math.round(expertSplit * 100)}
                             onChange={(e) => {
-                                const value = e.target.value.trim() === "" ? 0 : parseFloat(e.target.value) / 100;
+                                const value =
+                                    e.target.value.trim() === ""
+                                        ? 0
+                                        : parseFloat(e.target.value) / 100;
                                 if (!isNaN(value) && validateSplits(managerSplit, value)) {
                                     setExpertSplit(value);
                                     setUserSplit(1 - managerSplit - value);
@@ -239,11 +249,11 @@ export default function Dashboard() {
                     className={`mt-6 w-full md:w-auto px-6 py-3 text-white font-semibold rounded-lg transition duration-300
                         ${error ? "bg-gray-400 cursor-not-allowed" : "bg-blue-500 hover:bg-blue-600"}`}
                     aria-label="Save the profit structure changes"
+
                 >
                     Save Changes
                 </button>
             </div>
         </div>
     );
-
 }

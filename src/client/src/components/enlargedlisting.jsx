@@ -4,11 +4,14 @@ import { useUser, useCSRF } from "../App"; // changed to include useUser
 import { useParams, useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Listing_item from "../components/listing_items";
+import config from "../../config";
 
 const EnlargedListingPage = () => {
     const { user } = useUser();
     const navigate = useNavigate();
     const { csrfToken } = useCSRF();
+    const { api_base_url } = config;
+
     const params = useParams();
     const item_id = params.Item_id;
     const [sellerListings, setSellerListings] = useState([]);
@@ -28,7 +31,7 @@ const EnlargedListingPage = () => {
 
         try {
             const response = await fetch(
-                `http://localhost:5000/api/check-watchlist?Item_id=${item.Item_id}`,
+                `${api_base_url}/api/check-watchlist?Item_id=${item.Item_id}`,
                 {
                     method: "GET",
                     headers: { "Content-Type": "application/json" },
@@ -40,10 +43,8 @@ const EnlargedListingPage = () => {
             if (response.ok) {
                 set_wishlist(data.in_watchlist);
             } else {
-                console.error("Error2:", data.message);
             }
         } catch (error) {
-            console.error("Error2:", error);
             alert("An error occurred while checking the watchlist.");
         }
     };
@@ -53,7 +54,7 @@ const EnlargedListingPage = () => {
 
         try {
             const response = await fetch(
-                `http://localhost:5000/api/${wishlist ? "remove-watchlist" : "add-watchlist"}`,
+                `${api_base_url}/api/${wishlist ? "remove-watchlist" : "add-watchlist"}`,
                 {
                     method: "POST",
                     headers: {
@@ -69,18 +70,16 @@ const EnlargedListingPage = () => {
             if (response.ok) {
                 set_wishlist(!wishlist);
             } else {
-                console.error("Error:", data.message);
                 alert(`Error: ${data.message}`);
             }
         } catch (error) {
-            console.error("Error:", error);
             alert("An error occurred while updating the watchlist.");
         }
     };
 
     const fetchListingInformation = async () => {
         try {
-            const response = await fetch("http://localhost:5000/api/get-single-listing", {
+            const response = await fetch(`${api_base_url}/api/get-single-listing`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -90,27 +89,22 @@ const EnlargedListingPage = () => {
                 credentials: "include",
             });
             const data = await response.json();
-            console.log("API Response:", data);
 
             if (response.ok) {
                 setItem(data);
                 setImageCount(data.Images.length);
                 if (data.Available_until) {
                     updateTimeRemaining(data.Available_until);
-                } else {
-                    console.warn("Available_until is missing from the response!");
                 }
             }
-        } catch (error) {
-            console.error("Error fetching listing information:", error);
-        }
+        } catch (error) {}
     };
 
     const fetchSellerListings = async () => {
         if (!item?.Seller_id) return; // Ensure item is loaded before fetching
         setSellerListings([]);
         try {
-            const response = await fetch("http://localhost:5000/api/get-seller-items", {
+            const response = await fetch(`${api_base_url}/api/get-seller-items`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -122,21 +116,13 @@ const EnlargedListingPage = () => {
 
             const data = await response.json();
             if (response.ok) {
-                console.log("Seller Listings API Response:", data);
-
                 if (response.ok) {
                     setSellerListings(data);
-                    console.log(sellerListings);
                 } else {
-                    console.warn("Seller listings is not an array!", data);
                     setSellerListings();
                 }
-            } else {
-                console.error("Error fetching seller listings:", data);
             }
-        } catch (error) {
-            console.error("Request failed:", error);
-        }
+        } catch (error) {}
     };
 
     useEffect(() => {
@@ -201,6 +187,7 @@ const EnlargedListingPage = () => {
     const handleBidChange = (e) => {
         setBidAmount(e.target.value);
     };
+
     const handlePlaceBid = async () => {
         // if (user.Setup_intent_ID === null || user.Setup_intent_ID === undefined) {
         //     console.log("user? = ", user.User_id);
@@ -212,11 +199,6 @@ const EnlargedListingPage = () => {
         //     navigate("/accountsummary");
         //     return;
         // }
-        console.log("bid placed = ", bidAmount);
-        console.log("The current minimum price is = ", item.Min_price);
-        console.log("The current bid is = ", item.Current_bid);
-        console.log("The current item is = ", item_id);
-        console.log("The current user is = ", user.user_id);
         // checks that bid amount is valid and also more than minimum/current bid
 
         if (!bidAmount || parseFloat(bidAmount) <= 0) {
@@ -231,7 +213,7 @@ const EnlargedListingPage = () => {
         }
 
         try {
-            const response = await fetch("http://localhost:5000/api/place-bid", {
+            const response = await fetch(`${api_base_url}/api/place-bid`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -255,13 +237,12 @@ const EnlargedListingPage = () => {
             } else {
                 alert(`Failed to place bid: ${data.message}`);
             }
-        } catch (error) {
-            console.error("Error placing bid:", error);
-        }
+        } catch (error) {}
     };
+
     const manualCharge = async () => {
         try {
-            const response = await fetch("http://localhost:5000/api/charge-manual", {
+            const response = await fetch(`${api_base_url}/api/charge-manual`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -276,17 +257,20 @@ const EnlargedListingPage = () => {
             } else {
                 alert(`Failed to charge: ${data.message}`);
             }
-        } catch (error) {
-            console.error("Error charging:", error);
-        }
+        } catch (error) {}
     };
+
     if (!item) {
         return <div className="text-center py-20 text-gray-600">Loading listing...</div>;
     }
+
     return (
-        <div className="bg-gray-50 min-h-screen py-8 px-4 lg:px-6">
+        <div className="bg-gray-50 min-h-screen py-8 px-4 lg:px-6" role="main">
             <div className="container mx-auto bg-white shadow-lg rounded-2xl p-6 lg:p-8">
-                <h1 className="text-2xl lg:text-4xl font-bold text-gray-800 mb-4">
+                <h1
+                    className="text-2xl lg:text-4xl font-bold text-gray-800 mb-4"
+                    id="product-title"
+                >
                     {item.Listing_name}
                 </h1>
                 <p className="text-gray-600 mb-6 text-sm lg:text-base">
@@ -295,35 +279,67 @@ const EnlargedListingPage = () => {
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-10">
                     <div className="lg:col-span-2">
-                        <div className="relative rounded-xl overflow-hidden bg-gray-100 h-72 sm:h-96 lg:h-[30rem]">
+                        <div
+                            className="relative rounded-xl overflow-hidden bg-gray-100 h-72 sm:h-96 lg:h-[30rem]"
+                            aria-labelledby="product-title"
+                            role="region"
+                            aria-label="Product images"
+                        >
                             {item.Images && imageCount > 0 ? (
                                 <>
                                     <img
                                         src={`data:image/jpeg;base64,${item.Images[currentImageIndex]}`}
-                                        alt={`${item.Listing_name} - Image ${currentImageIndex + 1
-                                            }`}
+                                        alt={`${item.Listing_name} - Image ${
+                                            currentImageIndex + 1
+                                        } of ${imageCount}`}
                                         className="w-full h-full object-cover"
                                     />
-                                    <div className="absolute inset-0 flex items-center justify-between px-4">
+                                    <div
+                                        className="absolute inset-0 flex items-center justify-between px-4"
+                                        role="navigation"
+                                        aria-label="Image navigation"
+                                    >
                                         <button
                                             onClick={prevImage}
                                             className="bg-white/80 hover:bg-gray-200 rounded-full p-3 shadow-lg"
+                                            aria-label="Previous image"
+                                            disabled={currentImageIndex === 0}
                                         >
-                                            <ChevronLeft className="h-6 w-6 text-gray-800" />
+                                            <ChevronLeft
+                                                className="h-6 w-6 text-gray-800"
+                                                aria-hidden="true"
+                                            />
                                         </button>
                                         <button
                                             onClick={nextImage}
                                             className="bg-white/80 hover:bg-gray-200 rounded-full p-3 shadow-lg"
+                                            aria-label="Next image"
+                                            disabled={currentImageIndex === imageCount - 1}
                                         >
-                                            <ChevronRight className="h-6 w-6 text-gray-800" />
+                                            <ChevronRight
+                                                className="h-6 w-6 text-gray-800"
+                                                aria-hidden="true"
+                                            />
                                         </button>
                                     </div>
-                                    <div className="absolute bottom-4 right-4 bg-black/60 text-white px-4 py-2 rounded-lg text-sm">
-                                        {currentImageIndex + 1} / {imageCount}
+                                    <div
+                                        className="absolute bottom-4 right-4 bg-black/60 text-white px-4 py-2 rounded-lg text-sm"
+                                        aria-live="polite"
+                                    >
+                                        <span
+                                            aria-label={`Image ${
+                                                currentImageIndex + 1
+                                            } of ${imageCount}`}
+                                        >
+                                            {currentImageIndex + 1} / {imageCount}
+                                        </span>
                                     </div>
                                 </>
                             ) : (
-                                <div className="flex items-center justify-center h-full">
+                                <div
+                                    className="flex items-center justify-center h-full"
+                                    role="status"
+                                >
                                     <p className="text-gray-500">No images available</p>
                                 </div>
                             )}
@@ -331,121 +347,158 @@ const EnlargedListingPage = () => {
                     </div>
 
                     <div>
-                        <h2 className="text-xl lg:text-2xl font-semibold mb-6">
-                            Product Description
-                        </h2>
-                        <p className="text-gray-700 text-sm lg:text-base">
-                            {item.Description || "No description available."}
-                        </p>
+                        <section aria-labelledby="description-heading">
+                            <h2
+                                className="text-xl lg:text-2xl font-semibold mb-6"
+                                id="description-heading"
+                            >
+                                Product Description
+                            </h2>
+                            <p className="text-gray-700 text-sm lg:text-base">
+                                {item.Description || "No description available."}
+                            </p>
+                        </section>
 
-                        <div className="mt-8">
-                            <h3 className="text-lg lg:text-xl font-medium mb-4">Listing Details</h3>
-                            <ul className="space-y-2 text-sm lg:text-base">
+                        <section className="mt-8" aria-labelledby="details-heading">
+                            <h3
+                                className="text-lg lg:text-xl font-medium mb-4"
+                                id="details-heading"
+                            >
+                                Listing Details
+                            </h3>
+                            <ul
+                                className="space-y-2 text-sm lg:text-base"
+                                aria-label="Product details list"
+                            >
                                 <li className="text-gray-600">
-                                    Time Remaining:{" "}
-                                    <span className="font-medium">{timeRemaining}</span>
+                                    <span id="time-remaining-label">Time Remaining:</span>{" "}
+                                    <span
+                                        className="font-medium"
+                                        aria-labelledby="time-remaining-label"
+                                    >
+                                        {timeRemaining}
+                                    </span>
                                 </li>
                                 <li className="text-gray-600">
-                                    Listed:{" "}
-                                    <span className="font-medium">
+                                    <span id="listed-date-label">Listed:</span>{" "}
+                                    <span
+                                        className="font-medium"
+                                        aria-labelledby="listed-date-label"
+                                    >
                                         {item.Upload_datetime || "N/A"}
                                     </span>
                                 </li>
 
                                 <li className="text-gray-600">
-                                    Proposed Price:{" "}
-                                    <span className="font-medium">£{item.Min_price || "0.00"}</span>
+                                    <span id="proposed-price-label">Proposed Price:</span>{" "}
+                                    <span
+                                        className="font-medium"
+                                        aria-labelledby="proposed-price-label"
+                                    >
+                                        £{item.Min_price || "0.00"}
+                                    </span>
                                 </li>
                                 <li className="text-gray-600">
-                                    Current Bid:{" "}
-                                    <span className="font-medium">
+                                    <span id="current-bid-label">Current Bid:</span>{" "}
+                                    <span
+                                        className="font-medium"
+                                        aria-labelledby="current-bid-label"
+                                    >
                                         £{item.Current_bid || "0.00"}
                                     </span>
                                 </li>
 
                                 {user && user.level_of_access === 1 && (
                                     <li className="text-gray-600">
-                                        <span
-                                            className={`cursor-pointer text-2xl p-2 ${wishlist ? "text-red-600" : "text-gray-500"
-                                                }`}
+                                        <button
+                                            className={`cursor-pointer text-2xl p-2 ${
+                                                wishlist ? "text-red-600" : "text-gray-500"
+                                            }`}
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 toggle_wishlist(item.Item_id);
                                             }}
+                                            aria-label={
+                                                wishlist
+                                                    ? "Remove from wishlist"
+                                                    : "Add to wishlist"
+                                            }
+                                            aria-pressed={wishlist}
                                         >
                                             ♥
-                                        </span>
+                                        </button>
                                     </li>
                                 )}
                             </ul>
-
-                            <div className="mt-10">
-                                {user ? (
-                                    user.level_of_access === 1 ? (
-                                        <button className="bg-blue-600 text-white py-3 px-6 rounded-lg text-base lg:text-lg hover:bg-blue-700 transition-all">
-                                            Place a Bid
-                                        </button>
-                                    ) : (
-                                        <></>
-                                    )
-                                ) : (
-                                    <button
-                                        onClick={() => navigate(`/`)}
-                                        className="bg-blue-600 text-white py-3 px-6 rounded-lg text-base lg:text-lg hover:bg-blue-700 transition-all"
-                                    >
-                                        Login or Signup to place a Bid
-                                    </button>
-                                )}
-                            </div>
-                        </div>
+                        </section>
                     </div>
                 </div>
+
 
                 {/* Bidding Section */}
-
-                <div className="mt-8 text-center">
-                    <div className="mb-4">
-                        <label htmlFor="bid-amount-input" className="block text-lg font-semibold">
-                            Place a Bid:{" "}
-                        </label>
-                        <input
-                            id="bid-amount-input"
-                            type="number"
-                            placeholder="Enter your bid amount"
-                            //value={parseFloat(item.Min_price) + 0.01}
-                            onChange={handleBidChange}
-                            //className="w-48 py-2 px-4 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
-                            className="px-4 py-2 border border-gray-300 rounded-lg"
-                        //min={parseFloat(item.Min_price) + 0.01}
-                        />
+                <section class name="mt-8 text-center" aria-labelledby="bidding-section">
+                    <h2 id="bidding-section" className="sr-only">Bidding Section</h2>
+                    <div className="mt-8 text-center">
+                        { user || user.level_of_access === 1 || user.user_id !== item.Seller_id ? ( // if user, user isn't manager/expert, and user isn't seller
+                        <>
+                            <div className="mb-4">
+                                    <label htmlFor="bid-amount-input" className="block text-lg font-semibold">Place a Bid: </label>
+                                    <input
+                                        id="bid-amount-input"
+                                        type="number"
+                                        placeholder="Enter your bid amount"
+                                        onChange={handleBidChange}
+                                        className="px-4 py-2 border border-gray-300 rounded-lg"
+                                        aria-label="Bid amount"
+                                        aria-describedby="bid-instructions"
+                                    />
+                                    <div id="bid-instructions" className="sr-only">
+                                        Enter your bid amount. Must be higher than the minimum price and the current bid.
+                                    </div>
+                            </div>
+                                {!isExpired ? (
+                                    <button onClick={handlePlaceBid} className="bg-blue-600 text-white py-2 px-6 rounded-lg text-lg hover:bg-blue-700 transition" aria-label="Submit your bid">
+                                        Place a Bid
+                                    </button>
+                                ) : (
+                                    <button className="bg-blue-600 text-white py-2 px-6 rounded-lg text-lg hover:bg-blue-700 transition ml-4" aria-label="Auction has expired, bidding no longer available">
+                                        Auction Expired
+                                    </button>
+                                )}
+                            </>
+                        ) : (
+                            <button
+                                onClick={() => navigate(`/signup`)}
+                                className="bg-blue-600 text-white py-3 px-6 rounded-lg text-base lg:text-lg hover:bg-blue-700 transition-all"
+                            >
+                            Login or Signup to place a Bid
+                            </button>
+                        )}
                     </div>
-                    {!isExpired ? (
-                        <button
-                            onClick={handlePlaceBid}
-                            className="bg-blue-600 text-white py-2 px-6 rounded-lg text-lg hover:bg-blue-700 transition"
-                        >
-                            Place a Bid
-                        </button>
-                    ) : (
-                        <button className="bg-blue-600 text-white py-2 px-6 rounded-lg text-lg hover:bg-blue-700 transition ml-4">
-                            Auction Expired
-                        </button>
-                    )}
-                </div>
+                </section>
             </div>
 
             {user &&
                 user.level_of_access === 1 &&
                 sellerListings?.filter((listing) => listing.Item_id !== item.Item_id).length >
-                0 && (
-                    <div className="container mx-auto bg-white shadow-lg rounded-2xl p-6 lg:p-8 mt-12">
-                        <h1 className="text-2xl lg:text-3xl font-bold text-gray-800 mb-6">
+                    0 && (
+                    <section
+                        className="container mx-auto bg-white shadow-lg rounded-2xl p-6 lg:p-8 mt-12"
+                        aria-labelledby="other-products-heading"
+                    >
+                        <h2
+                            className="text-2xl lg:text-3xl font-bold text-gray-800 mb-6"
+                            id="other-products-heading"
+                        >
                             Other Products by {item.Seller_username}
-                        </h1>
+                        </h2>
 
                         <div
                             id="scrollContainer"
                             className="flex overflow-x-auto space-x-6 p-2 scroll-smooth"
+                            role="region"
+                            aria-label="Scrollable list of other products by this seller"
+                            tabIndex="0"
                         >
                             {sellerListings
                                 .filter(
@@ -463,8 +516,9 @@ const EnlargedListingPage = () => {
                                     </div>
                                 ))}
                         </div>
-                    </div>
+                    </section>
                 )}
+
         </div>
     );
 };

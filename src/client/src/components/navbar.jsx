@@ -1,10 +1,11 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Home, User, Heart, ShoppingCart, Bell, History, Menu, X } from "lucide-react";
+import { Home, User, Heart, ShoppingCart, Bell, History, Menu, X, Search } from "lucide-react";
 import { useUser } from "../App";
 
 const Navbar = ({}) => {
     const [menuOpen, setMenuOpen] = useState(false);
+    const [searchOpen, setSearchOpen] = useState(false);
     const { user } = useUser();
     const navigate = useNavigate();
     const location = useLocation(); // Track page changes
@@ -13,21 +14,12 @@ const Navbar = ({}) => {
     // Auto-collapse menu when route changes
     useEffect(() => {
         setMenuOpen(false); // Automatically close the mobile menu on page change
+        setSearchOpen(false); // Close search dropdown on page change
     }, [location.pathname]);
 
     const handleSearch = useCallback(() => {
-        const queryParam = encodeURIComponent(searchQuery); // Encode the search query  to safely parse
-        // console.log("SEARCH", searchQuery);
+        const queryParam = encodeURIComponent(searchQuery); // Encode the search query to safely parse
         navigate("/current_listings", { state: { searchQuery } });
-        // if (searchQuery)
-        // {
-        // const queryParam = encodeURIComponent(searchQuery); // Encode the search query  to safely parse
-        // // console.log("SEARCH", searchQuery);
-        // navigate("/current_listings", { state: { searchQuery } });
-        // } else {
-        //     alert("No search query entered. To view all listings navigate to homepage");
-        //     //should i automatically navigate to homepage?
-        // }
     }, [searchQuery, navigate]);
 
     const handleKeyDown = (e) => {
@@ -37,21 +29,21 @@ const Navbar = ({}) => {
     // Define menu items for each access level
     const menuItems = {
         1: [
-            { to: "/watchlist", label: <Heart size={24} /> },
-            { to: "/accountsummary", label: <User size={24} /> },
-            { to: "/current-bids", label: <ShoppingCart size={24} /> },
-            { to: "/bidding-history", label: <History size={24} /> },
+            { to: "/watchlist", icon: <Heart size={28} />, label: "Watchlist" },
+            { to: "/accountsummary", icon: <User size={28} />, label: "Account Summary" },
+            { to: "/current-bids", icon: <ShoppingCart size={28} />, label: "Current Bids" },
+            { to: "/bidding-history", icon: <History size={28} />, label: "Bidding History" },
         ],
         2: [
-            { to: "/expert/auth", label: "Authentication Requests" },
-            { to: "/accountsummary", label: <User size={24} /> },
+            { to: "/expert/auth", icon: null, label: "Authentication Requests" },
+            { to: "/accountsummary", icon: <User size={28} />, label: "Account Summary" },
         ],
         3: [
-            { to: "/manager/profits", label: "Profits" },
-            { to: "/manager/auth", label: "Authentication Requests" },
-            { to: "/manager/customer", label: "Customers" },
-            { to: "/manager/expertSearch", label: "Expert Search" },
-            { to: "/accountsummary", label: <User size={24} /> },
+            { to: "/manager/profits", icon: null, label: "Profits" },
+            { to: "/manager/auth", icon: null, label: "Authentication Requests" },
+            { to: "/manager/customer", icon: null, label: "Customers" },
+            { to: "/manager/expertSearch", icon: null, label: "Expert Search" },
+            { to: "/accountsummary", icon: <User size={28} />, label: "Account Summary" },
         ],
     };
 
@@ -59,120 +51,199 @@ const Navbar = ({}) => {
     const links = menuItems[user?.level_of_access] || [];
 
     return (
-        <nav className="bg-gray-800 text-white p-4">
+        <nav className="bg-gray-800 text-white p-4" role="navigation" aria-label="Main Navigation">
             <div className="flex items-center justify-between">
-                {/* Left - Home Icon */}
-                <Link to="/home-page" className="hover:text-gray-300">
-                    <Home size={24} />
-                </Link>
-
                 {/* Mobile menu toggle */}
                 <button
-                    className="sm:hidden"
+                    className="md:hidden"
                     onClick={() => setMenuOpen(!menuOpen)}
                     aria-label="Toggle menu"
+                    aria-expanded={menuOpen}
+                    aria-controls="mobile-menu"
                 >
-                    {menuOpen ? <X size={24} /> : <Menu size={24} />}
+                    {menuOpen ? <X size={28} /> : <Menu size={28} />}
                 </button>
 
-                {/* Center - Search Bar (flex-grow to occupy space) */}
-                <div className="hidden sm:flex flex-grow items-center ml-2">
-                    <input
-                        type="text"
-                        placeholder="Search..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        onKeyDown={handleKeyDown}
-                        className="p-2 rounded-md border border-gray-300 w-full sm:w-1/3 focus:ring-2 focus:ring-blue-400"
-                    />
-                    <button
-                        type="button"
-                        onClick={handleSearch}
-                        className="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 focus:ring-2 focus:ring-blue-400 ml-2"
-                    >
-                        Search
-                    </button>
-                </div>
-                {user?.level_of_access === 1 && (
-                    <>
-                        {/* Temporarily here, to be moved to account summary page */}
-                        <Link to="/create-listing" className="hover:text-gray-300 mr-2">
-                            {" "}
-                            Create Listing
-                        </Link>
-                        <Link to="/seller-dash" className="hover:text-gray-300 mr-2">
-                            {" "}
-                            Seller Dashboard{" "}
-                        </Link>
-                    </>
-                )}
+                {/* Website Name for desktop */}
+                <Link
+                    to="/home-page"
+                    className="hidden md:block text-lg font-bold text-gray-200 hover:text-white hover:scale-105 transition-all duration-300 ease-in-out"
+                    aria-label="Bidly Home"
+                >
+                    Bidly
+                </Link>
 
-                {/* Right - Icons pushed to far right */}
-                <div className="hidden sm:flex items-center gap-x-4">
-                    {links.map((link) => (
-                        <Link to={link.to} className="hover:text-gray-300" key={link.to}>
-                            {link.label}
-                        </Link>
-                    ))}
-                    {!user ? (
-                        <>
-                            <Link to="/login" className="hover:text-gray-300">
-                                Login
-                            </Link>
-                            <Link to="/signup" className="hover:text-gray-300">
-                                Sign Up
-                            </Link>
-                        </>
-                    ) : (
-                        <Link to="/logout" className="hover:text-gray-300">
-                            Logout
-                        </Link>
-                    )}
-                </div>
-            </div>
+                {/* Website name for mobile */}
+                <Link
+                    to="/home-page"
+                    className="md:hidden text-lg font-bold"
+                    aria-label="Bidly Home"
+                >
+                    Bidly
+                </Link>
 
-            {/* Mobile navigation menu*/}
-            <div
-                className={`sm:hidden transition-all duration-300 ease-in-out ${
-                    menuOpen ? "max-h-screen opacity-100" : "max-h-0 opacity-0 overflow-hidden"
-                }`}
-            >
-                <div className="flex flex-col items-center gap-y-3 mt-3">
-                    <div className="w-full px-4">
+                {/* Search Bar for desktop */}
+                <div className="hidden md:flex items-center justify-center flex-grow mx-10">
+                    <div className="w-2/3">
+                        <label htmlFor="desktop-search" className="sr-only">
+                            Search
+                        </label>
                         <input
+                            id="desktop-search"
                             type="text"
                             placeholder="Search..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             onKeyDown={handleKeyDown}
-                            className="p-2 w-full rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-400"
+                            className="p-2 rounded-md border border-gray-300 w-full focus:ring-2 focus:ring-blue-400 text-sm"
+                            aria-label="Search"
+                        />
+                    </div>
+                    <button
+                        type="button"
+                        onClick={handleSearch}
+                        className="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-700 focus:ring-2 focus:ring-blue-400 ml-2 transition-colors duration-300 ease-in-out text-sm"
+                        aria-label="Submit search"
+                    >
+                        Search
+                    </button>
+                </div>
+
+                {/* Icons for desktop */}
+                <div className="hidden md:flex items-center gap-x-6">
+                    {links.map((link) => (
+                        <Link
+                            to={link.to}
+                            className="text-gray-300 hover:text-white hover:scale-110 transition-all duration-300 ease-in-out"
+                            key={link.to}
+                            title={link.label}
+                            aria-label={link.label}
+                        >
+                            {link.icon || <span className="text-sm">{link.label}</span>}
+                        </Link>
+                    ))}
+                    {!user ? (
+                        <>
+                            <Link
+                                to="/login"
+                                className="text-sm text-gray-300 hover:text-white hover:scale-105 transition-all duration-300 ease-in-out"
+                                aria-label="Log in to your account"
+                            >
+                                Login
+                            </Link>
+                            <Link
+                                to="/signup"
+                                className="text-sm text-gray-300 hover:text-white hover:scale-105 transition-all duration-300 ease-in-out"
+                                aria-label="Sign up for a new account"
+                            >
+                                Sign Up
+                            </Link>
+                        </>
+                    ) : (
+                        <Link
+                            to="/logout"
+                            className="text-sm text-gray-300 hover:text-white hover:scale-105 transition-all duration-300 ease-in-out"
+                            aria-label="Log out of your account"
+                        >
+                            Logout
+                        </Link>
+                    )}
+                </div>
+
+                {/* Search toggle for mobile */}
+                <button
+                    className="md:hidden"
+                    onClick={() => setSearchOpen(!searchOpen)}
+                    aria-label="Toggle search"
+                    aria-expanded={searchOpen}
+                    aria-controls="mobile-search"
+                >
+                    <Search size={28} />
+                </button>
+            </div>
+
+            {/* Mobile search dropdown */}
+            <div
+                id="mobile-search"
+                className={`md:hidden transition-all duration-300 ease-in-out ${
+                    searchOpen ? "max-h-20 opacity-100 mt-3" : "max-h-0 opacity-0 overflow-hidden"
+                }`}
+                aria-hidden={!searchOpen}
+            >
+                <div className="px-4 pt-2 pb-2">
+                    <div className="flex items-center gap-2">
+                        <label htmlFor="mobile-search-input" className="sr-only">
+                            Search
+                        </label>
+                        <input
+                            id="mobile-search-input"
+                            type="text"
+                            placeholder="Search..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            className="p-2 flex-1 rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-400 text-sm"
+                            aria-label="Search"
                         />
                         <button
                             type="button"
                             onClick={handleSearch}
-                            className="mt-2 p-2 w-full bg-blue-500 text-white rounded-full hover:bg-blue-600 focus:ring-2 focus:ring-blue-400"
+                            className="p-2 bg-blue-500 text-white rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-400 transition-colors duration-300 ease-in-out text-sm whitespace-nowrap"
+                            aria-label="Submit search"
                         >
                             Search
                         </button>
                     </div>
+                </div>
+            </div>
 
+            {/* Mobile navigation menu */}
+            <div
+                id="mobile-menu"
+                className={`md:hidden transition-all duration-300 ease-in-out ${
+                    menuOpen ? "max-h-screen opacity-100" : "max-h-0 opacity-0 overflow-hidden"
+                }`}
+                aria-hidden={!menuOpen}
+            >
+                <div className="flex flex-col items-start gap-y-4 mt-4 pl-4" role="menu">
                     {links.map((link) => (
-                        <Link to={link.to} className="hover:text-gray-300" key={link.to}>
+                        <Link
+                            to={link.to}
+                            className="text-sm text-gray-300 hover:text-white hover:translate-x-1 transition-all duration-300 ease-in-out"
+                            key={link.to}
+                            role="menuitem"
+                            aria-label={link.label}
+                        >
                             {link.label}
                         </Link>
                     ))}
 
                     {!user ? (
                         <>
-                            <Link to="/" className="hover:text-gray-300">
+                            <Link
+                                to="/login"
+                                className="text-sm text-gray-300 hover:text-white hover:translate-x-1 transition-all duration-300 ease-in-out"
+                                role="menuitem"
+                                aria-label="Log in to your account"
+                            >
                                 Login
                             </Link>
-                            <Link to="/signup" className="hover:text-gray-300">
+                            <Link
+                                to="/signup"
+                                className="text-sm text-gray-300 hover:text-white hover:translate-x-1 transition-all duration-300 ease-in-out"
+                                role="menuitem"
+                                aria-label="Sign up for a new account"
+                            >
                                 Sign Up
                             </Link>
                         </>
                     ) : (
-                        <Link to="/logout" className="hover:text-gray-300">
+                        <Link
+                            to="/logout"
+                            className="text-sm text-gray-300 hover:text-white hover:translate-x-1 transition-all duration-300 ease-in-out"
+                            role="menuitem"
+                            aria-label="Log out of your account"
+                        >
                             Logout
                         </Link>
                     )}

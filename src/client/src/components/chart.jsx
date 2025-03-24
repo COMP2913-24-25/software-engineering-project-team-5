@@ -1,6 +1,13 @@
 import React from "react";
 import {
-    LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
+    LineChart,
+    Line,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    Legend,
+    ResponsiveContainer,
 } from "recharts";
 
 export default function Chart({ data, xKey, yKeys, colors }) {

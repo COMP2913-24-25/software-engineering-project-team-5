@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useCSRF } from "../App";
+import config from "../../config";
 
 const AddressForm = ({
     address,
@@ -16,6 +17,7 @@ const AddressForm = ({
     */
 
     const { csrfToken } = useCSRF();
+    const { api_base_url } = config;
 
     // Sets form data - Address_id is blank ("") when new address is being created
     const [form_data, set_form_data] = useState({
@@ -97,18 +99,15 @@ const AddressForm = ({
         try {
             form_data.Address_id = address.Address_id;
 
-            const response = await fetch(
-                "http://localhost:5000/api/update-address",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRF-TOKEN": csrfToken,
-                    },
-                    body: JSON.stringify(form_data),
-                    credentials: "include",
-                }
-            );
+            const response = await fetch(`${api_base_url}/api/update-address`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
+                },
+                body: JSON.stringify(form_data),
+                credentials: "include",
+            });
 
             const data = await response.json();
 
@@ -127,9 +126,7 @@ const AddressForm = ({
             }
         } catch (error) {
             set_errors({
-                general: [
-                    "Network error. Please check your connection and try again.",
-                ],
+                general: ["Network error. Please check your connection and try again."],
             });
         }
     };
@@ -140,18 +137,15 @@ const AddressForm = ({
         set_errors({});
 
         try {
-            const response = await fetch(
-                "http://localhost:5000/api/delete-address",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRF-TOKEN": csrfToken,
-                    },
-                    body: JSON.stringify({ Address_id: address.Address_id }),
-                    credentials: "include",
-                }
-            );
+            const response = await fetch(`${api_base_url}/api/delete-address`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
+                },
+                body: JSON.stringify({ Address_id: address.Address_id }),
+                credentials: "include",
+            });
 
             const data = await response.json();
 
@@ -180,117 +174,123 @@ const AddressForm = ({
                 <div className="space-y-4">
                     <div className="flex flex-col md:flex-row md:space-x-4 space-y-4 md:space-y-0">
                         <div className="w-full">
-                            <label className="block font-medium mb-1">
+                            <label className="block font-medium mb-1" htmlFor="Line_1">
                                 Line 1
                             </label>
                             <input
+                                id="Line_1"
                                 className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
                                 type="text"
                                 name="Line_1"
                                 value={form_data.Line_1}
                                 onChange={handle_change}
                                 required
+                                aria-label="Enter address line 1"
                             />
                             {errors.Line_1 && (
-                                <p className="text-red-500 text-sm mt-1">
-                                    {errors.Line_1[0]}
-                                </p>
+                                <p className="text-red-500 text-sm mt-1">{errors.Line_1[0]}</p>
                             )}
                         </div>
 
                         <div className="w-full">
-                            <label className="block font-medium mb-1">
+                            <label className="block font-medium mb-1" htmlFor="Line_2">
                                 Line 2
                             </label>
                             <input
+                                id="Line_2"
                                 className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
                                 type="text"
                                 name="Line_2"
                                 value={form_data.Line_2}
                                 onChange={handle_change}
+                                aria-label="Enter address line 2"
                             />
                         </div>
                     </div>
 
                     <div className="flex flex-col md:flex-row md:space-x-4 space-y-4 md:space-y-0">
                         <div className="w-full">
-                            <label className="block font-medium mb-1">
+                            <label className="block font-medium mb-1" htmlFor="City">
                                 City
                             </label>
                             <input
+                                id="City"
                                 className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
                                 type="text"
                                 name="City"
                                 value={form_data.City}
                                 onChange={handle_change}
                                 required
+                                aria-label="Enter city"
                             />
                             {errors.City && (
-                                <p className="text-red-500 text-sm mt-1">
-                                    {errors.City[0]}
-                                </p>
+                                <p className="text-red-500 text-sm mt-1">{errors.City[0]}</p>
                             )}
                         </div>
 
                         <div className="w-full">
-                            <label className="block font-medium mb-1">
+                            <label className="block font-medium mb-1" htmlFor="Country">
                                 Country
                             </label>
                             <input
+                                id="Country"
                                 className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
                                 type="text"
                                 name="Country"
                                 value={form_data.Country}
                                 onChange={handle_change}
                                 required
+                                aria-label="Enter country"
                             />
                             {errors.Country && (
-                                <p className="text-red-500 text-sm mt-1">
-                                    {errors.Country[0]}
-                                </p>
+                                <p className="text-red-500 text-sm mt-1">{errors.Country[0]}</p>
                             )}
                         </div>
                     </div>
 
-                    <div className="flex flex-col md:flex-row md:space-x-4 space-y-4 md:space-y-0">
+                    <div
+                        className="flex flex-col md:flex-row md:space-x-4 space-y-4 md:space-y-0"
+                        htmlFor="Postcode"
+                    >
                         <div className="w-full">
-                            <label className="block font-medium mb-1">
-                                Postcode
-                            </label>
+                            <label className="block font-medium mb-1">Postcode</label>
                             <input
+                                id="Postcode"
                                 className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
                                 type="text"
                                 name="Postcode"
                                 value={form_data.Postcode}
                                 onChange={handle_change}
                                 required
+                                aria-label="Enter postcode"
                             />
                             {errors.Postcode && (
-                                <p className="text-red-500 text-sm mt-1">
-                                    {errors.Postcode[0]}
-                                </p>
+                                <p className="text-red-500 text-sm mt-1">{errors.Postcode[0]}</p>
                             )}
                         </div>
 
                         <div className="w-full">
-                            <label className="block font-medium mb-1">
+                            <label className="block font-medium mb-1" htmlFor="Region">
                                 Region
                             </label>
                             <input
+                                id="Region"
                                 className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
                                 type="text"
                                 name="Region"
                                 value={form_data.Region}
                                 onChange={handle_change}
+                                aria-label="Enter region"
                             />
                         </div>
                     </div>
 
                     <div className="w-full flex items-center space-x-2">
-                        <label className="font-medium">
+                        <label className="font-medium" htmlFor="Is_billing">
                             Is Billing Address
                         </label>
                         <input
+                            id="Is_billing"
                             type="checkbox"
                             name="Is_billing"
                             checked={form_data.Is_billing}
@@ -301,6 +301,7 @@ const AddressForm = ({
                                     Is_billing: e.target.checked,
                                 })
                             }
+                            aria-label="Is this the billing address?"
                         />
                     </div>
                 </div>
@@ -312,17 +313,14 @@ const AddressForm = ({
                 )}
 
                 <div
-                    className={`grid gap-4 mt-4 ${
-                        create_address ? "grid-cols-1" : "grid-cols-9"
-                    }`}
+                    className={`grid gap-4 mt-4 ${create_address ? "grid-cols-1" : "grid-cols-9"}`}
                 >
                     <button
                         type="submit"
                         className={`${
-                            create_address
-                                ? "w-full"
-                                : "lg:col-span-7 md:col-span-6 col-span-5"
+                            create_address ? "w-full" : "lg:col-span-7 md:col-span-6 col-span-5"
                         } bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition duration-300`}
+                        aria-label={create_address ? "Create address" : "Update address"}
                     >
                         {button_text}
                     </button>
@@ -332,6 +330,7 @@ const AddressForm = ({
                             type="button"
                             className="lg:col-span-2 md:col-span-3 col-span-4 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition duration-300"
                             onClick={handle_delete}
+                            aria-label="Delete address"
                         >
                             Delete Address
                         </button>

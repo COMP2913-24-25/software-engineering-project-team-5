@@ -3,6 +3,8 @@ import { useUser, useCSRF } from "../App";
 import ItemListing from "../components/itemlisting";
 import { useNavigate } from "react-router-dom";
 import Bid_Status_component from "../components/bid_status_filter";
+import config from "../../config";
+
 const BiddingHistory = () => {
     /*  
     Allows user to see items that they previous bidded on (items that have expired), it has functionality
@@ -12,6 +14,7 @@ const BiddingHistory = () => {
 
     const { user } = useUser();
     const navigate = useNavigate();
+    const { api_base_url } = config;
 
     // Variable to store the bids stored and bidding history
     const [history, setHistory] = useState([]);
@@ -21,7 +24,7 @@ const BiddingHistory = () => {
     // Function to fetch bidding history from the server
     const getHistory = async () => {
         try {
-            const response = await fetch("http://localhost:5000/api/get-history", {
+            const response = await fetch(`${api_base_url}/api/get-history`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -36,7 +39,7 @@ const BiddingHistory = () => {
             if (response.ok) {
                 if (Array.isArray(data.history)) {
                     setHistory(data.history);
-                    setfiltered_listings(data.history)
+                    setfiltered_listings(data.history);
                 } else {
                     console.log("No items in history");
                 }
@@ -67,6 +70,7 @@ const BiddingHistory = () => {
                     Bidding History
                 </h1>
                 <Bid_Status_component aria-label="Filter your bidding history by bid status" update_listings={handle_filtered_listings} listings={history} />
+
 
                 <p className="text-xl text-gray-500 mt-2">
                     View items that you have previously bidded on.
@@ -135,6 +139,7 @@ const BiddingHistory = () => {
                                             },
                                         ]
                                     )
+
                                 }
                             />
                         ))}
@@ -143,7 +148,6 @@ const BiddingHistory = () => {
             ) : (
                 <p role="status" className="text-gray-600">Login to see Bidding History</p>
             )}
-
         </div>
     );
 };
