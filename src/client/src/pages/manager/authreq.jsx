@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import ItemListing from "../../components/itemlisting";
 import { useUser, useCSRF } from "../../App";
 import { useNavigate } from "react-router-dom";
+import Select from "react-select";
 
 export default function MAuthReq() {
     const [pendingauth, setPendingAuth] = useState([]);
@@ -73,7 +74,7 @@ export default function MAuthReq() {
         } else {
             navigate("/invalid-access-rights");
         }
-    }, [user]);
+    }, [navigate, user]);
 
     return (
         <div className="relative min-h-screen bg-gray-100 px-[5%] md:px-[10%] py-8">
@@ -107,23 +108,32 @@ export default function MAuthReq() {
                                 <label className="block text-sm font-medium text-gray-700">
                                     Assign Expert:
                                 </label>
-                                <select
-                                    className="border border-gray-300 rounded-md p-2 w-full"
-                                    value={selectedExperts[item.Item_id] || ""}
-                                    onChange={(e) =>
+                                <Select
+                                    className="border border-gray-300 rounded-md w-full"
+                                    value={
+                                        selectedExperts[item.Item_id]
+                                            ? experts.find((expert) => expert.Expert_id === selectedExperts[item.Item_id]) 
+                                                ? {
+                                                    value: selectedExperts[item.Item_id],
+                                                    label: experts.find((expert) => expert.Expert_id === selectedExperts[item.Item_id])?.Full_Name
+                                                }
+                                                : null
+                                            : null
+                                    } 
+                                    onChange={(selectedOption) =>
                                         setSelectedExperts({
                                             ...selectedExperts,
-                                            [item.Item_id]: e.target.value,
+                                            [item.Item_id]: selectedOption ? selectedOption.value : "", 
                                         })
                                     }
-                                >
-                                    <option value="">Select an expert</option>
-                                    {experts.map((expert) => (
-                                        <option key={expert.Expert_id} value={expert.Expert_id}>
-                                            {expert.Username} {expert.Tags.length > 0 ? `(${expert.Tags.join(", ")})` : ""}
-                                        </option>
-                                    ))}
-                                </select>
+                                    options={experts.map((expert) => ({
+                                        value: expert.Expert_id, 
+                                        label: `${expert.Full_Name} ${expert.Tags.length > 0 ? `(${expert.Tags.join(", ")})` : ""}`, 
+                                    }))}
+                                    isSearchable
+                                    placeholder="Select an expert"
+                                />
+
 
                             </div>
                             <button

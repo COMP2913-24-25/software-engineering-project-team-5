@@ -51,8 +51,11 @@ const CurrentBids = () => {
 
     // Gets bidding history when the page loads for the first time
     useEffect(() => {
-        if (user?.level_of_access === 1) {
-            getBids();
+        if (user?.level_of_access === 1) {          
+            getBids();  
+            const interval = setInterval(() => {
+                getBids();
+            }, 3000);
         } else {
             navigate("/invalid-access-rights");
         }

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useCSRF, useUser } from "../App";
 import { useParams, useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import ChatWindow from "../pages/chatwindow";
+import ChatWindow from "./chatwindow";
 
 const EnlargedAuthRequest = () => {
     const { csrfToken } = useCSRF();
@@ -46,7 +46,6 @@ const EnlargedAuthRequest = () => {
                 set_image_count(data.Images.length);
             }
         } catch (error) {
-            console.error("Error fetching listing information:", error);
             setErrors({ general: ["Failed to fetch listing data"] });
         }
     };
@@ -58,7 +57,7 @@ const EnlargedAuthRequest = () => {
                 set_is_chat_closed(true);
             }
         }
-    }, [item]);
+    }, []);
 
     // Updating auth request - approve or deny
     const handle_update = async (action) => {
@@ -196,169 +195,171 @@ const EnlargedAuthRequest = () => {
     }
 
     return (
-        <div className="bg-gray-100 min-h-screen py-12 px-4">
-            <div className="container mx-auto bg-white shadow-lg rounded-lg p-6">
-                {success_message && (
-                    <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">
-                        {success_message}
-                    </div>
-                )}
+        <div role="region" aria-label="Authentication Request Details">
+            {success_message && (
+                <div role="alert" aria-live="polite" className="success-message">
+                    {success_message}
+                </div>
+            )}
 
-                {errors.general && (
-                    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
-                        {errors.general.map((error, index) => (
-                            <p key={index}>{error}</p>
-                        ))}
-                    </div>
-                )}
+            {errors.general && (
+                <div role="alert" aria-live="assertive" className="error-container">
+                    {errors.general.map((error, index) => (
+                        <p key={index}>{error}</p>
+                    ))}
+                </div>
+            )}
 
-                {/* Title and Authentication Status */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                    <div className="md:col-span-2">
-                        <h1 className="text-3xl font-bold text-gray-800 mb-2">
-                            {item.Listing_name}
-                        </h1>
-                        <p className="text-gray-600 mb-1">Seller: {item.Seller_username}</p>
-                        <p className="text-gray-600">Username: {item.Seller_name}</p>
-                    </div>
-
-                    <div className="md:col-span-1">
-                        {user.level_of_access === 2 && item.Approved !== null && (
-                            <div>
-                                <h2 className="text-2xl font-semibold mb-4">
-                                    Authentication Status
-                                </h2>
-                                <div
-                                    className={`w-full text-white py-3 px-4 rounded-lg font-medium text-center ${getAuthStatusColor()}`}
-                                >
-                                    {getAuthStatusText()}
-                                </div>
-                            </div>
-                        )}
-
-                        {user.level_of_access === 1 && (
-                            <div>
-                                <h2 className="text-2xl font-semibold mb-4">
-                                    Authentication Status
-                                </h2>
-                                <div
-                                    className={`w-full text-white py-3 px-4 rounded-lg font-medium text-center ${getAuthStatusColor()}`}
-                                >
-                                    {getAuthStatusText()}
-                                </div>
-                            </div>
-                        )}
-                    </div>
+            {/* Title and Authentication Status */}
+            <div className="listing-header">
+                <div className="listing-title">
+                    <h1 id="listing-name">{item.Listing_name}</h1>
+                    <p aria-labelledby="seller-label">
+                        <span id="seller-label" className="sr-only">
+                            Seller:
+                        </span>{" "}
+                        {item.Seller_username}
+                    </p>
+                    <p aria-labelledby="username-label">
+                        <span id="username-label" className="sr-only">
+                            Username:
+                        </span>{" "}
+                        {item.Seller_name}
+                    </p>
                 </div>
 
-                {/* Authentication buttons */}
-                <div className="w-full">
-                    {user.level_of_access === 2 && item.Approved === null && (
-                        <div className="mb-8">
-                            <h2 className="text-2xl font-semibold mb-4">Authentication Actions</h2>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <button
-                                    className="bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition duration-300 font-medium"
-                                    onClick={() => handle_update("accept")}
-                                >
-                                    Approve Authentication
-                                </button>
+                <div className="auth-status">
+                    {user.level_of_access === 2 && item.Approved !== null && (
+                        <div className="status-box" aria-live="polite">
+                            <h2 id="auth-status-heading">Authentication Status</h2>
+                            <p aria-labelledby="auth-status-heading">{getAuthStatusText()}</p>
+                        </div>
+                    )}
 
-                                <button
-                                    className="bg-red-600 text-white py-3 px-4 rounded-lg hover:bg-red-700 transition duration-300 font-medium"
-                                    onClick={() => handle_update("declin")}
-                                >
-                                    Decline Authentication
-                                </button>
-
-                                {!item.Second_opinion && (
-                                    <button
-                                        className="bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition duration-300 font-medium"
-                                        onClick={handle_second_opinion}
-                                    >
-                                        Request Second Opinion
-                                    </button>
-                                )}
-                            </div>
+                    {user.level_of_access === 1 && (
+                        <div className="status-box" aria-live="polite">
+                            <h2 id="auth-status-heading-user">Authentication Status</h2>
+                            <p aria-labelledby="auth-status-heading-user">{getAuthStatusText()}</p>
                         </div>
                     )}
                 </div>
+            </div>
 
-                {/* Image and product description */}
-                <div className="w-full mb-8">
-                    <div className="relative rounded-lg overflow-hidden bg-gray-100 h-96 mb-8">
-                        {item.Images && image_count > 0 ? (
-                            <>
-                                <img
-                                    src={`data:image/jpeg;base64,${item.Images[current_image_index]}`}
-                                    alt={`${item.Listing_name} - Image ${current_image_index + 1}`}
-                                    className="w-full h-full object-contain"
-                                />
+            {/* Authentication buttons */}
+            <div className="auth-actions">
+                {user.level_of_access === 2 && item.Approved === null && (
+                    <div className="action-container">
+                        <h2 id="auth-actions-heading">Authentication Actions</h2>
+                        <div
+                            className="button-group"
+                            role="group"
+                            aria-labelledby="auth-actions-heading"
+                        >
+                            <button
+                                type="button"
+                                onClick={() => handle_update("accept")}
+                                aria-label="Approve authentication for this listing"
+                            >
+                                Approve Authentication
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => handle_update("declin")}
+                                aria-label="Decline authentication for this listing"
+                            >
+                                Decline Authentication
+                            </button>
+                            {!item.Second_opinion && (
+                                <button
+                                    type="button"
+                                    aria-label="Request a second opinion on this listing"
+                                >
+                                    Request Second Opinion
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                )}
+            </div>
 
+            {/* Image and product description */}
+            <div className="product-container">
+                <div className="image-container">
+                    {item.Images && image_count > 0 ? (
+                        <>
+                            <div aria-hidden="true">
                                 {/* Image Navigation */}
-                                <div className="absolute inset-0 flex items-center justify-between p-4">
+                                <div
+                                    className="image-navigation"
+                                    role="navigation"
+                                    aria-label="Product images"
+                                >
                                     <button
-                                        onClick={prevImage}
-                                        className="bg-white/80 hover:bg-gray-200 rounded-full p-2 shadow-md"
+                                        type="button"
+                                        aria-label="Previous image"
+                                        disabled={current_image_index === 0}
                                     >
-                                        <ChevronLeft className="h-6 w-6 text-gray-800" />
+                                        Previous
                                     </button>
                                     <button
-                                        onClick={nextImage}
-                                        className="bg-white/80 hover:bg-gray-200 rounded-full p-2 shadow-md"
+                                        type="button"
+                                        aria-label="Next image"
+                                        disabled={current_image_index === image_count - 1}
                                     >
-                                        <ChevronRight className="h-6 w-6 text-gray-800" />
+                                        Next
                                     </button>
                                 </div>
 
                                 {/* Image Counter */}
-                                <div className="absolute bottom-4 right-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm">
-                                    {current_image_index + 1} / {image_count}
-                                </div>
-                            </>
-                        ) : (
-                            <div className="flex items-center justify-center h-full">
-                                <p className="text-gray-500">No images available</p>
-                            </div>
-                        )}
-                    </div>
-
-                    <div>
-                        <h2 className="text-2xl font-semibold mb-4">Product Description</h2>
-                        <p className="text-gray-700">
-                            {item.Description || "No description available."}
-                        </p>
-
-                        <div className="mt-6">
-                            <h3 className="text-lg font-medium mb-2">Listing Details</h3>
-                            <ul className="space-y-2">
-                                <li className="text-gray-600">
-                                    Listed:{" "}
-                                    <span className="font-medium">
-                                        {item.Upload_datetime || "N/A"}
+                                <div className="image-counter" aria-live="polite">
+                                    <span
+                                        aria-label={`Image ${
+                                            current_image_index + 1
+                                        } of ${image_count}`}
+                                    >
+                                        {current_image_index + 1} / {image_count}
                                     </span>
-                                </li>
-                                <li className="text-gray-600">
-                                    Proposed Price:{" "}
-                                    <span className="font-medium">${item.Min_price || "0.00"}</span>
-                                </li>
-                            </ul>
+                                </div>
+                            </div>
+                        </>
+                    ) : (
+                        <div className="no-images" role="status">
+                            <p>No images available</p>
                         </div>
-                    </div>
-                </div>
-
-                {/* Chat window */}
-                <div className="w-full">
-                    <h2 className="text-2xl font-semibold mb-4">Communication</h2>
-                    {item && senderId && recipientId && (
-                        <ChatWindow
-                            senderId={senderId}
-                            recipientId={recipientId}
-                            itemId={item.Item_id}
-                            is_chat_closed={is_chat_closed}
-                        />
                     )}
                 </div>
+
+                {/* Product Details */}
+                <div className="product-details">
+                    <section>
+                        <h2 id="product-description-heading">Product Description</h2>
+                        <div aria-labelledby="product-description-heading">
+                            {item.Description || "No description available."}
+                        </div>
+                    </section>
+
+                    <section>
+                        <h2 id="listing-details-heading">Listing Details</h2>
+                        <dl aria-labelledby="listing-details-heading">
+                            <div className="detail-item">
+                                <dt>Listed:</dt>
+                                <dd>{item.Upload_datetime || "N/A"}</dd>
+                            </div>
+                            <div className="detail-item">
+                                <dt>Proposed Price:</dt>
+                                <dd>${item.Min_price || "0.00"}</dd>
+                            </div>
+                        </dl>
+                    </section>
+                </div>
+            </div>
+
+            {/* Chat window */}
+            <div className="communication-section" aria-labelledby="communication-heading">
+                <h2 id="communication-heading">Communication</h2>
+                {item && senderId && recipientId && (
+                    <div role="complementary" aria-label="Chat window"></div>
+                )}
             </div>
         </div>
     );

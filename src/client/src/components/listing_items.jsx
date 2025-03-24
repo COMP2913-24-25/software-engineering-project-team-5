@@ -15,7 +15,7 @@ const Listing_item = (props) => {
 
         {
 
-            if (item.Authentication_request === true && item.Expert_id !== null && user.level_of_access === 2) {
+            if (item.Authentication_request === true && item.Expert_id !== null) {
                 // Under review item
                 let url = "/authrequest/" + encodeURIComponent(item.Listing_name) + "/" + item.Item_id;
                 navigate(url);

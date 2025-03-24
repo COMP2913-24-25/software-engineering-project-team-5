@@ -21,7 +21,8 @@ const EAuthReq = () => {
                 navigate("/invalid-access-rights");
             }
         }
-    }, [user]);
+    },[navigate, user]);
+    
 
     // Variables to store pending and past authentication requests
     const [pending_auth_requests, set_pending_auth_requests] = useState([]);
@@ -81,33 +82,40 @@ const EAuthReq = () => {
     }, [user]);
 
     return (
-        <div className="relative min-h-screen bg-gray-100 px-[5%] md:px-[10%] py-8">
+        <div className="relative min-h-screen bg-gray-100 px-[5%] md:px-[10%] py-8" role="main">
             <div className="text-center mb-8">
-                <h1 className="text-2xl font-semibold text-center text-gray-800 mb-4">
+                <h1 className="text-2xl font-semibold text-center text-gray-800 mb-4" id="dashboard-title">
                     Authentication Requests Dashboard
                 </h1>
-                <p className="text-xl text-gray-500 mt-2">
+                <p className="text-xl text-gray-500 mt-2" aria-describedby="dashboard-description">
                     View and manage your assigned authentication requests here.
                 </p>
             </div>
+            <section aria-labelledby="pending-requests-title" aria-live="polite">
 
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-                Pending Authentication Requests
-            </h2>
-            <AuthRequestsTable
-                auth_requests={pending_auth_requests}
-                handle_request_update={handle_request_update}
-                pending={true}
-            />
+                <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+                    Pending Authentication Requests
+                </h2>
+                <AuthRequestsTable
+                    auth_requests={pending_auth_requests}
+                    handle_request_update={handle_request_update}
+                    pending={true}
+                    aria-labelledby="pending-requests-title"
+                />
 
-            <h2 className="text-2xl font-semibold text-gray-800 mt-10 mb-4">
+            </section>
+            <section aria-labelledby="past-requests-title" aria-live="polite">
+
+                <h2 className="text-2xl font-semibold text-gray-800 mt-10 mb-4">
                 Past Authentication Requests
-            </h2>
-            <AuthRequestsTable
-                auth_requests={past_auth_requests}
-                handle_request_update={handle_request_update}
-                pending={false}
-            />
+                </h2>
+                <AuthRequestsTable
+                    auth_requests={past_auth_requests}
+                    handle_request_update={handle_request_update}
+                    pending={false}
+                    aria-labelledby="past-requests-title"
+                />
+            </section>
         </div>
     );
 };
