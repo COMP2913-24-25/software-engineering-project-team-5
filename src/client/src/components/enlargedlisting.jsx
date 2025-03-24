@@ -351,43 +351,49 @@ const EnlargedListingPage = () => {
                 </div>
 
 
-
                 {/* Bidding Section */}
-
-                <div className="mt-8 text-center">
-                    {user.user_id !== item.Seller_id && (
-                        <div className="mb-4">
-                            <label htmlFor="bid-amount-input" className="block text-lg font-semibold">Place a Bid: </label>
-                            <input
-                                id="bid-amount-input"
-                                type="number"
-                                placeholder="Enter your bid amount"
-                                //value={parseFloat(item.Min_price) + 0.01}
-                                onChange={handleBidChange}
-                                //className="w-48 py-2 px-4 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
-                                className="px-4 py-2 border border-gray-300 rounded-lg"
-                                //min={parseFloat(item.Min_price) + 0.01}
-                            />
-                        </div>
-                    )}
-                    {user.user_id !== item.Seller_id && (
-                        !isExpired ? (
-                            <button onClick={handlePlaceBid} className="bg-blue-600 text-white py-2 px-6 rounded-lg text-lg hover:bg-blue-700 transition">
-                                Place a Bid
-                            </button>
+                <section class name="mt-8 text-center" aria-labelledby="bidding-section">
+                    <h2 id="bidding-section" className="sr-only">Bidding Section</h2>
+                    <div className="mt-8 text-center">
+                        { user || user.level_of_access === 1 || user.user_id !== item.Seller_id ? ( // if user, user isn't manager/expert, and user isn't seller
+                        <>
+                            <div className="mb-4">
+                                    <label htmlFor="bid-amount-input" className="block text-lg font-semibold">Place a Bid: </label>
+                                    <input
+                                        id="bid-amount-input"
+                                        type="number"
+                                        placeholder="Enter your bid amount"
+                                        onChange={handleBidChange}
+                                        className="px-4 py-2 border border-gray-300 rounded-lg"
+                                        aria-label="Bid amount"
+                                        aria-describedby="bid-instructions"
+                                    />
+                                    <div id="bid-instructions" className="sr-only">
+                                        Enter your bid amount. Must be higher than the minimum price and the current bid.
+                                    </div>
+                            </div>
+                                {!isExpired ? (
+                                    <button onClick={handlePlaceBid} className="bg-blue-600 text-white py-2 px-6 rounded-lg text-lg hover:bg-blue-700 transition" aria-label="Submit your bid">
+                                        Place a Bid
+                                    </button>
+                                ) : (
+                                    <button className="bg-blue-600 text-white py-2 px-6 rounded-lg text-lg hover:bg-blue-700 transition ml-4" aria-label="Auction has expired, bidding no longer available">
+                                        Auction Expired
+                                    </button>
+                                )}
+                            </>
                         ) : (
-
-                            <button className="bg-blue-600 text-white py-2 px-6 rounded-lg text-lg hover:bg-blue-700 transition ml-4">
-                                Auction Expired
+                            <button
+                                onClick={() => navigate(`/signup`)}
+                                className="bg-blue-600 text-white py-3 px-6 rounded-lg text-base lg:text-lg hover:bg-blue-700 transition-all"
+                            >
+                            Login or Signup to place a Bid
                             </button>
-                        )
-                    )}
-                    <button onClick={manualCharge} className="bg-blue-600 text-white py-2 px-6 rounded-lg text-lg hover:bg-blue-700 transition ml-4">
-                            charge manual
-                    </button>
-                </div>
-
+                        )}
+                    </div>
+                </section>
             </div>
+
 
             {user && user.level_of_access === 1 && sellerListings?.filter((listing) => listing.Item_id !== item.Item_id).length > 0 && (
                 <div className="container mx-auto bg-white shadow-lg rounded-2xl p-6 lg:p-8 mt-12">
