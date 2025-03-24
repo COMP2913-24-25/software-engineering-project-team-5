@@ -51,7 +51,6 @@ export const fetchCSRFToken = async () => {
         const data = await response.json();
         return data.csrf_token;
     } catch (error) {
-        console.error("Error fetching CSRF token:", error);
         return null;
     }
 };
@@ -73,7 +72,7 @@ export const UserProvider = ({ children }) => {
                 if (token) setCsrfToken(token);
 
                 // Fetch current user
-                const response = await fetch(`${api_base_url}5000/api/get_current_user`, {
+                const response = await fetch(`${api_base_url}/api/get_current_user`, {
                     credentials: "include",
                 });
 
@@ -82,7 +81,6 @@ export const UserProvider = ({ children }) => {
                     setUser(userData);
                 }
             } catch (error) {
-                console.error("Error: ", error);
             } finally {
                 setIsLoading(false);
             }

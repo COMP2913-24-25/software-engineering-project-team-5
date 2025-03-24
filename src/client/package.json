@@ -8,6 +8,8 @@
         "build": "vite build",
         "test": "cross-env NODE_ENV=development vitest --run",
         "test:prod": "cross-env NODE_ENV=production vitest --run",
+        "test:jest": "jest --ci",
+        "test:vitest": "cross-env NODE_ENV=production vitest --run",
         "lint": "eslint .",
         "preview": "vite preview"
     },
