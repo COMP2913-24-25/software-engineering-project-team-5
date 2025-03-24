@@ -3,6 +3,7 @@ import { useUser, useCSRF } from "../App"; // Access the user
 import { useNavigate } from "react-router-dom";
 import Tag_selector from "../components/tags_dropdown";
 import { Image } from "lucide-react";
+import config from "../../config";
 
 const CreateListing = () => {
     /*
@@ -14,6 +15,7 @@ const CreateListing = () => {
     */
 
     const navigate = useNavigate();
+    const { api_base_url } = config;
 
     // Creates the user object to be accessible
     const { user } = useUser();
@@ -108,12 +110,12 @@ const CreateListing = () => {
     const handle_remove_image = (index) => {
         const new_images = [...formData.images];
         new_images.splice(index, 1);
-        setFormData((prevData) => ({...prevData, images: new_images}));
+        setFormData((prevData) => ({ ...prevData, images: new_images }));
     };
 
     const getProfitStructure = async () => {
         try {
-            const response = await fetch("http://localhost:5000/api/get-profit-structure", {
+            const response = await fetch(`${api_base_url}/api/get-profit-structure`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -128,7 +130,6 @@ const CreateListing = () => {
                 const { manager_split, expert_split } = data.profit_data;
                 setMFee(manager_split);
                 setEFee(expert_split);
-
             } else {
                 alert(data.Error || "Failed to fetch profit structure");
             }
@@ -175,11 +176,11 @@ const CreateListing = () => {
         // After client-side validation has been passed, makes a HTTP POST request to the
         // server to authenticate the user. The route/url passed has to be the same as the route
         // defined in views.py (http::/..../api/<function_name>).
-        // Note: 'http://localhost:5000/api/login' needs to be repalced with actual url once
+        // Note: '${api_base_url}/api/login' needs to be repalced with actual url once
         // the server is set up.
 
         try {
-            const response = await fetch("http://localhost:5000/api/create-listing", {
+            const response = await fetch(`${api_base_url}/api/create-listing`, {
                 method: "POST",
                 headers: { "X-CSRF-TOKEN": csrfToken },
                 // Sends the form data to the server - can refer to views.py to see what server does
@@ -204,7 +205,7 @@ const CreateListing = () => {
             // If response is ok (err code 200)
             else {
                 alert("Listing created successfully!");
-                navigate("/home-page");
+                navigate("/seller-dash");
             }
         } catch (error) {
             setErrors({ general: ["Unexpected error"] });
@@ -361,7 +362,9 @@ const CreateListing = () => {
                                 className="focus:ring-blue-500 h-4 w-4"
                             />
                             <span className="text-gray-600">
-                                Enable Authentication ({Math.round(eFee * 100)}% Expert fee added to winning bid ➜ {Math.round(eFee*100 + mFee*100)}% Total listing fee)
+                                Enable Authentication ({Math.round(eFee * 100)}% Expert fee added to
+                                winning bid ➜ {Math.round(eFee * 100 + mFee * 100)}% Total listing
+                                fee)
                             </span>
                         </label>
                     </div>
@@ -389,7 +392,10 @@ const CreateListing = () => {
                                 </p>
                                 <ul className="bg-gray-50 rounded-md p-3 border border-gray-200">
                                     {Array.from(formData.images).map((file, index) => (
-                                        <li key={index} className="flex items-center justify-between py-1">
+                                        <li
+                                            key={index}
+                                            className="flex items-center justify-between py-1"
+                                        >
                                             <div className="flex items-center text-gray-700">
                                                 <Image className="h-5 w-5 mr-2 text-blue-500" />
                                                 <span className="truncate max-w-xs">
@@ -399,7 +405,13 @@ const CreateListing = () => {
                                                     ({(file.size / 1024).toFixed(1)} KB)
                                                 </span>
                                             </div>
-                                            <button className="ml-2 p-2 bg-red-500 text-white rounded right hover:bg-red-600 transition-colors" type="button" onClick={() => handle_remove_image(index)}>Remove</button>
+                                            <button
+                                                className="ml-2 p-2 bg-red-500 text-white rounded right hover:bg-red-600 transition-colors"
+                                                type="button"
+                                                onClick={() => handle_remove_image(index)}
+                                            >
+                                                Remove
+                                            </button>
                                         </li>
                                     ))}
                                 </ul>

@@ -1,6 +1,8 @@
 import React, { useState, createContext, useEffect, useContext } from "react";
 import { BrowserRouter as Router, Routes, Route, Link, Navigate } from "react-router-dom";
 import { NotificationProvider } from "./components/NotificationComponent";
+import config from "../config";
+
 // Import your pages here
 import Login from "./pages/login";
 import Signup from "./pages/signup";
@@ -39,15 +41,16 @@ export const useCSRF = () => useContext(CSRFContext);
 
 // Global function to fetch CSRF token from backend
 export const fetchCSRFToken = async () => {
+    const { api_base_url } = config;
+
     try {
-        const response = await fetch("http://localhost:5000/api/get-csrf-token", {
+        const response = await fetch(`${api_base_url}/api/get-csrf-token`, {
             method: "GET",
             credentials: "include",
         });
         const data = await response.json();
         return data.csrf_token;
     } catch (error) {
-        console.error("Error fetching CSRF token:", error);
         return null;
     }
 };
@@ -58,7 +61,8 @@ export const fetchCSRFToken = async () => {
 export const UserProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [csrfToken, setCsrfToken] = useState("");
-    const [isLoading, setIsLoading] = useState(true); // Add this line
+    const [isLoading, setIsLoading] = useState(true);
+    const { api_base_url } = config;
 
     useEffect(() => {
         const createContext = async () => {
@@ -68,7 +72,7 @@ export const UserProvider = ({ children }) => {
                 if (token) setCsrfToken(token);
 
                 // Fetch current user
-                const response = await fetch("http://localhost:5000/api/get_current_user", {
+                const response = await fetch(`${api_base_url}/api/get_current_user`, {
                     credentials: "include",
                 });
 
@@ -77,7 +81,6 @@ export const UserProvider = ({ children }) => {
                     setUser(userData);
                 }
             } catch (error) {
-                console.error("Error: ", error);
             } finally {
                 setIsLoading(false);
             }

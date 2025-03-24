@@ -6,16 +6,18 @@
     "scripts": {
         "dev": "vite",
         "build": "vite build",
+        "test": "cross-env NODE_ENV=development vitest --run",
+        "test:prod": "cross-env NODE_ENV=production vitest --run",
         "test:jest": "jest --ci",
-        "test:vitest": "vitest --run",
-        "test": "npm run test:vitest",
+        "test:vitest": "cross-env NODE_ENV=production vitest --run",
         "lint": "eslint .",
         "preview": "vite preview"
     },
     "dependencies": {
-        "@tailwindcss/vite": "^4.0.8",
         "@stripe/react-stripe-js": "^3.4.0",
         "@stripe/stripe-js": "^6.0.0",
+        "@tailwindcss/vite": "^4.0.8",
+        "cross-env": "^7.0.3",
         "lucide-react": "^0.477.0",
         "react": "^19.0.0",
         "react-dom": "^19.0.0",
@@ -26,7 +28,9 @@
         "recharts": "^2.15.1",
         "socket.io": "^4.5.1",
         "socket.io-client": "^4.5.1",
-        "tailwindcss": "^4.0.8"
+        "tailwindcss": "^4.0.8",
+        "vite-plugin-compression": "^0.5.1",
+        "vite-plugin-imagemin": "^0.6.1"
     },
     "devDependencies": {
         "@eslint/js": "^9.19.0",

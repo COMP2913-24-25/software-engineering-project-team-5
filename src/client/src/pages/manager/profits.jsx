@@ -3,11 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { useUser, useCSRF } from "../../App";
 import Chart from "../../components/chart";
 import Table from "../../components/table";
+import config from "../../../config";
 
 export default function Dashboard() {
     const { user } = useUser();
     const navigate = useNavigate();
     const { csrfToken } = useCSRF();
+    const { api_base_url } = config;
 
     const [managerSplit, setManagerSplit] = useState(0.01);
     const [expertSplit, setExpertSplit] = useState(0.04);
@@ -40,7 +42,7 @@ export default function Dashboard() {
 
     const getProfitStructure = async () => {
         try {
-            const response = await fetch("http://localhost:5000/api/get-profit-structure", {
+            const response = await fetch(`${api_base_url}/api/get-profit-structure`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -65,10 +67,12 @@ export default function Dashboard() {
     };
 
     const updateProfitStructure = async () => {
-        if (error !== "") { return }
+        if (error !== "") {
+            return;
+        }
 
         try {
-            const response = await fetch("http://localhost:5000/api/update-profit-structure", {
+            const response = await fetch(`${api_base_url}/api/update-profit-structure`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -92,7 +96,7 @@ export default function Dashboard() {
 
     const getSold = async () => {
         try {
-            const response = await fetch("http://localhost:5000/api/get-sold", {
+            const response = await fetch(`${api_base_url}/api/get-sold`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -150,7 +154,9 @@ export default function Dashboard() {
         <div className="relative min-h-screen bg-gray-50 px-4 sm:px-6 lg:px-12 py-8">
             <div className="text-center mb-10">
                 <h1 className="text-3xl font-bold text-gray-900">Weekly Profits</h1>
-                <p className="text-lg text-gray-600 mt-2">Monitor profits and adjust distribution settings.</p>
+                <p className="text-lg text-gray-600 mt-2">
+                    Monitor profits and adjust distribution settings.
+                </p>
             </div>
 
             <div className="mb-10 overflow-x-auto mb-10 shadow-lg rounded-lg bg-white p-6">
@@ -167,12 +173,17 @@ export default function Dashboard() {
             </div>
 
             <div className="bg-white shadow-lg rounded-lg p-6 md:p-8 max-w-3xl mx-auto">
-                <h2 className="text-2xl font-semibold text-gray-900 mb-6">Update Profit Structure</h2>
+                <h2 className="text-2xl font-semibold text-gray-900 mb-6">
+                    Update Profit Structure
+                </h2>
                 {error && <p className="text-red-600 font-medium mb-4">{error}</p>}
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
-                        <label htmlFor="manager-split" className="block text-sm font-medium text-gray-700">
+                        <label
+                            htmlFor="manager-split"
+                            className="block text-sm font-medium text-gray-700"
+                        >
                             Manager Split (%)
                         </label>
                         <input
@@ -180,7 +191,10 @@ export default function Dashboard() {
                             id="manager-split"
                             value={Math.round(managerSplit * 100)}
                             onChange={(e) => {
-                                const value = e.target.value.trim() === "" ? 0 : parseFloat(e.target.value) / 100;
+                                const value =
+                                    e.target.value.trim() === ""
+                                        ? 0
+                                        : parseFloat(e.target.value) / 100;
                                 if (!isNaN(value) && validateSplits(value, expertSplit)) {
                                     setManagerSplit(value);
                                     setUserSplit(1 - value - expertSplit);
@@ -194,7 +208,10 @@ export default function Dashboard() {
                         />
                     </div>
                     <div>
-                        <label htmlFor="expert-split" className="block text-sm font-medium text-gray-700">
+                        <label
+                            htmlFor="expert-split"
+                            className="block text-sm font-medium text-gray-700"
+                        >
                             Expert Split (%)
                         </label>
                         <input
@@ -202,7 +219,10 @@ export default function Dashboard() {
                             id="expert-split"
                             value={Math.round(expertSplit * 100)}
                             onChange={(e) => {
-                                const value = e.target.value.trim() === "" ? 0 : parseFloat(e.target.value) / 100;
+                                const value =
+                                    e.target.value.trim() === ""
+                                        ? 0
+                                        : parseFloat(e.target.value) / 100;
                                 if (!isNaN(value) && validateSplits(managerSplit, value)) {
                                     setExpertSplit(value);
                                     setUserSplit(1 - managerSplit - value);
@@ -216,7 +236,10 @@ export default function Dashboard() {
                         />
                     </div>
                     <div>
-                        <label htmlFor="user-split" className="block text-sm font-medium text-gray-700">
+                        <label
+                            htmlFor="user-split"
+                            className="block text-sm font-medium text-gray-700"
+                        >
                             User Split (%)
                         </label>
                         <input
@@ -234,12 +257,15 @@ export default function Dashboard() {
                     onClick={updateProfitStructure}
                     disabled={error !== ""}
                     className={`mt-6 w-full md:w-auto px-6 py-3 text-white font-semibold rounded-lg transition duration-300
-                        ${error ? "bg-gray-400 cursor-not-allowed" : "bg-blue-500 hover:bg-blue-600"}`}
+                        ${
+                            error
+                                ? "bg-gray-400 cursor-not-allowed"
+                                : "bg-blue-500 hover:bg-blue-600"
+                        }`}
                 >
                     Save Changes
                 </button>
             </div>
         </div>
     );
-
 }

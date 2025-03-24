@@ -5,22 +5,23 @@ import AddressForm from "../components/address_form";
 import { useUser, useCSRF } from "../App"; // Access the user
 import Availability_calendar_set from "../components/availability_calendar";
 import Availability_calendar_view from "../components/availability_calendar_view";
+import config from "../../config";
+import { PlusCircle, Truck } from "lucide-react";
 
 import PaymentForm from "../components/card_details";
 
 // React Imports
 
-import {PaymentElement} from '@stripe/react-stripe-js'; // Stripe payment element
-import ReactDOM from 'react-dom';
-import {Elements} from '@stripe/react-stripe-js';
-import {loadStripe} from '@stripe/stripe-js';
-
+import { PaymentElement } from "@stripe/react-stripe-js"; // Stripe payment element
+import ReactDOM from "react-dom";
+import { Elements } from "@stripe/react-stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
 
 // Make sure to call `loadStripe` outside of a component's render to avoid
 // recreating the `Stripe` object on every render.
-const stripePromise = loadStripe('pk_test_51QvN8MIrwvA3VrIBHvYeaTFzCczDtKl3HreakQojXK15LGrI0y0Yx2ZKGlpzGWSwUMUpsTLHTUH22kHZXLgNllLO00pHk35jaT');
-
-
+const stripePromise = loadStripe(
+    "pk_test_51QvN8MIrwvA3VrIBHvYeaTFzCczDtKl3HreakQojXK15LGrI0y0Yx2ZKGlpzGWSwUMUpsTLHTUH22kHZXLgNllLO00pHk35jaT"
+);
 
 const AccountSummary = () => {
     /*
@@ -32,6 +33,10 @@ const AccountSummary = () => {
     const navigate = useNavigate();
     const { user } = useUser();
     const { csrfToken } = useCSRF();
+    const { api_base_url } = config;
+
+    // Setup intent ID for the user
+    const [setupIntentId, setSetupIntentId] = useState(user?.Setup_intent_ID);
 
     // Check if user is logged in and redirect if not
     useEffect(() => {
@@ -39,7 +44,30 @@ const AccountSummary = () => {
             navigate("/invalid-access-rights");
         }
     }, [user, navigate]);
+    // Fetch the latest user data when the component mounts
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                const response = await fetch('http://localhost:5000/api/get-user-details', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        "X-CSRF-TOKEN": csrfToken,
+                    },
+                    credentials: "include",
+                });
+                const updatedUser = await response.json();
+                
+                setSetupIntentId(updatedUser.Setup_intent_ID);
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+            }
+        };
 
+        if (user) {
+            fetchUserData();
+        }
+    }, [user, csrfToken]);
     // Variable to store address information
     const [addresses, set_addresses] = useState([]);
 
@@ -59,7 +87,7 @@ const AccountSummary = () => {
     // Gets all the users addresses
     const get_addresses = async () => {
         try {
-            const response = await fetch("http://localhost:5000/api/get-address-details", {
+            const response = await fetch(`${api_base_url}/api/get-address-details`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -75,9 +103,7 @@ const AccountSummary = () => {
                 // If response is ok, set addresses state with server data
                 set_addresses(data.addresses);
             }
-        } catch (error) {
-            console.error("Error fetching addresses:", error);
-        }
+        } catch (error) {}
     };
 
     // Updates the addresses list to remove the deleted address
@@ -97,6 +123,16 @@ const AccountSummary = () => {
     // Gets addresses after an update to the Address table
     const handle_address_update = () => {
         get_addresses();
+    };
+
+    // Navigate to create listing page
+    const navigate_to_create_listing = () => {
+        navigate("/create-listing");
+    };
+
+    // Navigate to seller dashboard
+    const navigate_to_seller_dashboard = () => {
+        navigate("/seller-dash");
     };
 
     const handle_submit = async (availability) => {
@@ -122,7 +158,9 @@ const AccountSummary = () => {
 
                 if (latest_end_time > start_time) {
                     is_valid = false;
-                    alert(`Invalid time block on ${day}. Either one of the time blocks are overlapping or you have later times before the earlier ones.`)
+                    alert(
+                        `Invalid time block on ${day}. Either one of the time blocks are overlapping or you have later times before the earlier ones.`
+                    );
                 } else {
                     latest_end_time = end_time;
                 }
@@ -135,7 +173,7 @@ const AccountSummary = () => {
 
         if (is_valid) {
             try {
-                const response = await fetch("http://localhost:5000/api/set-availability", {
+                const response = await fetch(`${api_base_url}/api/set-availability`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -144,17 +182,7 @@ const AccountSummary = () => {
                     credentials: "include",
                     body: JSON.stringify({ availability, week_start_date: get_week_start_date() }),
                 });
-
-                if (response.ok) {
-                    console.log("Availability submitted successfully");
-                } else {
-                    console.error("Failed to submit availability");
-                }
-            } catch (error) {
-                console.error("Error submitting availability: ", error);
-            }
-        } else {
-            console.log("Invalid availability: Start time must end before end time");
+            } catch (error) {}
         }
     };
 
@@ -165,15 +193,28 @@ const AccountSummary = () => {
         return week_start_date.toISOString().split("T")[0];
     };
 
+    // Function to handle the card details submitted info shown
+    const handleCardDetailsSubmitted = (newSetupIntentId) => {
+        console.log("New setup intent id: ", newSetupIntentId);
+        setSetupIntentId(newSetupIntentId);
+    };
+
     const is_expert = user?.level_of_access === 2;
     const is_sunday = new Date().getDay() === 0; // 0 is representing Sunday in this case
     //const is_sunday = true; // For testing purposes
-   
+
     return (
-        <div className="relative min-h-screen bg-gray-100 px-[5%] md:px-[10%] py-8">
+        <div
+            className="relative min-h-screen bg-gray-100 px-[5%] md:px-[10%] py-8"
+            role="main"
+            aria-labelledby="account-summary-heading"
+        >
             {/* Account Summary Header */}
             <div className="text-center mb-8">
-                <h1 className="text-2xl font-semibold text-center text-gray-800 mb-4">
+                <h1
+                    id="account-summary-heading"
+                    className="text-2xl font-semibold text-center text-gray-800 mb-4"
+                >
                     Account Summary
                 </h1>
                 <p className="text-xl text-gray-500 mt-2">
@@ -181,15 +222,54 @@ const AccountSummary = () => {
                 </p>
             </div>
 
+            {/* Seller Actions */}
+            {user?.level_of_access === 1 && (
+                <div
+                    className="flex flex-col md:flex-row gap-4 justify-center mb-8 w-full"
+                    role="region"
+                    aria-label="Seller actions"
+                >
+                    <button
+                        onClick={navigate_to_create_listing}
+                        className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-4 px-8 rounded-lg shadow transition-colors duration-300 ease-in-out flex-1 text-lg"
+                        aria-label="Create a new listing"
+                    >
+                        <PlusCircle size={28} aria-hidden="true" />
+                        <span>Create New Listing</span>
+                    </button>
+                    <button
+                        onClick={navigate_to_seller_dashboard}
+                        className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white py-4 px-8 rounded-lg shadow transition-colors duration-300 ease-in-out flex-1 text-lg"
+                        aria-label="Navigate to seller dashboard"
+                    >
+                        <Truck size={28} aria-hidden="true" />
+                        <span>Seller Dashboard</span>
+                    </button>
+                </div>
+            )}
+
             {/* User Details Section */}
-            <div className="p-6 mb-8">
-                <h2 className="text-2xl font-semibold text-gray-800 mb-4">Personal Details</h2>
+            <section
+                className="p-6 mb-8 bg-white shadow-md rounded-lg"
+                aria-labelledby="personal-details-heading"
+            >
+                <h2
+                    id="personal-details-heading"
+                    className="text-2xl font-semibold text-gray-800 mb-4"
+                >
+                    Personal Details
+                </h2>
                 <UserDetailsForm />
-            </div>
+            </section>
 
             {/* Addresses Section */}
-            <div className="p-6 mb-8">
-                <h2 className="text-2xl font-semibold text-gray-800 mb-4">Addresses</h2>
+            <section
+                className="p-6 mb-8 bg-white shadow-md rounded-lg"
+                aria-labelledby="addresses-heading"
+            >
+                <h2 id="addresses-heading" className="text-2xl font-semibold text-gray-800 mb-4">
+                    Addresses
+                </h2>
 
                 {/* Create New Address Form */}
                 <div className="mb-6">
@@ -200,92 +280,97 @@ const AccountSummary = () => {
                         title_text="Create New Address"
                         create_address={true}
                         button_text="Create Address"
+                        aria-label="Create new address form"
                     />
                 </div>
 
                 {/* Existing Addresses List */}
-                {addresses.length > 0 ? (
-                    addresses.map((address, index) => (
-                        <div key={index} className="mt-6">
-                            <AddressForm
-                                address={address}
-                                on_update={handle_address_update}
-                                on_delete={handle_address_delete}
-                                title_text={`Address ${index + 1}`}
-                                create_address={false}
-                                button_text="Update Address"
-                            />
-                        </div>
-                    ))
-                ) : (
-                    <p className="text-gray-500 mt-4">No addresses available. Please add one.</p>
-                )}
-            </div>
+                <div role="region" aria-label="Existing addresses">
+                    {addresses.length > 0 ? (
+                        addresses.map((address, index) => (
+                            <div key={index} className="mt-6">
+                                <AddressForm
+                                    address={address}
+                                    on_update={handle_address_update}
+                                    on_delete={handle_address_delete}
+                                    title_text={`Address ${index + 1}`}
+                                    create_address={false}
+                                    button_text="Update Address"
+                                    aria-label={`Edit address ${index + 1}`}
+                                />
+                            </div>
+                        ))
+                    ) : (
+                        <p className="text-gray-500 mt-4" role="status">
+                            No addresses available. Please add one.
+                        </p>
+                    )}
+                </div>
+            </section>
 
             {/* Card Details Section */}
             {user && user.level_of_access === 1 && (
-                <div className="p-6 mb-8">
-                    <h2 className="text-2xl font-semibold text-gray-800 mb-4">Card Details</h2>
+
+                <section
+                    className="p-6 mb-8 bg-white shadow-md rounded-lg"
+                    aria-labelledby="card-details-heading"
+                >
+                    <h2
+                        id="card-details-heading"
+                        className="text-2xl font-semibold text-gray-800 mb-4"
+                    >
+                        Card Details
+                    </h2>
                     {!user.Setup_intent_ID ? (
-                        <p className="text-gray-500">Please enter your card details before placing any bids.</p>
+                        <p className="text-gray-500" role="status">
+                            Please enter your card details before placing any bids.
+                        </p>
+
                     ) : (
-                        <p className="text-gray-500">Your card details have been saved!</p>
+                        <p className="text-gray-500" role="status" aria-live="polite">
+                            Your card details have been saved!
+                        </p>
                     )}
-                    <div id="payment-form">
+                    <div id="payment-form" role="form" aria-label="Payment form">
                         <div className="mb-4"></div>
                         <div id="card-element">
-                            {/* A Stripe Element will be inserted here. */}
+
+                            {/* Stripe Element inserted here. */}
                             <Elements stripe={stripePromise} >
-                                <PaymentForm userId={user?.User_id}/>
+                                <PaymentForm userId={user?.User_id} onCardDetailsSubmitted={handleCardDetailsSubmitted}/>
+
                             </Elements>
                         </div>
-                        <div id="card-errors" role="alert"></div>
-                    
+                        <div id="card-errors" role="alert" aria-live="assertive"></div>
                     </div>
-                </div>
+                </section>
             )}
 
             {/* Expert View Availability Section (Visible only for experts)*/}
             {is_expert && (
-                <div className="p-6 mb-8">
+                <section
+                    className="p-6 mb-8 bg-white shadow-md rounded-lg"
+                    aria-label="Availability calendar view"
+                >
                     <Availability_calendar_view />
-                </div>
+                </section>
             )}
 
             {/* Expert Availability Section (Visible only for experts on Sunday) */}
             {is_expert && is_sunday && (
-                <div className="p-6 mb-8">
-                    <h2 className="text-2xl font-semibold text-gray-800 mb-4">Set Your Availability</h2>
+                <section
+                    className="p-6 mb-8 bg-white shadow-md rounded-lg"
+                    aria-labelledby="set-availability-heading"
+                >
+                    <h2
+                        id="set-availability-heading"
+                        className="text-2xl font-semibold text-gray-800 mb-4"
+                    >
+                        Set Your Availability
+                    </h2>
                     <Availability_calendar_set onSubmit={handle_submit} />
-
-                </div>
+                </section>
             )}
-
-            {/* Notifications Section (Placeholder for now) */}
-            <div className="p-6 mb-8">
-                <h2 className="text-2xl font-semibold text-gray-800 mb-4">Notifications</h2>
-                <p className="text-gray-500">To do: After bidding system is completed.</p>
-            </div>
-
-            {/* Bidding History / Seller Dashboard Section (Placeholder for now) */}
-            <div className="p-6">
-                <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-                    Bidding History & Dashboard
-                </h2>
-                <p className="text-gray-500">To do: After bidding system is completed.</p>
-            </div>
-            {addresses.map((address, index) => (
-                <AddressForm
-                    key={index}
-                    address={address}
-                    on_update={handle_address_update}
-                    on_delete={handle_address_delete}
-                    title_text={"Address " + (index + 1)}
-                    create_address={false}
-                    button_text={"Update Address"}
-                />
-            ))}
-
         </div>
     );
 };
