@@ -3,13 +3,11 @@ import { useCSRF, useUser } from "../App";
 import { useParams, useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import ChatWindow from "./chatwindow";
-import config from "../../config";
 
 const EnlargedAuthRequest = () => {
     const { csrfToken } = useCSRF();
     const navigate = useNavigate();
     const { user } = useUser();
-    const { api_base_url } = config;
 
     // Gets parameters off of url
     const params = useParams();
@@ -29,7 +27,7 @@ const EnlargedAuthRequest = () => {
 
     const get_listing_information = async () => {
         try {
-            const response = await fetch(`${api_base_url}/api/get-single-listing`, {
+            const response = await fetch("http://localhost:5000/api/get-single-listing", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -48,6 +46,7 @@ const EnlargedAuthRequest = () => {
                 set_image_count(data.Images.length);
             }
         } catch (error) {
+            console.error("Error fetching listing information:", error);
             setErrors({ general: ["Failed to fetch listing data"] });
         }
     };
@@ -63,7 +62,7 @@ const EnlargedAuthRequest = () => {
 
     // Updating auth request - approve or deny
     const handle_update = async (action) => {
-        const response = await fetch(`${api_base_url}/api/update_auth_request`, {
+        const response = await fetch("http://localhost:5000/api/update_auth_request", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -95,7 +94,7 @@ const EnlargedAuthRequest = () => {
     };
 
     const handle_second_opinion = async () => {
-        const response = await fetch(`${api_base_url}/api/request-second-opinion`, {
+        const response = await fetch("http://localhost:5000/api/request-second-opinion", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -158,8 +157,8 @@ const EnlargedAuthRequest = () => {
     // Doesn't load HTML until item has been retrieved
     if (!item) {
         return (
-            <div className="bg-gray-100 min-h-screen flex items-center justify-center">
-                <p className="text-gray-600 text-lg">Loading...</p>
+            <div className="flex items-center justify-center min-h-screen bg-gray-100">
+                <p className="text-lg text-gray-600">Loading...</p>
             </div>
         );
     }
@@ -197,171 +196,225 @@ const EnlargedAuthRequest = () => {
     }
 
     return (
-        <div role="region" aria-label="Authentication Request Details">
-            {success_message && (
-                <div role="alert" aria-live="polite" className="success-message">
-                    {success_message}
-                </div>
-            )}
-
-            {errors.general && (
-                <div role="alert" aria-live="assertive" className="error-container">
-                    {errors.general.map((error, index) => (
-                        <p key={index}>{error}</p>
-                    ))}
-                </div>
-            )}
-
-            {/* Title and Authentication Status */}
-            <div className="listing-header">
-                <div className="listing-title">
-                    <h1 id="listing-name">{item.Listing_name}</h1>
-                    <p aria-labelledby="seller-label">
-                        <span id="seller-label" className="sr-only">
-                            Seller:
-                        </span>{" "}
-                        {item.Seller_username}
-                    </p>
-                    <p aria-labelledby="username-label">
-                        <span id="username-label" className="sr-only">
-                            Username:
-                        </span>{" "}
-                        {item.Seller_name}
-                    </p>
-                </div>
-
-                <div className="auth-status">
-                    {user.level_of_access === 2 && item.Approved !== null && (
-                        <div className="status-box" aria-live="polite">
-                            <h2 id="auth-status-heading">Authentication Status</h2>
-                            <p aria-labelledby="auth-status-heading">{getAuthStatusText()}</p>
-                        </div>
-                    )}
-
-                    {user.level_of_access === 1 && (
-                        <div className="status-box" aria-live="polite">
-                            <h2 id="auth-status-heading-user">Authentication Status</h2>
-                            <p aria-labelledby="auth-status-heading-user">{getAuthStatusText()}</p>
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            {/* Authentication buttons */}
-            <div className="auth-actions">
-                {user.level_of_access === 2 && item.Approved === null && (
-                    <div className="action-container">
-                        <h2 id="auth-actions-heading">Authentication Actions</h2>
-                        <div
-                            className="button-group"
-                            role="group"
-                            aria-labelledby="auth-actions-heading"
-                        >
-                            <button
-                                type="button"
-                                onClick={() => handle_update("accept")}
-                                aria-label="Approve authentication for this listing"
-                            >
-                                Approve Authentication
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => handle_update("declin")}
-                                aria-label="Decline authentication for this listing"
-                            >
-                                Decline Authentication
-                            </button>
-                            {!item.Second_opinion && (
-                                <button
-                                    type="button"
-                                    aria-label="Request a second opinion on this listing"
-                                >
-                                    Request Second Opinion
-                                </button>
-                            )}
-                        </div>
+        <div
+            className="min-h-screen px-4 py-12 bg-gray-100"
+            role="main"
+            aria-label="Item Details Page"
+        >
+            <div className="container p-6 mx-auto bg-white rounded-lg shadow-lg" aria-live="polite">
+                {success_message && (
+                    <div
+                        className="px-4 py-3 mb-6 text-green-700 bg-green-100 border border-green-400 rounded"
+                        role="alert"
+                        aria-live="assertive"
+                    >
+                        {success_message}
                     </div>
                 )}
-            </div>
 
-            {/* Image and product description */}
-            <div className="product-container">
-                <div className="image-container">
-                    {item.Images && image_count > 0 ? (
-                        <>
-                            <div aria-hidden="true">
+                {errors.general && (
+                    <div
+                        className="px-4 py-3 mb-6 text-red-700 bg-red-100 border border-red-400 rounded"
+                        role="alert"
+                        aria-live="assertive"
+                    >
+                        {errors.general.map((error, index) => (
+                            <p key={index}>{error}</p>
+                        ))}
+                    </div>
+                )}
+
+                {/* Title and Authentication Status */}
+                <div className="grid grid-cols-1 gap-6 mb-6 md:grid-cols-3">
+                    <div className="md:col-span-2">
+                        <h1
+                            className="mb-2 text-3xl font-bold text-gray-800"
+                            aria-label={`Listing: ${item.Listing_name}`}
+                        >
+                            {item.Listing_name}
+                        </h1>
+                        <p
+                            className="mb-1 text-gray-600"
+                            aria-label={`Seller Username: ${item.Seller_username}`}
+                        >
+                            Seller: {item.Seller_username}
+                        </p>
+                        <p
+                            className="text-gray-600"
+                            aria-label={`Seller Name: ${item.Seller_name}`}
+                        >
+                            Username: {item.Seller_name}
+                        </p>
+                    </div>
+
+                    <div className="md:col-span-1">
+                        {((user.level_of_access === 2 && item.Approved !== null) ||
+                            user.level_of_access === 1) && (
+                            <div>
+                                <h2
+                                    className="mb-4 text-2xl font-semibold"
+                                    id="authentication-status-heading"
+                                >
+                                    Authentication Status
+                                </h2>
+                                <div
+                                    className={`w-full text-white py-3 px-4 rounded-lg font-medium text-center ${getAuthStatusColor()}`}
+                                    role="status"
+                                    aria-labelledby="authentication-status-heading"
+                                >
+                                    {getAuthStatusText()}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Authentication buttons */}
+                <div className="w-full">
+                    {user.level_of_access === 2 && item.Approved === null && (
+                        <div className="mb-8">
+                            <h2
+                                className="mb-4 text-2xl font-semibold"
+                                id="authentication-actions-heading"
+                            >
+                                Authentication Actions
+                            </h2>
+                            <div
+                                className="grid grid-cols-1 gap-4 md:grid-cols-3"
+                                role="group"
+                                aria-labelledby="authentication-actions-heading"
+                            >
+                                <button
+                                    className="px-4 py-3 font-medium text-white transition duration-300 bg-green-600 rounded-lg hover:bg-green-700"
+                                    onClick={() => handle_update("accept")}
+                                    aria-label="Approve Authentication"
+                                >
+                                    Approve Authentication
+                                </button>
+
+                                <button
+                                    className="px-4 py-3 font-medium text-white transition duration-300 bg-red-600 rounded-lg hover:bg-red-700"
+                                    onClick={() => handle_update("declin")}
+                                    aria-label="Decline Authentication"
+                                >
+                                    Decline Authentication
+                                </button>
+
+                                {!item.Second_opinion && (
+                                    <button
+                                        className="px-4 py-3 font-medium text-white transition duration-300 bg-blue-600 rounded-lg hover:bg-blue-700"
+                                        onClick={handle_second_opinion}
+                                        aria-label="Request Second Opinion"
+                                    >
+                                        Request Second Opinion
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Image and product description */}
+                <div className="w-full mb-8">
+                    <div
+                        className="relative mb-8 overflow-hidden bg-gray-100 rounded-lg h-96"
+                        role="region"
+                        aria-label="Product Image Gallery"
+                    >
+                        {item.Images && image_count > 0 ? (
+                            <>
+                                <img
+                                    src={`data:image/jpeg;base64,${item.Images[current_image_index]}`}
+                                    alt={`${item.Listing_name} - Image ${current_image_index + 1}`}
+                                    className="object-contain w-full h-full"
+                                    aria-describedby="image-navigation"
+                                />
+
                                 {/* Image Navigation */}
                                 <div
-                                    className="image-navigation"
-                                    role="navigation"
-                                    aria-label="Product images"
+                                    className="absolute inset-0 flex items-center justify-between p-4"
+                                    id="image-navigation"
                                 >
                                     <button
-                                        type="button"
-                                        aria-label="Previous image"
-                                        disabled={current_image_index === 0}
+                                        onClick={prevImage}
+                                        className="p-2 rounded-full shadow-md bg-white/80 hover:bg-gray-200"
+                                        aria-label="Previous Image"
                                     >
-                                        Previous
+                                        <ChevronLeft className="w-6 h-6 text-gray-800" />
                                     </button>
                                     <button
-                                        type="button"
-                                        aria-label="Next image"
-                                        disabled={current_image_index === image_count - 1}
+                                        onClick={nextImage}
+                                        className="p-2 rounded-full shadow-md bg-white/80 hover:bg-gray-200"
+                                        aria-label="Next Image"
                                     >
-                                        Next
+                                        <ChevronRight className="w-6 h-6 text-gray-800" />
                                     </button>
                                 </div>
 
                                 {/* Image Counter */}
-                                <div className="image-counter" aria-live="polite">
-                                    <span
-                                        aria-label={`Image ${
-                                            current_image_index + 1
-                                        } of ${image_count}`}
-                                    >
-                                        {current_image_index + 1} / {image_count}
-                                    </span>
+                                <div
+                                    className="absolute px-3 py-1 text-sm text-white rounded-full bottom-4 right-4 bg-black/70"
+                                    aria-live="polite"
+                                    aria-label={`Image ${
+                                        current_image_index + 1
+                                    } of ${image_count}`}
+                                >
+                                    {current_image_index + 1} / {image_count}
                                 </div>
+                            </>
+                        ) : (
+                            <div className="flex items-center justify-center h-full" role="alert">
+                                <p className="text-gray-500">No images available</p>
                             </div>
-                        </>
-                    ) : (
-                        <div className="no-images" role="status">
-                            <p>No images available</p>
+                        )}
+                    </div>
+
+                    <div>
+                        <h2
+                            className="mb-4 text-2xl font-semibold"
+                            id="product-description-heading"
+                        >
+                            Product Description
+                        </h2>
+                        <p className="text-gray-700" aria-labelledby="product-description-heading">
+                            {item.Description || "No description available."}
+                        </p>
+
+                        <div className="mt-6">
+                            <h3 className="mb-2 text-lg font-medium" id="listing-details-heading">
+                                Listing Details
+                            </h3>
+                            <ul className="space-y-2" aria-labelledby="listing-details-heading">
+                                <li className="text-gray-600">
+                                    Listed:{" "}
+                                    <span className="font-medium">
+                                        {item.Upload_datetime || "N/A"}
+                                    </span>
+                                </li>
+                                <li className="text-gray-600">
+                                    Proposed Price:{" "}
+                                    <span className="font-medium">${item.Min_price || "0.00"}</span>
+                                </li>
+                            </ul>
                         </div>
+                    </div>
+                </div>
+
+                {/* Chat window */}
+                <div className="w-full">
+                    <h2 className="mb-4 text-2xl font-semibold" id="communication-heading">
+                        Communication
+                    </h2>
+                    {item && senderId && recipientId && (
+                        <ChatWindow
+                            senderId={senderId}
+                            recipientId={recipientId}
+                            itemId={item.Item_id}
+                            is_chat_closed={is_chat_closed}
+                            aria-labelledby="communication-heading"
+                        />
                     )}
                 </div>
-
-                {/* Product Details */}
-                <div className="product-details">
-                    <section>
-                        <h2 id="product-description-heading">Product Description</h2>
-                        <div aria-labelledby="product-description-heading">
-                            {item.Description || "No description available."}
-                        </div>
-                    </section>
-
-                    <section>
-                        <h2 id="listing-details-heading">Listing Details</h2>
-                        <dl aria-labelledby="listing-details-heading">
-                            <div className="detail-item">
-                                <dt>Listed:</dt>
-                                <dd>{item.Upload_datetime || "N/A"}</dd>
-                            </div>
-                            <div className="detail-item">
-                                <dt>Proposed Price:</dt>
-                                <dd>${item.Min_price || "0.00"}</dd>
-                            </div>
-                        </dl>
-                    </section>
-                </div>
-            </div>
-
-            {/* Chat window */}
-            <div className="communication-section" aria-labelledby="communication-heading">
-                <h2 id="communication-heading">Communication</h2>
-                {item && senderId && recipientId && (
-                    <div role="complementary" aria-label="Chat window"></div>
-                )}
             </div>
         </div>
     );
