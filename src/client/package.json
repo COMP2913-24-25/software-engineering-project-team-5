@@ -6,9 +6,8 @@
     "scripts": {
         "dev": "vite",
         "build": "vite build",
-        "test:jest": "jest --ci",
-        "test:vitest": "vitest --run",
-        "test": "npm run test:vitest",
+        "test": "cross-env NODE_ENV=development vitest --run",
+        "test:prod": "cross-env NODE_ENV=production vitest --run",
         "lint": "eslint .",
         "preview": "vite preview"
     },
@@ -16,6 +15,7 @@
         "@stripe/react-stripe-js": "^3.4.0",
         "@stripe/stripe-js": "^6.0.0",
         "@tailwindcss/vite": "^4.0.8",
+        "cross-env": "^7.0.3",
         "lucide-react": "^0.477.0",
         "react": "^19.0.0",
         "react-dom": "^19.0.0",
