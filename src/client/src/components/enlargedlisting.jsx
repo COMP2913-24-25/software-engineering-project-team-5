@@ -127,9 +127,6 @@ const EnlargedListingPage = () => {
 
     useEffect(() => {
         fetchListingInformation();
-    }, []);
-
-    useEffect(() => {
         if (item?.Available_until) {
             const interval = setInterval(() => {
                 updateTimeRemaining(item.Available_until);
@@ -138,16 +135,11 @@ const EnlargedListingPage = () => {
 
             return () => clearInterval(interval);
         }
-    }, []);
+    }, [item?.Available_until]);
 
     useEffect(() => {
         if (user && item) {
             check_watchlist();
-        }
-    }, []);
-
-    useEffect(() => {
-        if (item && user) {
             fetchSellerListings();
         }
     }, []);
@@ -485,8 +477,6 @@ const EnlargedListingPage = () => {
                     </div>
                 </section>
             </div>
-
-
 
             {user &&
                 user.level_of_access === 1 &&
