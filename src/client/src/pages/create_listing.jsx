@@ -20,7 +20,7 @@ const CreateListing = () => {
 
     const { csrfToken } = useCSRF();
 
-    const [fee, setFee] = useState(5);
+    const [eFee, setEFee] = useState(5);
 
     const [mFee, setMFee] = useState(1);
 
@@ -105,6 +105,12 @@ const CreateListing = () => {
         return newErrors;
     };
 
+    const handle_remove_image = (index) => {
+        const new_images = [...formData.images];
+        new_images.splice(index, 1);
+        setFormData((prevData) => ({ ...prevData, images: new_images }));
+    };
+
     const getProfitStructure = async () => {
         try {
             const response = await fetch("http://localhost:5000/api/get-profit-structure", {
@@ -121,8 +127,7 @@ const CreateListing = () => {
             if (response.ok) {
                 const { manager_split, expert_split } = data.profit_data;
                 setMFee(manager_split);
-                setFee(expert_split + manager_split);
-
+                setEFee(expert_split);
             } else {
                 alert(data.Error || "Failed to fetch profit structure");
             }
@@ -198,7 +203,7 @@ const CreateListing = () => {
             // If response is ok (err code 200)
             else {
                 alert("Listing created successfully!");
-                navigate("/home-page");
+                navigate("/seller-dash");
             }
         } catch (error) {
             setErrors({ general: ["Unexpected error"] });
@@ -298,6 +303,9 @@ const CreateListing = () => {
                                     </p>
                                 ))}
                         </div>
+                        <span className="text-gray-600">
+                            {Math.round(mFee * 100)}% Standard fee charged
+                        </span>
                     </div>
 
                     {/* Tag Selector */}
@@ -343,9 +351,6 @@ const CreateListing = () => {
                         <label className="block text-gray-700 text-xl font-medium mt-5">
                             Authentication Request
                         </label>
-                        <span className="text-gray-600">
-                            {Math.round(mFee * 100)}% Standard fee charged
-                        </span>
                         <label className="flex items-center space-x-2">
                             <input
                                 type="checkbox"
@@ -355,7 +360,9 @@ const CreateListing = () => {
                                 className="focus:ring-blue-500 h-4 w-4"
                             />
                             <span className="text-gray-600">
-                                Enable Authentication ({Math.round(fee * 100)}% fee of winning bid if approved - Standard fee included)
+                                Enable Authentication ({Math.round(eFee * 100)}% Expert fee added to
+                                winning bid ➜ {Math.round(eFee * 100 + mFee * 100)}% Total listing
+                                fee)
                             </span>
                         </label>
                     </div>
@@ -369,7 +376,7 @@ const CreateListing = () => {
                             className="bg-white w-full py-2 px-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             type="file"
                             name="images"
-                            accept="image/*"
+                            accept="image/jpeg, image/png"
                             multiple
                             onChange={handle_file_change}
                             required
@@ -383,7 +390,10 @@ const CreateListing = () => {
                                 </p>
                                 <ul className="bg-gray-50 rounded-md p-3 border border-gray-200">
                                     {Array.from(formData.images).map((file, index) => (
-                                        <li key={index} className="flex items-center py-1">
+                                        <li
+                                            key={index}
+                                            className="flex items-center justify-between py-1"
+                                        >
                                             <div className="flex items-center text-gray-700">
                                                 <Image className="h-5 w-5 mr-2 text-blue-500" />
                                                 <span className="truncate max-w-xs">
@@ -393,6 +403,13 @@ const CreateListing = () => {
                                                     ({(file.size / 1024).toFixed(1)} KB)
                                                 </span>
                                             </div>
+                                            <button
+                                                className="ml-2 p-2 bg-red-500 text-white rounded right hover:bg-red-600 transition-colors"
+                                                type="button"
+                                                onClick={() => handle_remove_image(index)}
+                                            >
+                                                Remove
+                                            </button>
                                         </li>
                                     ))}
                                 </ul>

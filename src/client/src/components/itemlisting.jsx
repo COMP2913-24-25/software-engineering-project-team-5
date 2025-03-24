@@ -114,8 +114,9 @@ const ItemListing = ({
             </div>
 
             {/* Buttons */}
+            <div className="mt-4 flex flex-wrap gap-2">
             {buttons.length > 0 && (
-                <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 ml-0 md:ml-4 mt-4 md:mt-0">
+                <div className="flex flex-wrap gap-2">
                     {buttons.map(({ text, onClick, style }, index) => (
                         <button
                             key={index}
@@ -127,6 +128,8 @@ const ItemListing = ({
                     ))}
                 </div>
             )}
+        </div>
+
         </div>
     );
 };

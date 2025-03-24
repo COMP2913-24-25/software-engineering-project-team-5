@@ -52,7 +52,11 @@ login_manager.init_app(app)
 # Initialize SocketIO
 from app.messaging import socketio
 
-socketio.init_app(app, cors_allowed_origins="http://localhost:5173")
+socketio.init_app(
+    app,
+    cors_allowed_origins="http://localhost:5173",
+    max_http_buffer_size=50 * 1024 * 1024,
+)
 
 
 @app.route("/api/get-csrf-token", methods=["GET"])

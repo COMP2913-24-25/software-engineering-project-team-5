@@ -117,21 +117,21 @@ export default function Dashboard() {
         const weeklyData = {};
 
         soldItems.forEach((item) => {
-            const current_bid = item.Current_bid;
-            let expertProfit = current_bid * item.Expert_split;
-            let managerProfit = current_bid * item.Manager_split;
+            const winning_bid = item.Bid_price;
+            let ExpertProfit = winning_bid * item.Expert_split;
+            let ManagerProfit = winning_bid * item.Manager_split;
 
             const sold_date = new Date(item.Available_until);
             if (isNaN(sold_date.getTime())) return;
 
             const weekNumber = getWeekNumber(sold_date);
             if (!weeklyData[weekNumber]) {
-                weeklyData[weekNumber] = { expertProfit: 0, managerProfit: 0, totalProfit: 0 };
+                weeklyData[weekNumber] = { ExpertProfit: 0, ManagerProfit: 0, totalProfit: 0 };
             }
 
-            weeklyData[weekNumber].expertProfit += expertProfit;
-            weeklyData[weekNumber].managerProfit += managerProfit;
-            weeklyData[weekNumber].totalProfit += expertProfit + managerProfit;
+            weeklyData[weekNumber].ExpertProfit += ExpertProfit;
+            weeklyData[weekNumber].ManagerProfit += ManagerProfit;
+            weeklyData[weekNumber].totalProfit += ExpertProfit + ManagerProfit;
         });
 
         return Object.keys(weeklyData).map((week) => ({
@@ -157,7 +157,7 @@ export default function Dashboard() {
                 <Chart
                     data={weeklyProfits}
                     xKey="week"
-                    yKeys={["expertProfit", "managerProfit", "totalProfit"]}
+                    yKeys={["ExpertProfit", "ManagerProfit", "totalProfit"]}
                     colors={["#4F46E5", "#16A34A", "#F97316"]}
                 />
             </div>

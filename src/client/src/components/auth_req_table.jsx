@@ -81,57 +81,64 @@ const AuthRequestsTable = ({ auth_requests, handle_request_update, pending }) =>
     return (
         <div>
             {success_message && (
-                <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">
+                <div 
+                className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6"
+                role="alert"
+                aria-live="assertive"
+                >
                     {success_message}
                 </div>
             )}
 
             {/* Table for larger screens */}
             <div className="hidden xl:block">
-                <table className="w-full text-left">
+                <table className="w-full text-left" role="table" aria-labelledby="table-title">
+                    <caption id="table-title" className="sr-only">
+                        Listing requests table
+                    </caption>
                     <thead>
                         <tr className="bg-gray-50">
-                            <th className="p-4 border-b border-gray-300 text-sm font-semibold text-gray-700">
+                            <th className="p-4 border-b border-gray-300 text-sm font-semibold text-gray-700" role="columnheader">
                                 #
                             </th>
-                            <th className="p-4 border-b border-gray-300 text-sm font-semibold text-gray-700">
+                            <th className="p-4 border-b border-gray-300 text-sm font-semibold text-gray-700" role="columnheader">
                                 Listing Title
                             </th>
-                            <th className="p-4 border-b border-gray-300 text-sm font-semibold text-gray-700">
+                            <th className="p-4 border-b border-gray-300 text-sm font-semibold text-gray-700" role="columnheader">
                                 Seller Name
                             </th>
-                            <th className="p-4 border-b border-gray-300 text-sm font-semibold text-gray-700">
+                            <th className="p-4 border-b border-gray-300 text-sm font-semibold text-gray-700" role="columnheader">
                                 Request Created
                             </th>
-                            <th className="p-4 border-b border-gray-300 text-sm font-semibold text-gray-700">
+                            <th className="p-4 border-b border-gray-300 text-sm font-semibold text-gray-700" role="columnheader">
                                 Proposed Price
                             </th>
                             {!pending && (
-                                <th className="p-4 border-b border-gray-300 text-sm font-semibold text-gray-700">
+                                <th className="p-4 border-b border-gray-300 text-sm font-semibold text-gray-700" role="columnheader">
                                     Status
                                 </th>
                             )}
-                            <th className="p-4 border-b border-gray-300 text-sm font-semibold text-gray-700">
+                            <th className="p-4 border-b border-gray-300 text-sm font-semibold text-gray-700" role="columnheader">
                                 Actions
                             </th>
                         </tr>
                     </thead>
                     <tbody>
                         {requests.map((request, index) => (
-                            <tr key={index} className="hover:bg-gray-50">
-                                <td className="p-4 border-b border-gray-200 text-sm text-gray-700">
+                            <tr key={index} className="hover:bg-gray-50" role="row">
+                                <td className="p-4 border-b border-gray-200 text-sm text-gray-700" role="cell">
                                     {index + 1}
                                 </td>
-                                <td className="p-4 border-b border-gray-200 text-sm text-gray-700">
+                                <td className="p-4 border-b border-gray-200 text-sm text-gray-700" role="cell">
                                     {request.Listing_name}
                                 </td>
-                                <td className="p-4 border-b border-gray-200 text-sm text-gray-700">
+                                <td className="p-4 border-b border-gray-200 text-sm text-gray-700" role="cell">
                                     {request.Seller_name}
                                 </td>
-                                <td className="p-4 border-b border-gray-200 text-sm text-gray-700">
+                                <td className="p-4 border-b border-gray-200 text-sm text-gray-700" role="cell">
                                     {request.Upload_datetime}
                                 </td>
-                                <td className="p-4 border-b border-gray-200 text-sm text-gray-700">
+                                <td className="p-4 border-b border-gray-200 text-sm text-gray-700" role="cell">
                                     ${request.Min_price}
                                 </td>
 
@@ -139,12 +146,13 @@ const AuthRequestsTable = ({ auth_requests, handle_request_update, pending }) =>
                                     <td
                                         className={`p-4 border-b border-gray-200 text-sm font-semibold 
                                         ${request.Verified ? "text-green-600" : "text-red-600"}`}
+                                        role="cell"
                                     >
                                         {request.Verified ? "Accepted" : "Declined"}
                                     </td>
                                 )}
 
-                                <td className="p-4 border-b border-gray-200">
+                                <td className="p-4 border-b border-gray-200" role="cell">
                                     <div className="flex gap-2">
                                         {pending ? (
                                             <>
@@ -157,6 +165,7 @@ const AuthRequestsTable = ({ auth_requests, handle_request_update, pending }) =>
                                                             "accept"
                                                         )
                                                     }
+                                                    aria-label={`Accept request for ${request.Listing_name}`}
                                                 >
                                                     Accept
                                                 </button>
@@ -170,6 +179,7 @@ const AuthRequestsTable = ({ auth_requests, handle_request_update, pending }) =>
                                                             "declin"
                                                         )
                                                     }
+                                                    aria-label={`Decline request for ${request.Listing_name}`}
                                                 >
                                                     Decline
                                                 </button>
@@ -183,6 +193,7 @@ const AuthRequestsTable = ({ auth_requests, handle_request_update, pending }) =>
                                                             request.Listing_name
                                                         )
                                                     }
+                                                    aria-label={`View more details of ${request.Listing_name}`}
                                                 >
                                                     View More
                                                 </button>
@@ -197,6 +208,7 @@ const AuthRequestsTable = ({ auth_requests, handle_request_update, pending }) =>
                                                         request.Listing_name
                                                     )
                                                 }
+                                                aria-label={`View more details of ${request.Listing_name}`}
                                             >
                                                 View More
                                             </button>
@@ -210,10 +222,10 @@ const AuthRequestsTable = ({ auth_requests, handle_request_update, pending }) =>
             </div>
 
             {/* Cards for smaller screens */}
-            <div className="xl:hidden flex flex-col gap-4">
+            <div className="xl:hidden flex flex-col gap-4" role="list">
                 {requests.map((request, index) => (
-                    <div key={index}>
-                        <p className="text-sm text-gray-600">Request #{index + 1}</p>
+                    <div key={index} role="listitem" aria-labelledby={`request-${index + 1}`}>
+                        <p className="text-sm text-gray-600" id={`request-${index + 1}`}>Request #{index + 1}</p>
                         <p className="font-semibold text-lg text-gray-800">
                             {request.Listing_name}
                         </p>
@@ -240,6 +252,7 @@ const AuthRequestsTable = ({ auth_requests, handle_request_update, pending }) =>
                                         onClick={(event) =>
                                             handle_update(event, request.Item_id, "accept")
                                         }
+                                        aria-label={`Accept request for ${request.Listing_name}`}
                                     >
                                         Accept
                                     </button>
@@ -249,6 +262,7 @@ const AuthRequestsTable = ({ auth_requests, handle_request_update, pending }) =>
                                         onClick={(event) =>
                                             handle_update(event, request.Item_id, "declin")
                                         }
+                                        aria-label={`Decline request for ${request.Listing_name}`}
                                     >
                                         Decline
                                     </button>
@@ -262,6 +276,7 @@ const AuthRequestsTable = ({ auth_requests, handle_request_update, pending }) =>
                                                 request.Listing_name
                                             )
                                         }
+                                        aria-label={`View more details of ${request.Listing_name}`}
                                     >
                                         View More
                                     </button>
@@ -276,6 +291,7 @@ const AuthRequestsTable = ({ auth_requests, handle_request_update, pending }) =>
                                             request.Listing_name
                                         )
                                     }
+                                    aria-label={`View more details of ${request.Listing_name}`}
                                 >
                                     View More
                                 </button>

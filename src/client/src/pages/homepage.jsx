@@ -3,7 +3,7 @@ import "../App.css"; // Initial imports needed
 import { useUser, useCSRF } from "../App"; // Calls the user
 import Listing_item from "../components/listing_items";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-
+import CategoryFilter from "../components/category_filter";
 const HomePage = () => {
     const { user } = useUser();
     const { csrfToken } = useCSRF();
@@ -15,6 +15,8 @@ const HomePage = () => {
     const [unverified_items, set_unverified_items] = useState([]);
     const [verified_index, set_verified_index] = useState(0);
     const [unverified_index, set_unverified_index] = useState(0);
+    const [filtered_listings, setfiltered_listings] = useState([]); // Stores bid-status-filtered data
+    
     const items_per_page = 4;
 
     // Fetching the listings
@@ -33,7 +35,7 @@ const HomePage = () => {
 
                 if (response.ok) {
                     setItems(data); // Update state with items
-
+                    setfiltered_listings(data)
                     // Split the items into verified and unverified
                     const verified = data.filter((item) => item.Verified === true);
                     const unverified = data.filter((item) => item.Verified === false);
@@ -77,15 +79,28 @@ const HomePage = () => {
         }
     };
 
+    const handle_filtered_listings = (filtered_listings) => {
+        
+        setfiltered_listings(filtered_listings);
+        const verified = filtered_listings.filter((item) => item.Verified === true);
+        const unverified = filtered_listings.filter((item) => item.Verified === false);
+
+        set_verified_items(verified);
+        set_unverified_items(unverified)
+
+    };
+
     return (
         <div className="relative min-h-screen bg-gray-100">
             {/* Hero Section */}
             <div className="bg-blue-500 text-white py-16 px-4 text-center">
                 <h1 className="text-3xl sm:text-5xl font-bold tracking-wide">Welcome to Bidly</h1>
+
                 <p className="text-md sm:text-lg mt-3 opacity-90">
                     Discover and bid on amazing products effortlessly.
                 </p>
             </div>
+            <CategoryFilter update_listings={handle_filtered_listings} />
 
             <div className="container mx-auto py-12 px-[5%] md:px-[10%]">
                 {/* Unverified Items Section */}
