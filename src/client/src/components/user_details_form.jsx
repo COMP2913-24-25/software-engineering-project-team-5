@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser, useCSRF } from "../App";
+import config from "../../config";
 
 const UserDetailsForm = () => {
     /*
@@ -12,6 +13,7 @@ const UserDetailsForm = () => {
     const navigate = useNavigate();
     const { user } = useUser();
     const { csrfToken } = useCSRF();
+    const { api_base_url } = config;
 
     useEffect(() => {
         if (user === null) {
@@ -39,17 +41,14 @@ const UserDetailsForm = () => {
     useEffect(() => {
         const get_user_details = async () => {
             try {
-                const response = await fetch(
-                    "http://localhost:5000/api/get-user-details",
-                    {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "X-CSRF-TOKEN": csrfToken,
-                        },
-                        credentials: "include",
-                    }
-                );
+                const response = await fetch(`${api_base_url}/api/get-user-details`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": csrfToken,
+                    },
+                    credentials: "include",
+                });
 
                 // Waits for server response
                 const data = await response.json();
@@ -70,9 +69,7 @@ const UserDetailsForm = () => {
                 }
             } catch (error) {
                 console.error("Error fetching user details:", error);
-                set_error_message(
-                    "Failed to fetch user details. Please try again."
-                );
+                set_error_message("Failed to fetch user details. Please try again.");
             }
         };
 
@@ -127,18 +124,15 @@ const UserDetailsForm = () => {
         }
 
         try {
-            const response = await fetch(
-                "http://localhost:5000/api/update-user-details",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRF-TOKEN": csrfToken,
-                    },
-                    body: JSON.stringify(form_data),
-                    credentials: "include",
-                }
-            );
+            const response = await fetch(`${api_base_url}/api/update-user-details`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
+                },
+                body: JSON.stringify(form_data),
+                credentials: "include",
+            });
 
             // Waits for server response
             const data = await response.json();
@@ -158,9 +152,7 @@ const UserDetailsForm = () => {
         } catch (error) {
             console.error("Error updating user details:", error);
             set_errors({
-                general: [
-                    "Network error. Please check your connection and try again.",
-                ],
+                general: ["Network error. Please check your connection and try again."],
             });
         }
     };
@@ -168,9 +160,10 @@ const UserDetailsForm = () => {
     return (
         <div className="mx-auto bg-white shadow rounded-lg">
             {error_message && (
-                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 pl-[1em] pr-[1em] pt-[2em]"
-                aria-live="assertive"
-                role="alert"
+                <div
+                    className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 pl-[1em] pr-[1em] pt-[2em]"
+                    aria-live="assertive"
+                    role="alert"
                 >
                     {error_message}
                 </div>
@@ -295,20 +288,20 @@ const UserDetailsForm = () => {
                                 type="text"
                                 value={user_details.Username}
                                 readOnly
-                                aria-label="Username" 
+                                aria-label="Username"
                             />
                         </div>
-                        
-                            {/* Display expertise types only if user is an expert */}
-                            {is_expert && (
+
+                        {/* Display expertise types only if user is an expert */}
+                        {is_expert && (
                             <div>
                                 <label className="block font-medium mb-1" htmlFor="expertise">
                                     Expertise
                                 </label>
                                 <ul
-                                id="expertise"
-                                className="list-disc list-inside"
-                                aria-label="User expertise types"
+                                    id="expertise"
+                                    className="list-disc list-inside"
+                                    aria-label="User expertise types"
                                 >
                                     {expertise_types.length > 0 ? (
                                         expertise_types.map((type, index) => (
@@ -325,9 +318,9 @@ const UserDetailsForm = () => {
                     </div>
 
                     {success_message && (
-                        <div 
-                        className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4 mt-4"
-                        aria-live="polite"
+                        <div
+                            className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4 mt-4"
+                            aria-live="polite"
                         >
                             {success_message}
                         </div>

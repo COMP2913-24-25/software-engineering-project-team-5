@@ -1,6 +1,7 @@
 import React, { useState, useEffect, createContext, UserContext } from "react";
 import { useUser, useCSRF } from "../App";
 import { useNavigate } from "react-router-dom";
+import config from "../../config";
 
 const Login = () => {
     /*
@@ -15,6 +16,7 @@ const Login = () => {
     const { setUser } = useUser();
     const { user } = useUser();
     const { csrfToken } = useCSRF();
+    const { api_base_url } = config;
 
     // Set up the data that is in the form - should match the variable names used in forms.py
     const [form_data, set_form_data] = useState({
@@ -78,9 +80,9 @@ const Login = () => {
         // After client-side validation has been passed, makes a HTTP POST request to the
         // server to authenticate the user. The route/url passed has to be the same as the route
         // defined in views.py (http::/..../api/<function_name>).
-        // Note: 'http://localhost:5000/api/login' needs to be repalced with actual url once
+        // Note: '${api_base_url}/api/login' needs to be repalced with actual url once
         // the server is set up.
-        const response = await fetch("http://localhost:5000/api/login", {
+        const response = await fetch(`${api_base_url}/api/login`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

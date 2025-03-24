@@ -4,11 +4,14 @@ import { useUser, useCSRF } from "../App"; // changed to include useUser
 import { useParams, useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Listing_item from "../components/listing_items";
+import config from "../../config";
 
 const EnlargedListingPage = () => {
     const { user } = useUser();
     const navigate = useNavigate();
     const { csrfToken } = useCSRF();
+    const { api_base_url } = config;
+
     const params = useParams();
     const item_id = params.Item_id;
     const [sellerListings, setSellerListings] = useState([]);
@@ -28,7 +31,7 @@ const EnlargedListingPage = () => {
 
         try {
             const response = await fetch(
-                `http://localhost:5000/api/check-watchlist?Item_id=${item.Item_id}`,
+                `${api_base_url}/api/check-watchlist?Item_id=${item.Item_id}`,
                 {
                     method: "GET",
                     headers: { "Content-Type": "application/json" },
@@ -51,7 +54,7 @@ const EnlargedListingPage = () => {
 
         try {
             const response = await fetch(
-                `http://localhost:5000/api/${wishlist ? "remove-watchlist" : "add-watchlist"}`,
+                `${api_base_url}/api/${wishlist ? "remove-watchlist" : "add-watchlist"}`,
                 {
                     method: "POST",
                     headers: {
@@ -76,7 +79,7 @@ const EnlargedListingPage = () => {
 
     const fetchListingInformation = async () => {
         try {
-            const response = await fetch("http://localhost:5000/api/get-single-listing", {
+            const response = await fetch(`${api_base_url}/api/get-single-listing`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -101,7 +104,7 @@ const EnlargedListingPage = () => {
         if (!item?.Seller_id) return; // Ensure item is loaded before fetching
         setSellerListings([]);
         try {
-            const response = await fetch("http://localhost:5000/api/get-seller-items", {
+            const response = await fetch(`${api_base_url}/api/get-seller-items`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -218,7 +221,7 @@ const EnlargedListingPage = () => {
         }
 
         try {
-            const response = await fetch("http://localhost:5000/api/place-bid", {
+            const response = await fetch(`${api_base_url}/api/place-bid`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -247,7 +250,7 @@ const EnlargedListingPage = () => {
 
     const manualCharge = async () => {
         try {
-            const response = await fetch("http://localhost:5000/api/charge-manual", {
+            const response = await fetch(`${api_base_url}/api/charge-manual`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

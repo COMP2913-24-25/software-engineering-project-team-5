@@ -3,6 +3,7 @@ import ItemListing from "../../components/itemlisting";
 import { useUser, useCSRF } from "../../App";
 import { useNavigate } from "react-router-dom";
 import Select from "react-select";
+import config from "../../../config";
 
 export default function MAuthReq() {
     const [pendingauth, setPendingAuth] = useState([]);
@@ -11,11 +12,12 @@ export default function MAuthReq() {
     const { user } = useUser();
     const { csrfToken } = useCSRF();
     const navigate = useNavigate();
+    const { api_base_url } = config;
 
     // Fetch items pending authentication
     const getPendingAuth = async () => {
         try {
-            const response = await fetch("http://localhost:5000/api/get-pending-auth", {
+            const response = await fetch(`${api_base_url}/api/get-pending-auth`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrfToken },
                 credentials: "include",
@@ -32,7 +34,7 @@ export default function MAuthReq() {
     // Fetch available experts
     const getExpertList = async () => {
         try {
-            const response = await fetch("http://localhost:5000/api/get-expert-id", {
+            const response = await fetch(`${api_base_url}/api/get-expert-id`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrfToken },
                 credentials: "include",
@@ -49,7 +51,7 @@ export default function MAuthReq() {
     // Assign an expert to an item
     const assignExpertToItem = async (item_id, expert_id) => {
         try {
-            const response = await fetch("http://localhost:5000/api/update_item_auth", {
+            const response = await fetch(`${api_base_url}/api/update_item_auth`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrfToken },
                 credentials: "include",
@@ -112,29 +114,41 @@ export default function MAuthReq() {
                                     className="border border-gray-300 rounded-md w-full"
                                     value={
                                         selectedExperts[item.Item_id]
-                                            ? experts.find((expert) => expert.Expert_id === selectedExperts[item.Item_id]) 
+                                            ? experts.find(
+                                                  (expert) =>
+                                                      expert.Expert_id ===
+                                                      selectedExperts[item.Item_id]
+                                              )
                                                 ? {
-                                                    value: selectedExperts[item.Item_id],
-                                                    label: experts.find((expert) => expert.Expert_id === selectedExperts[item.Item_id])?.Full_Name
-                                                }
+                                                      value: selectedExperts[item.Item_id],
+                                                      label: experts.find(
+                                                          (expert) =>
+                                                              expert.Expert_id ===
+                                                              selectedExperts[item.Item_id]
+                                                      )?.Full_Name,
+                                                  }
                                                 : null
                                             : null
-                                    } 
+                                    }
                                     onChange={(selectedOption) =>
                                         setSelectedExperts({
                                             ...selectedExperts,
-                                            [item.Item_id]: selectedOption ? selectedOption.value : "", 
+                                            [item.Item_id]: selectedOption
+                                                ? selectedOption.value
+                                                : "",
                                         })
                                     }
                                     options={experts.map((expert) => ({
-                                        value: expert.Expert_id, 
-                                        label: `${expert.Full_Name} ${expert.Tags.length > 0 ? `(${expert.Tags.join(", ")})` : ""}`, 
+                                        value: expert.Expert_id,
+                                        label: `${expert.Full_Name} ${
+                                            expert.Tags.length > 0
+                                                ? `(${expert.Tags.join(", ")})`
+                                                : ""
+                                        }`,
                                     }))}
                                     isSearchable
                                     placeholder="Select an expert"
                                 />
-
-
                             </div>
                             <button
                                 className="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md transition w-full sm:w-auto"

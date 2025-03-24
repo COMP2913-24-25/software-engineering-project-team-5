@@ -4,9 +4,12 @@ import { useUser, useCSRF } from "../App"; // Calls the user
 import Listing_item from "../components/listing_items";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import CategoryFilter from "../components/category_filter";
+import config from "../../config";
+
 const HomePage = () => {
     const { user } = useUser();
     const { csrfToken } = useCSRF();
+    const { api_base_url } = config;
 
     // Get a call to the back end to retrieve some data about listings. We need some items that are in the verified items and some that aren't.
 
@@ -16,14 +19,14 @@ const HomePage = () => {
     const [verified_index, set_verified_index] = useState(0);
     const [unverified_index, set_unverified_index] = useState(0);
     const [filtered_listings, setfiltered_listings] = useState([]); // Stores bid-status-filtered data
-    
+
     const items_per_page = 4;
 
     // Fetching the listings
     useEffect(() => {
         const fetch_items = async () => {
             try {
-                const response = await fetch("http://localhost:5000/api/get-items", {
+                const response = await fetch(`${api_base_url}/api/get-items`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -35,7 +38,7 @@ const HomePage = () => {
 
                 if (response.ok) {
                     setItems(data); // Update state with items
-                    setfiltered_listings(data)
+                    setfiltered_listings(data);
                     // Split the items into verified and unverified
                     const verified = data.filter((item) => item.Verified === true);
                     const unverified = data.filter((item) => item.Verified === false);
@@ -80,14 +83,12 @@ const HomePage = () => {
     };
 
     const handle_filtered_listings = (filtered_listings) => {
-        
         setfiltered_listings(filtered_listings);
         const verified = filtered_listings.filter((item) => item.Verified === true);
         const unverified = filtered_listings.filter((item) => item.Verified === false);
 
         set_verified_items(verified);
-        set_unverified_items(unverified)
-
+        set_unverified_items(unverified);
     };
 
     return (

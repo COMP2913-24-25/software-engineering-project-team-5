@@ -5,11 +5,13 @@ import AddressForm from "../components/address_form";
 import { useUser, useCSRF } from "../App"; // Access the user
 import Availability_calendar_set from "../components/availability_calendar";
 import Availability_calendar_view from "../components/availability_calendar_view";
+import config from "../../config";
 import { PlusCircle, Truck } from "lucide-react";
 
 import PaymentForm from "../components/card_details";
 
 // React Imports
+
 import { PaymentElement } from "@stripe/react-stripe-js"; // Stripe payment element
 import ReactDOM from "react-dom";
 import { Elements } from "@stripe/react-stripe-js";
@@ -31,6 +33,7 @@ const AccountSummary = () => {
     const navigate = useNavigate();
     const { user } = useUser();
     const { csrfToken } = useCSRF();
+    const { api_base_url } = config;
 
     // Setup intent ID for the user
     const [setupIntentId, setSetupIntentId] = useState(user?.Setup_intent_ID);
@@ -84,7 +87,7 @@ const AccountSummary = () => {
     // Gets all the users addresses
     const get_addresses = async () => {
         try {
-            const response = await fetch("http://localhost:5000/api/get-address-details", {
+            const response = await fetch(`${api_base_url}/api/get-address-details`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -170,7 +173,7 @@ const AccountSummary = () => {
 
         if (is_valid) {
             try {
-                const response = await fetch("http://localhost:5000/api/set-availability", {
+                const response = await fetch(`${api_base_url}/api/set-availability`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",

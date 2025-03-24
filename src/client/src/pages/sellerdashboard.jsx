@@ -4,11 +4,13 @@ import { useUser, useCSRF } from "../App";
 import { useNavigate } from "react-router-dom";
 import Listing_item from "../components/listing_items";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import config from "../../config";
 
 const SellerDashboard = () => {
     const { user } = useUser();
     const { csrfToken } = useCSRF();
     const navigate = useNavigate();
+    const { api_base_url } = config;
 
     const [authPendingItems, setAuthPendingItems] = useState([]);
     const [underReviewItems, setUnderReviewItems] = useState([]);
@@ -25,7 +27,7 @@ const SellerDashboard = () => {
     useEffect(() => {
         const fetchItems = async () => {
             try {
-                const response = await fetch("http://localhost:5000/api/get-sellerss-items", {
+                const response = await fetch(`${api_base_url}/api/get-sellerss-items`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",

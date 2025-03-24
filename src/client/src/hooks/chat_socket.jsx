@@ -1,12 +1,15 @@
 import io from "socket.io-client";
+import config from "../../config";
 
 let socket = null;
 let activeConnections = 0;
 
 export const get_socket = () => {
     // Only initialize if not already done
+    const { api_base_url } = config;
+
     if (!socket) {
-        socket = io("http://localhost:5000", {
+        socket = io(`${api_base_url}`, {
             withCredentials: true,
             maxHttpBufferSize: 50 * 1024 * 1024, // Sets payload size limit to 100MB
         });

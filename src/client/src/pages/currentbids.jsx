@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import ItemListing from "../components/itemlisting";
 import { useUser, useCSRF } from "../App";
 import { useNavigate } from "react-router-dom";
+import config from "../../config";
 
 const CurrentBids = () => {
     /*  
@@ -17,11 +18,12 @@ const CurrentBids = () => {
     const navigate = useNavigate();
 
     const { csrfToken } = useCSRF();
+    const { api_base_url } = config;
 
     // Function to fetch bidding history from the server
     const getBids = async () => {
         try {
-            const response = await fetch("http://localhost:5000/api/get-bids", {
+            const response = await fetch(`${api_base_url}/api/get-bids`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -37,7 +39,7 @@ const CurrentBids = () => {
                 if (Array.isArray(data.bids)) {
                     setBids(
                         data.bids.map((item) => ({
-                            ...item
+                            ...item,
                         }))
                     );
                 } else {
@@ -51,8 +53,8 @@ const CurrentBids = () => {
 
     // Gets bidding history when the page loads for the first time
     useEffect(() => {
-        if (user?.level_of_access === 1) {          
-            getBids();  
+        if (user?.level_of_access === 1) {
+            getBids();
             const interval = setInterval(() => {
                 getBids();
             }, 3000);
@@ -86,26 +88,26 @@ const CurrentBids = () => {
                                 buttons={
                                     item.Successful_bid == 1
                                         ? [
-                                            {
-                                                text: "Highest Bidder",
-                                                style: "bg-green-500 text-white",
-                                            },
-                                            {
-                                                text: `Your Bid: £${item.Bid_price}`,
-                                                style: "bg-gray-200 text-black",
-                                            },
-                                        ]
+                                              {
+                                                  text: "Highest Bidder",
+                                                  style: "bg-green-500 text-white",
+                                              },
+                                              {
+                                                  text: `Your Bid: £${item.Bid_price}`,
+                                                  style: "bg-gray-200 text-black",
+                                              },
+                                          ]
                                         : [
-                                            { text: "Out Bid", style: "bg-red-500 text-white" },
-                                            {
-                                                text: `Your Bid: £${item.Bid_price}`,
-                                                style: "bg-gray-200 text-black",
-                                            },
-                                            {
-                                                text: `Highest Bid: £${item.Current_bid}`,
-                                                style: "bg-gray-500 text-white",
-                                            },
-                                        ]
+                                              { text: "Out Bid", style: "bg-red-500 text-white" },
+                                              {
+                                                  text: `Your Bid: £${item.Bid_price}`,
+                                                  style: "bg-gray-200 text-black",
+                                              },
+                                              {
+                                                  text: `Highest Bid: £${item.Current_bid}`,
+                                                  style: "bg-gray-500 text-white",
+                                              },
+                                          ]
                                 }
                             />
                         ))}
