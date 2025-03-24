@@ -3,6 +3,7 @@ import { useUser, useCSRF } from "../App"; // Access the user
 import { useNavigate } from "react-router-dom";
 import Tag_selector from "../components/tags_dropdown";
 import { Image } from "lucide-react";
+import config from "../../config";
 
 const CreateListing = () => {
     /*
@@ -14,6 +15,7 @@ const CreateListing = () => {
     */
 
     const navigate = useNavigate();
+    const { api_base_url } = config;
 
     // Creates the user object to be accessible
     const { user } = useUser();
@@ -113,7 +115,7 @@ const CreateListing = () => {
 
     const getProfitStructure = async () => {
         try {
-            const response = await fetch("http://localhost:5000/api/get-profit-structure", {
+            const response = await fetch(`${api_base_url}/api/get-profit-structure`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -174,11 +176,11 @@ const CreateListing = () => {
         // After client-side validation has been passed, makes a HTTP POST request to the
         // server to authenticate the user. The route/url passed has to be the same as the route
         // defined in views.py (http::/..../api/<function_name>).
-        // Note: 'http://localhost:5000/api/login' needs to be repalced with actual url once
+        // Note: '${api_base_url}/api/login' needs to be repalced with actual url once
         // the server is set up.
 
         try {
-            const response = await fetch("http://localhost:5000/api/create-listing", {
+            const response = await fetch(`${api_base_url}/api/create-listing`, {
                 method: "POST",
                 headers: { "X-CSRF-TOKEN": csrfToken },
                 // Sends the form data to the server - can refer to views.py to see what server does

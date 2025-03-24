@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser, useCSRF } from "../App"; // Calls the user
+import config from "../../config";
 
 const Listing_item = (props) => {
     const navigate = useNavigate();
@@ -10,36 +11,38 @@ const Listing_item = (props) => {
     const item = props.item;
     const available_until = new Date(item.Available_until).getTime();
     const { csrfToken } = useCSRF(); // Get the CSRF token
+    const { api_base_url } = config;
 
     const handleClick = () => {
-
         {
-
             if (item.Authentication_request === true && item.Expert_id !== null) {
                 // Under review item
-                let url = "/authrequest/" + encodeURIComponent(item.Listing_name) + "/" + item.Item_id;
+                let url =
+                    "/authrequest/" + encodeURIComponent(item.Listing_name) + "/" + item.Item_id;
                 navigate(url);
             } else {
                 // Regular item details page
                 navigate(`/item/${encodeURIComponent(item.Listing_name)}/${item.Item_id}`);
             }
-
-        };
+        }
     };
 
     const toggle_wishlist = async (item_id) => {
         if (!user) return;
 
         try {
-            const response = await fetch(`http://localhost:5000/api/${wishlist ? "remove-watchlist" : "add-watchlist"}`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRF-TOKEN": csrfToken,
-                },
-                credentials: "include",
-                body: JSON.stringify({ item_id }),
-            });
+            const response = await fetch(
+                `${api_base_url}/api/${wishlist ? "remove-watchlist" : "add-watchlist"}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": csrfToken,
+                    },
+                    credentials: "include",
+                    body: JSON.stringify({ item_id }),
+                }
+            );
 
             const data = await response.json();
             if (response.ok) {
@@ -58,11 +61,14 @@ const Listing_item = (props) => {
         if (!user) return;
 
         try {
-            const response = await fetch(`http://localhost:5000/api/check-watchlist?Item_id=${item.Item_id}`, {
-                method: "GET",
-                headers: { "Content-Type": "application/json" },
-                credentials: "include",
-            });
+            const response = await fetch(
+                `${api_base_url}/api/check-watchlist?Item_id=${item.Item_id}`,
+                {
+                    method: "GET",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                }
+            );
 
             const data = await response.json();
             if (response.ok) {
@@ -86,7 +92,11 @@ const Listing_item = (props) => {
                 const minutes = Math.floor((difference_time % (1000 * 60 * 60)) / (1000 * 60));
                 const seconds = Math.floor((difference_time % (1000 * 60)) / 1000);
 
-                set_time_left(`${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`);
+                set_time_left(
+                    `${hours.toString().padStart(2, "0")}:${minutes
+                        .toString()
+                        .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
+                );
             } else {
                 set_time_left("00:00:00");
             }
@@ -111,13 +121,22 @@ const Listing_item = (props) => {
                 <div className="w-full h-[180px] bg-gray-200 flex items-center justify-center overflow-hidden relative">
                     {user && user.level_of_access === 1 && (
                         <span
-                            className={`absolute top-2 right-2 cursor-pointer text-xl ${wishlist ? "text-red-600" : "text-white"}`}
-                            onClick={(e) => { e.stopPropagation(); toggle_wishlist(item.Item_id); }}
+                            className={`absolute top-2 right-2 cursor-pointer text-xl ${
+                                wishlist ? "text-red-600" : "text-white"
+                            }`}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                toggle_wishlist(item.Item_id);
+                            }}
                         >
                             ♥
                         </span>
                     )}
-                    <img src={`data:image/${item.Image};base64,${item.Image}`} alt="An image" className="w-full h-full object-cover" />
+                    <img
+                        src={`data:image/${item.Image};base64,${item.Image}`}
+                        alt="An image"
+                        className="w-full h-full object-cover"
+                    />
                 </div>
 
                 <div className="p-4 w-full font-sans">
@@ -128,10 +147,21 @@ const Listing_item = (props) => {
 
                     <div className="flex justify-between items-center text-sm text-gray-700">
                         <span>{item.Seller_username}</span>
-                        <span>£{(item.Current_bid > item.Min_price) ? item.Current_bid.toFixed(2) : item.Min_price.toFixed(2)}</span>
+                        <span>
+                            £
+                            {item.Current_bid > item.Min_price
+                                ? item.Current_bid.toFixed(2)
+                                : item.Min_price.toFixed(2)}
+                        </span>
                     </div>
 
-                    <div className={`flex justify-between items-center text-sm ${new Date(item.Available_until) - new Date() < 12 * 60 * 60 * 1000 ? "text-red-600" : "text-gray-700"}`}>
+                    <div
+                        className={`flex justify-between items-center text-sm ${
+                            new Date(item.Available_until) - new Date() < 12 * 60 * 60 * 1000
+                                ? "text-red-600"
+                                : "text-gray-700"
+                        }`}
+                    >
                         <span>{time_left}</span>
                     </div>
                 </div>

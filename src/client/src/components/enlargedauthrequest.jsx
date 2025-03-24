@@ -3,11 +3,13 @@ import { useCSRF, useUser } from "../App";
 import { useParams, useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import ChatWindow from "./chatwindow";
+import config from "../../config";
 
 const EnlargedAuthRequest = () => {
     const { csrfToken } = useCSRF();
     const navigate = useNavigate();
     const { user } = useUser();
+    const { api_base_url } = config;
 
     // Gets parameters off of url
     const params = useParams();
@@ -27,7 +29,7 @@ const EnlargedAuthRequest = () => {
 
     const get_listing_information = async () => {
         try {
-            const response = await fetch("http://localhost:5000/api/get-single-listing", {
+            const response = await fetch(`${api_base_url}/api/get-single-listing`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -61,7 +63,7 @@ const EnlargedAuthRequest = () => {
 
     // Updating auth request - approve or deny
     const handle_update = async (action) => {
-        const response = await fetch("http://localhost:5000/api/update_auth_request", {
+        const response = await fetch(`${api_base_url}/api/update_auth_request`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -93,7 +95,7 @@ const EnlargedAuthRequest = () => {
     };
 
     const handle_second_opinion = async () => {
-        const response = await fetch("http://localhost:5000/api/request-second-opinion", {
+        const response = await fetch(`${api_base_url}/api/request-second-opinion`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

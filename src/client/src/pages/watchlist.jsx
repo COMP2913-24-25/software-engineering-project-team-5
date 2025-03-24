@@ -2,17 +2,19 @@ import React, { useState, useEffect } from "react";
 import ItemListing from "../components/itemlisting";
 import { useNavigate } from "react-router-dom";
 import { useUser, useCSRF } from "../App"; // Calls the user
+import config from "../../config";
 
 const Watchlist = () => {
     const { user } = useUser();
     const [watchlist, setWatchlist] = useState([]);
     const navigate = useNavigate();
     const { csrfToken } = useCSRF(); // Get the CSRF token
+    const { api_base_url } = config;
 
     // Fetch watchlist data
     const get_watchlist = async () => {
         try {
-            const response = await fetch("http://localhost:5000/api/get-watchlist", {
+            const response = await fetch(`${api_base_url}/api/get-watchlist`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -27,7 +29,7 @@ const Watchlist = () => {
                 if (Array.isArray(data.watchlist)) {
                     setWatchlist(
                         data.watchlist.map((item) => ({
-                            ...item
+                            ...item,
                         }))
                     );
                 } else {
@@ -46,7 +48,7 @@ const Watchlist = () => {
         if (!user) return;
 
         try {
-            const response = await fetch("http://localhost:5000/api/remove-watchlist", {
+            const response = await fetch(`${api_base_url}/api/remove-watchlist`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -97,9 +99,10 @@ const Watchlist = () => {
                                 description={item.Description}
                                 availableUntil={item.Available_until}
                                 labels={[
-                                    `Current Bid: £${Number(item.Current_bid) > Number(item.Min_price)
-                                        ? Number(item.Current_bid).toFixed(2)
-                                        : Number(item.Min_price).toFixed(2)
+                                    `Current Bid: £${
+                                        Number(item.Current_bid) > Number(item.Min_price)
+                                            ? Number(item.Current_bid).toFixed(2)
+                                            : Number(item.Min_price).toFixed(2)
                                     }`,
                                 ]}
                                 buttons={[

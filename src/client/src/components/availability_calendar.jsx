@@ -54,7 +54,9 @@ const Availability_calendar_set = ({ onSubmit }) => {
     // Return the html needed to create the component.
     return (
         <div className="max-w-2xl mx-auto p-6 bg-white shadow-lg rounded-lg">
-            <h2 className="text-2xl font-bold mb-6 text-center">Set Your Availability for the Coming Week</h2>
+            <h2 className="text-2xl font-bold mb-6 text-center">
+                Set Your Availability for the Coming Week
+            </h2>
             {days.map((day) => (
                 <div key={day} className="mb-6">
                     <h3 className="text-xl font-semibold mb-4">{day}</h3>
@@ -62,8 +64,16 @@ const Availability_calendar_set = ({ onSubmit }) => {
                         <div key={index} className="flex items-center gap-4 mb-3">
                             <select
                                 value={block.start_time}
-                                onChange={(event) => handle_time_block_change(day, index, "start_time", event.target.value)}
-                                className="p-2 border border-gray-300 rounded-md flex-1">
+                                onChange={(event) =>
+                                    handle_time_block_change(
+                                        day,
+                                        index,
+                                        "start_time",
+                                        event.target.value
+                                    )
+                                }
+                                className="p-2 border border-gray-300 rounded-md flex-1"
+                            >
                                 <option value="">Start Time</option>
                                 {time_options.map((time) => (
                                     <option key={time} value={time}>
@@ -73,8 +83,16 @@ const Availability_calendar_set = ({ onSubmit }) => {
                             </select>
                             <select
                                 value={block.end_time}
-                                onChange={(event) => handle_time_block_change(day, index, "end_time", event.target.value)}
-                                className="p-2 border border-gray-300 rounded-md flex-1">
+                                onChange={(event) =>
+                                    handle_time_block_change(
+                                        day,
+                                        index,
+                                        "end_time",
+                                        event.target.value
+                                    )
+                                }
+                                className="p-2 border border-gray-300 rounded-md flex-1"
+                            >
                                 <option value="">End Time</option>
                                 {time_options.map((time) => (
                                     <option key={time} value={time}>
@@ -84,21 +102,24 @@ const Availability_calendar_set = ({ onSubmit }) => {
                             </select>
                             <button
                                 onClick={() => remove_time_block(day, index)}
-                                className="p-2 bg-red-500 text-white rounded-md hover:bg-red-600">
+                                className="p-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+                            >
                                 Remove
                             </button>
                         </div>
                     ))}
                     <button
                         onClick={() => add_time_block(day)}
-                        className="w-full p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
+                        className="w-full p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                    >
                         Add Time Block
                     </button>
                 </div>
             ))}
             <button
                 onClick={handle_submit}
-                className="w-full p-3 bg-green-500 text-white rounded-md hover:bg-green-600 mt-6">
+                className="w-full p-3 bg-green-500 text-white rounded-md hover:bg-green-600 mt-6"
+            >
                 Submit Availability
             </button>
         </div>

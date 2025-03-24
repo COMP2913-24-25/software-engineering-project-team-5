@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useCSRF } from "../App";
+import config from "../../config";
 
 const AddressForm = ({
     address,
@@ -16,6 +17,7 @@ const AddressForm = ({
     */
 
     const { csrfToken } = useCSRF();
+    const { api_base_url } = config;
 
     // Sets form data - Address_id is blank ("") when new address is being created
     const [form_data, set_form_data] = useState({
@@ -97,18 +99,15 @@ const AddressForm = ({
         try {
             form_data.Address_id = address.Address_id;
 
-            const response = await fetch(
-                "http://localhost:5000/api/update-address",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRF-TOKEN": csrfToken,
-                    },
-                    body: JSON.stringify(form_data),
-                    credentials: "include",
-                }
-            );
+            const response = await fetch(`${api_base_url}/api/update-address`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
+                },
+                body: JSON.stringify(form_data),
+                credentials: "include",
+            });
 
             const data = await response.json();
 
@@ -127,9 +126,7 @@ const AddressForm = ({
             }
         } catch (error) {
             set_errors({
-                general: [
-                    "Network error. Please check your connection and try again.",
-                ],
+                general: ["Network error. Please check your connection and try again."],
             });
         }
     };
@@ -140,18 +137,15 @@ const AddressForm = ({
         set_errors({});
 
         try {
-            const response = await fetch(
-                "http://localhost:5000/api/delete-address",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRF-TOKEN": csrfToken,
-                    },
-                    body: JSON.stringify({ Address_id: address.Address_id }),
-                    credentials: "include",
-                }
-            );
+            const response = await fetch(`${api_base_url}/api/delete-address`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
+                },
+                body: JSON.stringify({ Address_id: address.Address_id }),
+                credentials: "include",
+            });
 
             const data = await response.json();
 
@@ -194,9 +188,7 @@ const AddressForm = ({
                                 aria-label="Enter address line 1"
                             />
                             {errors.Line_1 && (
-                                <p className="text-red-500 text-sm mt-1">
-                                    {errors.Line_1[0]}
-                                </p>
+                                <p className="text-red-500 text-sm mt-1">{errors.Line_1[0]}</p>
                             )}
                         </div>
 
@@ -232,9 +224,7 @@ const AddressForm = ({
                                 aria-label="Enter city"
                             />
                             {errors.City && (
-                                <p className="text-red-500 text-sm mt-1">
-                                    {errors.City[0]}
-                                </p>
+                                <p className="text-red-500 text-sm mt-1">{errors.City[0]}</p>
                             )}
                         </div>
 
@@ -253,18 +243,17 @@ const AddressForm = ({
                                 aria-label="Enter country"
                             />
                             {errors.Country && (
-                                <p className="text-red-500 text-sm mt-1">
-                                    {errors.Country[0]}
-                                </p>
+                                <p className="text-red-500 text-sm mt-1">{errors.Country[0]}</p>
                             )}
                         </div>
                     </div>
 
-                    <div className="flex flex-col md:flex-row md:space-x-4 space-y-4 md:space-y-0" htmlFor="Postcode">
+                    <div
+                        className="flex flex-col md:flex-row md:space-x-4 space-y-4 md:space-y-0"
+                        htmlFor="Postcode"
+                    >
                         <div className="w-full">
-                            <label className="block font-medium mb-1">
-                                Postcode
-                            </label>
+                            <label className="block font-medium mb-1">Postcode</label>
                             <input
                                 id="Postcode"
                                 className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
@@ -276,9 +265,7 @@ const AddressForm = ({
                                 aria-label="Enter postcode"
                             />
                             {errors.Postcode && (
-                                <p className="text-red-500 text-sm mt-1">
-                                    {errors.Postcode[0]}
-                                </p>
+                                <p className="text-red-500 text-sm mt-1">{errors.Postcode[0]}</p>
                             )}
                         </div>
 
@@ -326,16 +313,12 @@ const AddressForm = ({
                 )}
 
                 <div
-                    className={`grid gap-4 mt-4 ${
-                        create_address ? "grid-cols-1" : "grid-cols-9"
-                    }`}
+                    className={`grid gap-4 mt-4 ${create_address ? "grid-cols-1" : "grid-cols-9"}`}
                 >
                     <button
                         type="submit"
                         className={`${
-                            create_address
-                                ? "w-full"
-                                : "lg:col-span-7 md:col-span-6 col-span-5"
+                            create_address ? "w-full" : "lg:col-span-7 md:col-span-6 col-span-5"
                         } bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition duration-300`}
                         aria-label={create_address ? "Create address" : "Update address"}
                     >
