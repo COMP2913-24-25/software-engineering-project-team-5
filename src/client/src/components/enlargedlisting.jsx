@@ -435,7 +435,7 @@ const EnlargedListingPage = () => {
                                     </li>
                                 )}
                             </ul>
-                        </div>
+                        </section>
                     </div>
                 </div>
 
