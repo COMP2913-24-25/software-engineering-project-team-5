@@ -63,7 +63,7 @@ export const UserProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [csrfToken, setCsrfToken] = useState("");
     const [isLoading, setIsLoading] = useState(true);
-    const { apiBaseUrl } = config;
+    const { api_base_url } = config;
 
     useEffect(() => {
         const createContext = async () => {
@@ -73,7 +73,7 @@ export const UserProvider = ({ children }) => {
                 if (token) setCsrfToken(token);
 
                 // Fetch current user
-                const response = await fetch(`${apiBaseUrl}5000/api/get_current_user`, {
+                const response = await fetch(`${api_base_url}5000/api/get_current_user`, {
                     credentials: "include",
                 });
 
