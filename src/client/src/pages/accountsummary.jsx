@@ -48,19 +48,19 @@ const AccountSummary = () => {
     useEffect(() => {
         const fetchUserData = async () => {
             try {
-                const response = await fetch('http://localhost:5000/api/get-user-details', {
-                    method: 'POST',
+                const response = await fetch(`${api_base_url}/api/get-user-details`, {
+                    method: "POST",
                     headers: {
-                        'Content-Type': 'application/json',
+                        "Content-Type": "application/json",
                         "X-CSRF-TOKEN": csrfToken,
                     },
                     credentials: "include",
                 });
                 const updatedUser = await response.json();
-                
+
                 setSetupIntentId(updatedUser.Setup_intent_ID);
             } catch (error) {
-                console.error('Error fetching user data:', error);
+                console.error("Error fetching user data:", error);
             }
         };
 
@@ -182,12 +182,13 @@ const AccountSummary = () => {
                     credentials: "include",
                     body: JSON.stringify({ availability, week_start_date: get_week_start_date() }),
                 });
+                alert("Availability set successfully!");
             } catch (error) {}
         }
     };
 
     const get_week_start_date = () => {
-        const today = new Date();
+        const today = new Date("2025-03-23");
         const week_start_date = new Date(today);
         week_start_date.setDate(today.getDate() + 1);
         return week_start_date.toISOString().split("T")[0];
@@ -200,8 +201,8 @@ const AccountSummary = () => {
     };
 
     const is_expert = user?.level_of_access === 2;
-    const is_sunday = new Date().getDay() === 0; // 0 is representing Sunday in this case
-    //const is_sunday = true; // For testing purposes
+    //const is_sunday = new Date().getDay() === 0; // 0 is representing Sunday in this case
+    const is_sunday = true; // For testing purposes
 
     return (
         <div
@@ -210,14 +211,14 @@ const AccountSummary = () => {
             aria-labelledby="account-summary-heading"
         >
             {/* Account Summary Header */}
-            <div className="text-center mb-8">
+            <div className="mb-8 text-center">
                 <h1
                     id="account-summary-heading"
-                    className="text-2xl font-semibold text-center text-gray-800 mb-4"
+                    className="mb-4 text-2xl font-semibold text-center text-gray-800"
                 >
                     Account Summary
                 </h1>
-                <p className="text-xl text-gray-500 mt-2">
+                <p className="mt-2 text-xl text-gray-500">
                     Manage your account, addresses, and more.
                 </p>
             </div>
@@ -225,13 +226,13 @@ const AccountSummary = () => {
             {/* Seller Actions */}
             {user?.level_of_access === 1 && (
                 <div
-                    className="flex flex-col md:flex-row gap-4 justify-center mb-8 w-full"
+                    className="flex flex-col justify-center w-full gap-4 mb-8 md:flex-row"
                     role="region"
                     aria-label="Seller actions"
                 >
                     <button
                         onClick={navigate_to_create_listing}
-                        className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-4 px-8 rounded-lg shadow transition-colors duration-300 ease-in-out flex-1 text-lg"
+                        className="flex items-center justify-center flex-1 gap-2 px-8 py-4 text-lg text-white transition-colors duration-300 ease-in-out bg-blue-600 rounded-lg shadow hover:bg-blue-700"
                         aria-label="Create a new listing"
                     >
                         <PlusCircle size={28} aria-hidden="true" />
@@ -239,7 +240,7 @@ const AccountSummary = () => {
                     </button>
                     <button
                         onClick={navigate_to_seller_dashboard}
-                        className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white py-4 px-8 rounded-lg shadow transition-colors duration-300 ease-in-out flex-1 text-lg"
+                        className="flex items-center justify-center flex-1 gap-2 px-8 py-4 text-lg text-white transition-colors duration-300 ease-in-out bg-green-600 rounded-lg shadow hover:bg-green-700"
                         aria-label="Navigate to seller dashboard"
                     >
                         <Truck size={28} aria-hidden="true" />
@@ -250,12 +251,12 @@ const AccountSummary = () => {
 
             {/* User Details Section */}
             <section
-                className="p-6 mb-8 bg-white shadow-md rounded-lg"
+                className="p-6 mb-8 bg-white rounded-lg shadow-md"
                 aria-labelledby="personal-details-heading"
             >
                 <h2
                     id="personal-details-heading"
-                    className="text-2xl font-semibold text-gray-800 mb-4"
+                    className="mb-4 text-2xl font-semibold text-gray-800"
                 >
                     Personal Details
                 </h2>
@@ -264,10 +265,10 @@ const AccountSummary = () => {
 
             {/* Addresses Section */}
             <section
-                className="p-6 mb-8 bg-white shadow-md rounded-lg"
+                className="p-6 mb-8 bg-white rounded-lg shadow-md"
                 aria-labelledby="addresses-heading"
             >
-                <h2 id="addresses-heading" className="text-2xl font-semibold text-gray-800 mb-4">
+                <h2 id="addresses-heading" className="mb-4 text-2xl font-semibold text-gray-800">
                     Addresses
                 </h2>
 
@@ -301,7 +302,7 @@ const AccountSummary = () => {
                             </div>
                         ))
                     ) : (
-                        <p className="text-gray-500 mt-4" role="status">
+                        <p className="mt-4 text-gray-500" role="status">
                             No addresses available. Please add one.
                         </p>
                     )}
@@ -310,14 +311,13 @@ const AccountSummary = () => {
 
             {/* Card Details Section */}
             {user && user.level_of_access === 1 && (
-
                 <section
-                    className="p-6 mb-8 bg-white shadow-md rounded-lg"
+                    className="p-6 mb-8 bg-white rounded-lg shadow-md"
                     aria-labelledby="card-details-heading"
                 >
                     <h2
                         id="card-details-heading"
-                        className="text-2xl font-semibold text-gray-800 mb-4"
+                        className="mb-4 text-2xl font-semibold text-gray-800"
                     >
                         Card Details
                     </h2>
@@ -325,7 +325,6 @@ const AccountSummary = () => {
                         <p className="text-gray-500" role="status">
                             Please enter your card details before placing any bids.
                         </p>
-
                     ) : (
                         <p className="text-gray-500" role="status" aria-live="polite">
                             Your card details have been saved!
@@ -334,11 +333,12 @@ const AccountSummary = () => {
                     <div id="payment-form" role="form" aria-label="Payment form">
                         <div className="mb-4"></div>
                         <div id="card-element">
-
                             {/* Stripe Element inserted here. */}
-                            <Elements stripe={stripePromise} >
-                                <PaymentForm userId={user?.User_id} onCardDetailsSubmitted={handleCardDetailsSubmitted}/>
-
+                            <Elements stripe={stripePromise}>
+                                <PaymentForm
+                                    userId={user?.User_id}
+                                    onCardDetailsSubmitted={handleCardDetailsSubmitted}
+                                />
                             </Elements>
                         </div>
                         <div id="card-errors" role="alert" aria-live="assertive"></div>
@@ -349,7 +349,7 @@ const AccountSummary = () => {
             {/* Expert View Availability Section (Visible only for experts)*/}
             {is_expert && (
                 <section
-                    className="p-6 mb-8 bg-white shadow-md rounded-lg"
+                    className="p-6 mb-8 bg-white rounded-lg shadow-md"
                     aria-label="Availability calendar view"
                 >
                     <Availability_calendar_view />
@@ -359,12 +359,12 @@ const AccountSummary = () => {
             {/* Expert Availability Section (Visible only for experts on Sunday) */}
             {is_expert && is_sunday && (
                 <section
-                    className="p-6 mb-8 bg-white shadow-md rounded-lg"
+                    className="p-6 mb-8 bg-white rounded-lg shadow-md"
                     aria-labelledby="set-availability-heading"
                 >
                     <h2
                         id="set-availability-heading"
-                        className="text-2xl font-semibold text-gray-800 mb-4"
+                        className="mb-4 text-2xl font-semibold text-gray-800"
                     >
                         Set Your Availability
                     </h2>
