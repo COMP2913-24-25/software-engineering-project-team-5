@@ -113,14 +113,16 @@ const Listing_item = (props) => {
     }, [user, item.Item_id]);
 
     return (
-        <div className="flex flex-wrap justify-center gap-5 mb-8">
+        <div className="flex flex-wrap justify-center gap-5 mb-8" role="list">
             <div
                 className="w-[300px] border border-gray-300 rounded-lg overflow-hidden bg-gray-100 transition-transform transform hover:scale-105 cursor-pointer flex flex-col items-center"
                 onClick={handleClick}
+                role="listitem"
+                aria-label={`Listing: ${item.Listing_name}`}
             >
                 <div className="w-full h-[180px] bg-gray-200 flex items-center justify-center overflow-hidden relative">
                     {user && user.level_of_access === 1 && (
-                        <span
+                        <button
                             className={`absolute top-2 right-2 cursor-pointer text-xl ${
                                 wishlist ? "text-red-600" : "text-white"
                             }`}
@@ -128,39 +130,51 @@ const Listing_item = (props) => {
                                 e.stopPropagation();
                                 toggle_wishlist(item.Item_id);
                             }}
+                            aria-label={wishlist ? "Remove from watchlist" : "Add to watchlist"}
+                            aria-pressed={wishlist}
                         >
                             ♥
-                        </span>
+                        </button>
                     )}
                     <img
                         src={`data:image/${item.Image};base64,${item.Image}`}
-                        alt="An image"
+                        alt={item.Listing_name}
                         className="w-full h-full object-cover"
+                        aria-hidden="false"
                     />
                 </div>
-
+    
                 <div className="p-4 w-full font-sans">
                     <div className="flex justify-between items-center font-bold mb-2">
-                        <span className="text-blue-600 hover:underline">{item.Listing_name}</span>
-                        {item.Verified && <span className="text-yellow-500 text-xl">★</span>}
+                        <span className="text-blue-600 hover:underline" aria-label="Listing name">
+                            {item.Listing_name}
+                        </span>
+                        {item.Verified && (
+                            <span className="text-yellow-500 text-xl" aria-label="Verified item">
+                                ★
+                            </span>
+                        )}
                     </div>
-
+    
                     <div className="flex justify-between items-center text-sm text-gray-700">
-                        <span>{item.Seller_username}</span>
-                        <span>
+                        <span aria-label={`Seller: ${item.Seller_username}`}>
+                            {item.Seller_username}
+                        </span>
+                        <span aria-label={`Current price: £${Math.max(item.Current_bid, item.Min_price).toFixed(2)}`}>
                             £
                             {item.Current_bid > item.Min_price
                                 ? item.Current_bid.toFixed(2)
                                 : item.Min_price.toFixed(2)}
                         </span>
                     </div>
-
+    
                     <div
                         className={`flex justify-between items-center text-sm ${
                             new Date(item.Available_until) - new Date() < 12 * 60 * 60 * 1000
                                 ? "text-red-600"
                                 : "text-gray-700"
                         }`}
+                        aria-label={`Time remaining: ${time_left}`}
                     >
                         <span>{time_left}</span>
                     </div>
