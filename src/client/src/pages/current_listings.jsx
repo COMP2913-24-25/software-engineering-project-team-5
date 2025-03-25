@@ -10,7 +10,7 @@ import "../App.css";
 import Filter_component from "../components/Filter_Sidebar";
 import config from "../../config";
 
-export default function CurrentListings({}) {
+export default function CurrentListings({ }) {
     const [listings, set_listings] = useState([]);
     const [price_filtered_listings, setprice_filtered_listings] = useState([]); // Stores price-filtered data
     const { csrfToken } = useCSRF();
@@ -62,40 +62,46 @@ export default function CurrentListings({}) {
     };
 
     return (
-        <div className="container mx-auto p-8 text-center">
-            <Filter_component
-                update_listings={handle_filtered_listings}
-                listings={listings}
-                aria-label="Filter listings"
-            />
-            <h1 className="text-3xl font-bold mb-6" aria-live="polite">
-                Current Listings
-            </h1>
-            <div className="relative flex items-center justify-center">
-                {price_filtered_listings.length === 0 ? (
-                    <p className="text-gray-600" aria-live="polite">
-                        No current listings available.
-                    </p>
-                ) : (
-                    <div
-                        className="flex overflow-x-auto space-x-4 sm:grid sm:grid-cols-2 
-                    md:grid-cols-3 lg:grid-cols-4 gap-4 scrollbar-hide"
-                        role="list"
-                        aria-label="List of current listings"
-                    >
-                        {price_filtered_listings.map((item) => (
-                            <div
-                                key={item.id}
-                                className="min-w-[40%] sm:min-w-0 sm:w-auto"
-                                role="listitem"
-                                aria-label={`Listing for ${item.name || "an item"}`}
-                            >
-                                <Listing_item key={item.id} item={item} />
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </div>
-        </div>
+        <main role="main" className="min-h-screen bg-gray-100 px-4 sm:px-6 lg:px-16 py-8">
+            <header className="text-center mb-10">
+                <h1 className="text-2xl sm:text-3xl font-semibold text-gray-800" aria-live="polite">
+                    Current Listings
+                </h1>
+                <p className="mt-2 text-base sm:text-lg text-gray-500">
+                    Browse items currently available across all categories.
+                </p>
+            </header>
+
+            <section className="mb-10">
+                <Filter_component
+                    update_listings={handle_filtered_listings}
+                    listings={listings}
+                    aria-label="Filter listings"
+                />
+            </section>
+
+            {price_filtered_listings.length === 0 ? (
+                <p className="text-center text-gray-600 text-base sm:text-lg mt-20" aria-live="polite">
+                    No current listings available.
+                </p>
+            ) : (
+                <section
+                    className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4"
+                    role="list"
+                    aria-label="List of current listings"
+                >
+                    {price_filtered_listings.map((item) => (
+                        <div
+                            key={item.id}
+                            role="listitem"
+                            aria-label={`Listing for ${item.name || "an item"}`}
+                            className="w-full"
+                        >
+                            <Listing_item item={item} />
+                        </div>
+                    ))}
+                </section>
+            )}
+        </main>
     );
 }
