@@ -24,6 +24,8 @@ const SellerDashboard = () => {
     const [normalIndex, setNormalIndex] = useState(0);
     const [rejectedIndex, setRejectedIndex] = useState(0);
 
+    const [loading, setLoading] = useState(true);
+
     useEffect(() => {
         const fetchItems = async () => {
             try {
@@ -66,7 +68,10 @@ const SellerDashboard = () => {
                         )
                     );
                 }
-            } catch (error) {}
+            } catch (error) { } finally {
+                setLoading(false);
+
+            }
         };
 
         if (user?.level_of_access === 1) {
@@ -133,28 +138,29 @@ const SellerDashboard = () => {
                 <p className="text-xl text-gray-500 mt-2">Create and manage your listings.</p>
             </div>
 
-            {renderItemsSection("Currently Listed Items", normalItems, normalIndex, setNormalIndex)}
+            {loading ? (
+                <div className="py-20 text-center text-gray-600">
+                    <div className="flex justify-center items-center">
+                        <div
+                            className="w-16 h-16 border-t-4 border-blue-600 border-dashed rounded-full animate-spin"
+                            role="status"
+                            aria-label="Loading current bids"
+                        ></div>
+                    </div>
+                    <p>Loading listings...</p>
+                </div>
+            ) : (
+                <>
+                    {renderItemsSection("Currently Listed Items", normalItems, normalIndex, setNormalIndex)}
 
-            {renderItemsSection(
-                "Authentication Pending",
-                authPendingItems,
-                authPendingIndex,
-                setAuthPendingIndex
+                    {renderItemsSection("Authentication Pending", authPendingItems, authPendingIndex, setAuthPendingIndex)}
+
+                    {renderItemsSection("Under Review", underReviewItems, underReviewIndex, setUnderReviewIndex)}
+
+                    {renderItemsSection("Authentication Rejected", rejectedItems, rejectedIndex, setRejectedIndex)}
+                </>
             )}
 
-            {renderItemsSection(
-                "Under Review",
-                underReviewItems,
-                underReviewIndex,
-                setUnderReviewIndex
-            )}
-
-            {renderItemsSection(
-                "Authentication Rejected",
-                rejectedItems,
-                rejectedIndex,
-                setRejectedIndex
-            )}
         </div>
     );
 };

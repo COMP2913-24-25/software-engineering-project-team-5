@@ -192,17 +192,6 @@ const EnlargedListingPage = () => {
     };
 
     const handlePlaceBid = async () => {
-        // if (user.Setup_intent_ID === null || user.Setup_intent_ID === undefined) {
-        //     console.log("user? = ", user.User_id);
-        //     console.log("user = ", user.user_id);
-        //     console.log("setup intent = ", user.Setup_intent_ID);
-        //     console.log("Payment_method_ID = ", user.Payment_method_ID);
-        //     console.log("customer = ", user.Customer_ID);
-        //     alert("Please set up your payment method before placing a bid.");
-        //     navigate("/accountsummary");
-        //     return;
-        // }
-        // checks that bid amount is valid and also more than minimum/current bid
 
         if (!bidAmount || parseFloat(bidAmount) <= 0) {
             alert("Please enter a valid bid amount.");
@@ -243,29 +232,17 @@ const EnlargedListingPage = () => {
         } catch (error) { }
     };
 
-    const manualCharge = async () => {
-        try {
-            const response = await fetch(`${api_base_url}/api/charge-manual`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRF-TOKEN": csrfToken,
-                },
-                credentials: "include",
-            });
-            const data = await response.json();
-            if (response.ok) {
-                alert("Item charged successfully!");
-                //setItem((prev) => ({ ...prev, Current_bid: parseFloat(bidAmount) })); //?;
-            } else {
-                alert(`Failed to charge: ${data.message}`);
-            }
-        } catch (error) { }
-    };
-
     if (!item) {
-        return <div className="py-20 text-center text-gray-600">Loading listing...</div>;
+        return (
+            <div className="py-20 text-center text-gray-600">
+                <div className="flex justify-center items-center">
+                    <div className="w-16 h-16 border-t-4 border-blue-600 border-dashed rounded-full animate-spin" role="status" aria-label="Loading current bids"></div>
+                </div>
+                <p>Loading listing...</p>
+            </div>
+        );
     }
+
 
     return (
         <div className="min-h-screen px-4 py-8 bg-gray-50 lg:px-6" role="main">

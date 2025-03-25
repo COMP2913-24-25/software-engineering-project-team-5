@@ -15,6 +15,7 @@ export default function CurrentListings({ }) {
     const [price_filtered_listings, setprice_filtered_listings] = useState([]); // Stores price-filtered data
     const { csrfToken } = useCSRF();
     const { api_base_url } = config;
+    const [loading, setLoading] = useState(true);
 
     const location = useLocation();
     const searchQuery = location.state?.searchQuery || "";
@@ -52,6 +53,8 @@ export default function CurrentListings({ }) {
                 }
             } catch (error) {
                 console.error("Network error: ", error);
+            } finally {
+                setLoading(false);
             }
         };
         fetchListings();
@@ -79,28 +82,36 @@ export default function CurrentListings({ }) {
                     aria-label="Filter listings"
                 />
             </section>
-
-            {price_filtered_listings.length === 0 ? (
-                <p className="text-center text-gray-600 text-base sm:text-lg mt-20" aria-live="polite">
-                    No current listings available.
-                </p>
+            {loading === true ? (
+                <div className="py-20 text-center text-gray-600">
+                    <div className="flex justify-center items-center">
+                        <div className="w-16 h-16 border-t-4 border-blue-600 border-dashed rounded-full animate-spin" role="status" aria-label="Loading current bids"></div>
+                    </div>
+                    <p>Loading listings...</p>
+                </div>
             ) : (
-                <section
-                    className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4"
-                    role="list"
-                    aria-label="List of current listings"
-                >
-                    {price_filtered_listings.map((item) => (
-                        <div
-                            key={item.id}
-                            role="listitem"
-                            aria-label={`Listing for ${item.name || "an item"}`}
-                            className="w-full"
-                        >
-                            <Listing_item item={item} />
-                        </div>
-                    ))}
-                </section>
+                price_filtered_listings.length === 0 ? (
+                    <p className="text-center text-gray-600 text-base sm:text-lg mt-20" aria-live="polite">
+                        No current listings available.
+                    </p>
+                ) : (
+                    <section
+                        className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4"
+                        role="list"
+                        aria-label="List of current listings"
+                    >
+                        {price_filtered_listings.map((item) => (
+                            <div
+                                key={item.id}
+                                role="listitem"
+                                aria-label={`Listing for ${item.name || "an item"}`}
+                                className="w-full"
+                            >
+                                <Listing_item item={item} />
+                            </div>
+                        ))}
+                    </section>
+                )
             )}
         </main>
     );

@@ -13,6 +13,8 @@ export default function MAuthReq() {
     const { csrfToken } = useCSRF();
     const navigate = useNavigate();
     const { api_base_url } = config;
+    const [loading, setLoading] = useState(true);
+
 
     // Fetch items pending authentication
     const getPendingAuth = async () => {
@@ -28,6 +30,8 @@ export default function MAuthReq() {
             }
         } catch (error) {
             console.error("Error fetching items pending authentication:", error);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -88,80 +92,87 @@ export default function MAuthReq() {
                     Assign authentication requests to experts.
                 </p>
             </div>
-
-            {!user ? (
-                <p className="text-gray-600 text-center">
-                    Login to see items pending authentication
-                </p>
-            ) : pendingauth.length === 0 ? (
-                <p className="text-gray-600 text-center">No items pending authentication</p>
+            {loading ? (
+                <div className="py-20 text-center text-gray-600">
+                    <div className="flex justify-center items-center">
+                        <div className="w-16 h-16 border-t-4 border-blue-600 border-dashed rounded-full animate-spin" role="status" aria-label="Loading current bids"></div>
+                    </div>
+                    <p>Loading listings...</p>
+                </div>
             ) : (
-                <div className="space-y-6">
-                    {pendingauth.map((item) => (
-                        <div key={item.Item_id} className="bg-white p-4 rounded-lg border">
-                            <ItemListing
-                                images={item.Images}
-                                itemId={item.Item_id}
-                                title={item.Listing_name}
-                                seller={item.Username}
-                                description={item.Description}
-                            />
-                            <div className="mt-2">
-                                <label className="block text-sm font-medium text-gray-700">
-                                    Assign Expert:
-                                </label>
-                                <Select
-                                    className="border border-gray-300 rounded-md w-full"
-                                    value={
-                                        selectedExperts[item.Item_id]
-                                            ? experts.find(
-                                                  (expert) =>
-                                                      expert.Expert_id ===
-                                                      selectedExperts[item.Item_id]
-                                              )
-                                                ? {
-                                                      value: selectedExperts[item.Item_id],
-                                                      label: experts.find(
-                                                          (expert) =>
-                                                              expert.Expert_id ===
-                                                              selectedExperts[item.Item_id]
-                                                      )?.Full_Name,
-                                                  }
+                !user ? (
+                    <p className="text-gray-600 text-center">
+                        Login to see items pending authentication
+                    </p>
+                ) : pendingauth.length === 0 ? (
+                    <p className="text-gray-600 text-center">No items pending authentication</p>
+                ) : (
+                    <div className="space-y-6">
+                        {pendingauth.map((item) => (
+                            <div key={item.Item_id} className="bg-white p-4 rounded-lg border">
+                                <ItemListing
+                                    images={item.Images}
+                                    itemId={item.Item_id}
+                                    title={item.Listing_name}
+                                    seller={item.Username}
+                                    description={item.Description}
+                                />
+                                <div className="mt-2">
+                                    <label className="block text-sm font-medium text-gray-700">
+                                        Assign Expert:
+                                    </label>
+                                    <Select
+                                        className="border border-gray-300 rounded-md w-full"
+                                        value={
+                                            selectedExperts[item.Item_id]
+                                                ? experts.find(
+                                                    (expert) =>
+                                                        expert.Expert_id ===
+                                                        selectedExperts[item.Item_id]
+                                                )
+                                                    ? {
+                                                        value: selectedExperts[item.Item_id],
+                                                        label: experts.find(
+                                                            (expert) =>
+                                                                expert.Expert_id ===
+                                                                selectedExperts[item.Item_id]
+                                                        )?.Full_Name,
+                                                    }
+                                                    : null
                                                 : null
-                                            : null
-                                    }
-                                    onChange={(selectedOption) =>
-                                        setSelectedExperts({
-                                            ...selectedExperts,
-                                            [item.Item_id]: selectedOption
-                                                ? selectedOption.value
-                                                : "",
-                                        })
-                                    }
-                                    options={experts.map((expert) => ({
-                                        value: expert.Expert_id,
-                                        label: `${expert.Full_Name} ${
-                                            expert.Tags.length > 0
+                                        }
+                                        onChange={(selectedOption) =>
+                                            setSelectedExperts({
+                                                ...selectedExperts,
+                                                [item.Item_id]: selectedOption
+                                                    ? selectedOption.value
+                                                    : "",
+                                            })
+                                        }
+                                        options={experts.map((expert) => ({
+                                            value: expert.Expert_id,
+                                            label: `${expert.Full_Name} ${expert.Tags.length > 0
                                                 ? `(${expert.Tags.join(", ")})`
                                                 : ""
-                                        }`,
-                                    }))}
-                                    isSearchable
-                                    placeholder="Select an expert"
-                                />
+                                                }`,
+                                        }))}
+                                        isSearchable
+                                        placeholder="Select an expert"
+                                    />
+                                </div>
+                                <button
+                                    className="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md transition w-full sm:w-auto"
+                                    onClick={() =>
+                                        assignExpertToItem(item.Item_id, selectedExperts[item.Item_id])
+                                    }
+                                    disabled={!selectedExperts[item.Item_id]}
+                                >
+                                    Assign Expert
+                                </button>
                             </div>
-                            <button
-                                className="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md transition w-full sm:w-auto"
-                                onClick={() =>
-                                    assignExpertToItem(item.Item_id, selectedExperts[item.Item_id])
-                                }
-                                disabled={!selectedExperts[item.Item_id]}
-                            >
-                                Assign Expert
-                            </button>
-                        </div>
-                    ))}
-                </div>
+                        ))}
+                    </div>
+                )
             )}
         </div>
     );

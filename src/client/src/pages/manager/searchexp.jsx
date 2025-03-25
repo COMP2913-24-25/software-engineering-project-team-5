@@ -36,6 +36,7 @@ const SearchExperts = () => {
     const navigate = useNavigate();
     const { csrfToken } = useCSRF();
     const { api_base_url } = config;
+    const [loading, setLoading] = useState(true);
 
     const [experts, set_experts] = useState([]);
     const [search, set_search] = useState("");
@@ -65,6 +66,8 @@ const SearchExperts = () => {
             }
         } catch (error) {
             console.error("Error fetching experts:", error);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -127,23 +130,30 @@ const SearchExperts = () => {
                     </label>
                 </div>
             </div>
-
-            {/* Experts Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 mb-8">
-                {filteredExperts.length > 0 ? (
-                    filteredExperts.map((expert) => (
-                        <Manager_view_expert
-                            key={expert.User_id}
-                            expert={expert}
-                            refresh_expert={fetch_experts}
-                        />
-                    ))
-                ) : (
-                    <div className="col-span-full text-center text-gray-500 mt-8">
-                        No experts found matching your search criteria.
+            {loading ? (
+                <div className="py-20 text-center text-gray-600">
+                    <div className="flex justify-center items-center">
+                        <div className="w-16 h-16 border-t-4 border-blue-600 border-dashed rounded-full animate-spin" role="status" aria-label="Loading current bids"></div>
                     </div>
-                )}
-            </div>
+                    <p>Searching experts...</p>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 mb-8">
+                    {filteredExperts.length > 0 ? (
+                        filteredExperts.map((expert) => (
+                            <Manager_view_expert
+                                key={expert.User_id}
+                                expert={expert}
+                                refresh_expert={fetch_experts}
+                            />
+                        ))
+                    ) : (
+                        <div className="col-span-full text-center text-gray-500 mt-8">
+                            No experts found matching your search criteria.
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     );
 };
