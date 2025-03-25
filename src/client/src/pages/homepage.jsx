@@ -22,41 +22,8 @@ const HomePage = () => {
 
     const items_per_page = 4;
 
-    // Fetching the listings
-    useEffect(() => {
-        const fetch_items = async () => {
-            try {
-                const response = await fetch(`${api_base_url}/api/get-items`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRF-TOKEN": csrfToken,
-                    },
-                    credentials: "include",
-                });
-                const data = await response.json();
-
-                if (response.ok) {
-                    setItems(data); // Update state with items
-                    setfiltered_listings(data);
-                    // Split the items into verified and unverified
-                    const verified = data.filter((item) => item.Verified === true);
-                    const unverified = data.filter((item) => item.Verified === false);
-
-                    set_verified_items(verified);
-                    set_unverified_items(unverified);
-                } else {
-                    console.error("Failed to get the listings");
-                }
-            } catch (error) {
-                console.error("Network error: ", error);
-            }
-        };
-
-        fetch_items();
-    }, []);
-
     // Handling the next page for the items catalogue wheel
+
     const nextPage = (type) => {
         if (type == "verified") {
             set_verified_index((prev) =>
@@ -94,10 +61,10 @@ const HomePage = () => {
     return (
         <div className="relative min-h-screen bg-gray-100">
             {/* Hero Section */}
-            <div className="bg-blue-500 text-white py-16 px-4 text-center">
-                <h1 className="text-3xl sm:text-5xl font-bold tracking-wide">Welcome to Bidly</h1>
+            <div className="px-4 py-16 text-center text-white bg-blue-500">
+                <h1 className="text-3xl font-bold tracking-wide sm:text-5xl">Welcome to Bidly</h1>
 
-                <p className="text-md sm:text-lg mt-3 opacity-90">
+                <p className="mt-3 text-md sm:text-lg opacity-90">
                     Discover and bid on amazing products effortlessly.
                 </p>
             </div>
@@ -106,11 +73,11 @@ const HomePage = () => {
             <div className="container mx-auto py-12 px-[5%] md:px-[10%]">
                 {/* Unverified Items Section */}
                 <div className="mb-12">
-                    <h2 className="text-2xl sm:text-3xl font-semibold text-gray-800 text-center mb-4">
+                    <h2 className="mb-4 text-2xl font-semibold text-center text-gray-800 sm:text-3xl">
                         Explore New Arrivals
                     </h2>
                     <div className="relative flex items-center justify-center">
-                        <div className="flex overflow-x-auto space-x-4 sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 scrollbar-hide">
+                        <div className="flex gap-4 space-x-4 overflow-x-auto sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 scrollbar-hide">
                             {unverified_items
                                 .slice(unverified_index, unverified_index + items_per_page)
                                 .map((item, index) => (
@@ -121,14 +88,14 @@ const HomePage = () => {
                         </div>
 
                         <button
-                            className="absolute left-2 bg-white shadow-md p-2 sm:p-3 rounded-full text-gray-600 hover:bg-gray-200 transition sm:flex"
+                            className="absolute p-2 text-gray-600 transition bg-white rounded-full shadow-md left-2 sm:p-3 hover:bg-gray-200 sm:flex"
                             onClick={() => prevPage("unverified")}
                         >
                             <ChevronLeft size={28} />
                         </button>
 
                         <button
-                            className="absolute right-2 bg-white shadow-md p-2 sm:p-3 rounded-full text-gray-600 hover:bg-gray-200 transition sm:flex"
+                            className="absolute p-2 text-gray-600 transition bg-white rounded-full shadow-md right-2 sm:p-3 hover:bg-gray-200 sm:flex"
                             onClick={() => nextPage("unverified")}
                         >
                             <ChevronRight size={28} />
@@ -138,11 +105,11 @@ const HomePage = () => {
 
                 {/* Verified Items Section */}
                 <div>
-                    <h2 className="text-2xl sm:text-3xl font-semibold text-gray-800 text-center mb-4">
+                    <h2 className="mb-4 text-2xl font-semibold text-center text-gray-800 sm:text-3xl">
                         Shop Authentic
                     </h2>
                     <div className="relative flex items-center justify-center">
-                        <div className="flex overflow-x-auto space-x-4 sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 scrollbar-hide">
+                        <div className="flex gap-4 space-x-4 overflow-x-auto sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 scrollbar-hide">
                             {verified_items
                                 .slice(verified_index, verified_index + items_per_page)
                                 .map((item, index) => (
@@ -153,14 +120,14 @@ const HomePage = () => {
                         </div>
 
                         <button
-                            className="absolute left-2 bg-white shadow-md p-2 sm:p-3 rounded-full text-gray-600 hover:bg-gray-200 transition sm:flex"
+                            className="absolute p-2 text-gray-600 transition bg-white rounded-full shadow-md left-2 sm:p-3 hover:bg-gray-200 sm:flex"
                             onClick={() => prevPage("verified")}
                         >
                             <ChevronLeft size={28} />
                         </button>
 
                         <button
-                            className="absolute right-2 bg-white shadow-md p-2 sm:p-3 rounded-full text-gray-600 hover:bg-gray-200 transition sm:flex"
+                            className="absolute p-2 text-gray-600 transition bg-white rounded-full shadow-md right-2 sm:p-3 hover:bg-gray-200 sm:flex"
                             onClick={() => nextPage("verified")}
                         >
                             <ChevronRight size={28} />
