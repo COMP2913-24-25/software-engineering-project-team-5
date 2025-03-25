@@ -103,7 +103,7 @@ const AccountSummary = () => {
                 // If response is ok, set addresses state with server data
                 set_addresses(data.addresses);
             }
-        } catch (error) {}
+        } catch (error) { }
     };
 
     // Updates the addresses list to remove the deleted address
@@ -183,7 +183,7 @@ const AccountSummary = () => {
                     body: JSON.stringify({ availability, week_start_date: get_week_start_date() }),
                 });
                 alert("Availability set successfully!");
-            } catch (error) {}
+            } catch (error) { }
         }
     };
 
@@ -352,6 +352,12 @@ const AccountSummary = () => {
                     className="p-6 mb-8 bg-white rounded-lg shadow-md"
                     aria-label="Availability calendar view"
                 >
+                    <h2
+                        id="view-availability-heading"
+                        className="mb-4 text-2xl font-semibold text-gray-800"
+                    >
+                        View Your Availability for this Week
+                    </h2>
                     <Availability_calendar_view />
                 </section>
             )}
