@@ -153,11 +153,11 @@ export default function Dashboard() {
     return (
         <div aria-live="polite" className="relative min-h-screen bg-gray-50 px-4 sm:px-6 lg:px-12 py-8">
             <div className="text-center mb-10">
-                <h1 aria-label="Weekly Profits Dashboard" className="text-3xl font-bold text-gray-900">Weekly Profits</h1>
-                <p aria-label="Monitor profits and adjust distribution settings" className="text-lg text-gray-600 mt-2">Monitor profits and adjust distribution settings.</p>
+                <h1 aria-label="Weekly Profits Dashboard" className="text-2xl font-semibold text-center text-gray-800 mb-4">Weekly Profits</h1>
+                <p aria-label="Monitor profits and adjust distribution settings" className="text-xl text-gray-500 mt-2">Monitor profits and adjust distribution settings.</p>
             </div>
 
-            <div aria-labelledby="profit-chart" className="mb-10 overflow-x-auto mb-10 shadow-lg rounded-lg bg-white p-6">
+            <div aria-labelledby="profit-chart" className="mb-10 overflow-x-auto mb-10 border shadow-md cursor-pointer hover:shadow-lg rounded-lg bg-white p-6">
                 <Chart
                     data={weeklyProfits}
                     xKey="week"
@@ -166,11 +166,11 @@ export default function Dashboard() {
                 />
             </div>
 
-            <div aria-labelledby="profit-table" className="overflow-x-auto mb-10 shadow-lg rounded-lg bg-white p-6">
+            <div aria-labelledby="profit-table" className="overflow-x-auto mb-10 border shadow-md cursor-pointer hover:shadow-lg rounded-lg bg-white p-6">
                 <Table data={weeklyProfits} />
             </div>
 
-            <div className="bg-white shadow-lg rounded-lg p-6 md:p-8 max-w-3xl mx-auto">
+            <div className="bg-white border shadow-md cursor-pointer hover:shadow-lg rounded-lg p-6 md:p-8 max-w-3xl mx-auto">
                 <h2 className="text-2xl font-semibold text-gray-900 mb-6">Update Profit Structure</h2>
                 {error && <p className="text-red-600 font-medium mb-4" role="alert">{error}</p>}
 
