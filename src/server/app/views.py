@@ -1286,6 +1286,14 @@ def get_search_filter():
         items_list = []
         for item in filtered_items:
             image = Images.query.filter(Images.Item_id == item.Item_id).first()
+            tags = (
+                db.session.query(Types.Type_name)
+                .join(Middle_type, Types.Type_id == Middle_type.Type_id)
+                .filter(Middle_type.Item_id == item.Item_id)
+                .all()
+            )
+            
+            tag_list = [tag.Type_name for tag in tags]
 
             item_details_dict = {
                 "Item_id": item.Item_id,
@@ -1298,6 +1306,7 @@ def get_search_filter():
                 "Image": (
                     base64.b64encode(image.Image).decode("utf-8") if image else None
                 ),
+                "Tags": tag_list,
             }
 
             items_list.append(item_details_dict)
@@ -1744,6 +1753,15 @@ def get_listings():
 
             image = Images.query.filter(Images.Item_id == item.Item_id).first()
 
+            tags = (
+                db.session.query(Types.Type_name)
+                .join(Middle_type, Types.Type_id == Middle_type.Type_id)
+                .filter(Middle_type.Item_id == item.Item_id)
+                .all()
+            )
+            
+            tag_list = [tag.Type_name for tag in tags]
+
             item_details_dict = {
                 "Item_id": item.Item_id,
                 "Listing_name": item.Listing_name,
@@ -1754,6 +1772,7 @@ def get_listings():
                 "Min_price": item.Min_price,
                 "Current_bid": item.Current_bid,
                 "Image": base64.b64encode(image.Image).decode("utf-8"),
+                "Tags": tag_list,
             }
             items_list.append(item_details_dict)
 
@@ -1854,6 +1873,15 @@ def get_sellerss_listings():
 
             image = Images.query.filter(Images.Item_id == item.Item_id).first()
 
+            tags = (
+                db.session.query(Types.Type_name)
+                .join(Middle_type, Types.Type_id == Middle_type.Type_id)
+                .filter(Middle_type.Item_id == item.Item_id)
+                .all()
+            )
+            
+            tag_list = [tag.Type_name for tag in tags]
+
             item_details_dict = {
                 "Item_id": item.Item_id,
                 "Listing_name": item.Listing_name,
@@ -1866,7 +1894,8 @@ def get_sellerss_listings():
                 "Image": base64.b64encode(image.Image).decode("utf-8"),
                 "Expert_id": item.Expert_id,
                 "Authentication_request_approved": item.Authentication_request_approved,
-                "Authentication_request": item.Authentication_request
+                "Authentication_request": item.Authentication_request,
+                "Tags": tag_list
             }
             items_list.append(item_details_dict)
         return jsonify(items_list), 200
@@ -1949,7 +1978,16 @@ def get_bids():
                             ),
                         }
                     )
-
+                
+                tags = (
+                    db.session.query(Types.Type_name)
+                    .join(Middle_type, Types.Type_id == Middle_type.Type_id)
+                    .filter(Middle_type.Item_id == item.Item_id)
+                    .all()
+                )
+                
+                tag_list = [tag.Type_name for tag in tags]
+                
                 unique_bids[item.Item_id] = {
                     "Bid_id": item.Bid_id,
                     "Bid_price": item.Bid_price,
@@ -1963,6 +2001,7 @@ def get_bids():
                     "Seller_name": item.Username,
                     "Images": image_list,
                     "Min_price": item.Min_price,
+                    "Tags": tag_list,
                 }
 
         # Convert dictionary to list for JSON response
@@ -2053,7 +2092,16 @@ def get_history():
                             ),
                         }
                     )
-
+                
+                tags = (
+                    db.session.query(Types.Type_name)
+                    .join(Middle_type, Types.Type_id == Middle_type.Type_id)
+                    .filter(Middle_type.Item_id == item.Item_id)
+                    .all()
+                )
+                
+                tag_list = [tag.Type_name for tag in tags]
+                
                 unique_bids[item.Item_id] = {
                     "Bid_id": item.Bid_id,
                     "Bid_price": item.Bid_price,
@@ -2069,6 +2117,7 @@ def get_history():
                     "Images": image_list,
                     "Image_description": item.Image_description or "No Image",
                     "Min_price": item.Min_price,
+                    "Tags": tag_list,
                 }
 
         # Convert dictionary to list for JSON response
@@ -2135,6 +2184,16 @@ def get_pending_auth():
                             ),
                         }
                     )
+
+                tags = (
+                    db.session.query(Types.Type_name)
+                    .join(Middle_type, Types.Type_id == Middle_type.Type_id)
+                    .filter(Middle_type.Item_id == item.Item_id)
+                    .all()
+                )
+                
+                tag_list = [tag.Type_name for tag in tags]
+
                 unassigned_data.append(
                     {
                         "Item_id": item.Item_id,
@@ -2144,6 +2203,7 @@ def get_pending_auth():
                         "Available_until": item.Available_until,
                         "Username": item.Username,
                         "Images": image_list,
+                        "Tags": tag_list,
                     }
                 )
 
@@ -2571,6 +2631,15 @@ def get_watchlist():
                         ),
                     }
                 )
+            
+            tags = (
+                db.session.query(Types.Type_name)
+                .join(Middle_type, Types.Type_id == Middle_type.Type_id)
+                .filter(Middle_type.Item_id == item.Item_id)
+                .all()
+            )
+            
+            tag_list = [tag.Type_name for tag in tags]
 
             watchlist_data.append(
                 {
@@ -2582,6 +2651,7 @@ def get_watchlist():
                     "Available_until": item.Available_until,
                     "Seller_name": item.Seller_name,
                     "Images": image_list,
+                    "Tags": tag_list,
                 }
             )
 

@@ -93,43 +93,44 @@ const BiddingHistory = () => {
                                 description={item.Description}
                                 images={item.Images}
                                 availableUntil={item.Available_until}
+                                tags={item.Tags}
                                 buttons={
                                     item.Successful_bid == 1
                                         ? item.Winning_bid == 1
                                             ? [
-                                                  {
-                                                      text: "Highest Bidder",
-                                                      style: "bg-green-500 text-white",
-                                                  },
-                                                  {
-                                                      text: `Your Bid: £${item.Bid_price}`,
-                                                      style: "bg-gray-200 text-black",
-                                                  },
-                                              ]
+                                                {
+                                                    text: "Highest Bidder",
+                                                    style: "bg-green-500 text-white",
+                                                },
+                                                {
+                                                    text: `Your Bid: £${item.Bid_price}`,
+                                                    style: "bg-gray-200 text-black",
+                                                },
+                                            ]
                                             : [
-                                                  {
-                                                      text: "Payment Incomplete",
-                                                      style: "bg-yellow-500 text-white",
-                                                  },
-                                                  {
-                                                      text: `Your Bid: £${item.Bid_price}`,
-                                                      style: "bg-gray-200 text-black",
-                                                  },
-                                              ]
+                                                {
+                                                    text: "Payment Incomplete",
+                                                    style: "bg-yellow-500 text-white",
+                                                },
+                                                {
+                                                    text: `Your Bid: £${item.Bid_price}`,
+                                                    style: "bg-gray-200 text-black",
+                                                },
+                                            ]
                                         : [
-                                              {
-                                                  text: "Out Bid",
-                                                  style: "bg-red-500 text-white",
-                                              },
-                                              {
-                                                  text: `Your Bid: £${item.Bid_price}`,
-                                                  style: "bg-gray-200 text-black",
-                                              },
-                                              {
-                                                  text: `Highest Bid: £${item.Current_bid}`,
-                                                  style: "bg-gray-500 text-white",
-                                              },
-                                          ]
+                                            {
+                                                text: "Out Bid",
+                                                style: "bg-red-500 text-white",
+                                            },
+                                            {
+                                                text: `Your Bid: £${item.Bid_price}`,
+                                                style: "bg-gray-200 text-black",
+                                            },
+                                            {
+                                                text: `Highest Bid: £${item.Current_bid}`,
+                                                style: "bg-gray-500 text-white",
+                                            },
+                                        ]
                                 }
                             />
                         ))}

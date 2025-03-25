@@ -121,9 +121,8 @@ const Listing_item = (props) => {
                 <div className="w-full h-[180px] bg-gray-200 flex items-center justify-center overflow-hidden relative">
                     {user && user.level_of_access === 1 && (
                         <span
-                            className={`absolute top-2 right-2 cursor-pointer text-xl ${
-                                wishlist ? "text-red-600" : "text-white"
-                            }`}
+                            className={`absolute top-2 right-2 cursor-pointer text-xl ${wishlist ? "text-red-600" : "text-white"
+                                }`}
                             onClick={(e) => {
                                 e.stopPropagation();
                                 toggle_wishlist(item.Item_id);
@@ -143,6 +142,20 @@ const Listing_item = (props) => {
                     <div className="flex justify-between items-center font-bold mb-2">
                         <span className="text-blue-600 hover:underline">{item.Listing_name}</span>
                         {item.Verified && <span className="text-yellow-500 text-xl">★</span>}
+                        {item.Tags && item.Tags.length > 0 ? (
+                            <div className="flex flex-wrap justify-start gap-2 mt-2">
+                                {item.Tags.map((tag, index) => (
+                                    <span
+                                        key={index}
+                                        className="px-3 py-1 text-sm text-white bg-gray-600 rounded-full transition-all"
+                                    >
+                                        {tag}
+                                    </span>
+                                ))}
+                            </div>
+                        ) : (
+                            <div></div>
+                        )}
                     </div>
 
                     <div className="flex justify-between items-center text-sm text-gray-700">
@@ -156,11 +169,10 @@ const Listing_item = (props) => {
                     </div>
 
                     <div
-                        className={`flex justify-between items-center text-sm ${
-                            new Date(item.Available_until) - new Date() < 12 * 60 * 60 * 1000
-                                ? "text-red-600"
-                                : "text-gray-700"
-                        }`}
+                        className={`flex justify-between items-center text-sm ${new Date(item.Available_until) - new Date() < 12 * 60 * 60 * 1000
+                            ? "text-red-600"
+                            : "text-gray-700"
+                            }`}
                     >
                         <span>{time_left}</span>
                     </div>
@@ -168,6 +180,7 @@ const Listing_item = (props) => {
             </div>
         </div>
     );
+
 };
 
 export default Listing_item;
