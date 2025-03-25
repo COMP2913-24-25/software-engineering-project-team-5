@@ -78,15 +78,17 @@ const Watchlist = () => {
     }, [user]);
 
     return (
-        <div className="relative min-h-screen bg-gray-100 px-[5%] md:px-[10%] py-8">
-            <div className="text-center mb-8">
-                <h1 className="text-2xl font-semibold text-center text-gray-800 mb-4">Watchlist</h1>
-                <p className="text-xl text-gray-500 mt-2">Track items you are interested in.</p>
-            </div>
+        <div role="main" className="relative min-h-screen bg-gray-100 px-[5%] md:px-[10%] py-8">
+            <header className="text-center mb-8">
+                <div className="text-center mb-8">
+                    <h1 className="text-2xl font-semibold text-center text-gray-800 mb-4">Watchlist</h1>
+                    <p className="text-xl text-gray-500 mt-2">Track items you are interested in.</p>
+                </div>
+            </header>
 
             {user ? (
                 watchlist.length === 0 ? (
-                    <p className="text-gray-600">Your watchlist is empty.</p>
+                    <p aria-live="polite" className="text-gray-600">Your watchlist is empty.</p>
                 ) : (
                     <div className="space-y-6">
                         {watchlist.map((item) => (
@@ -110,6 +112,7 @@ const Watchlist = () => {
                                         text: "Remove from Watchlist",
                                         onClick: () => remove_from_watchlist(item.Item_id),
                                         style: "bg-red-500 text-white hover:bg-red-600",
+                                        "aria-label": `Remove ${item.Listing_name} from watchlist`,
                                     },
                                 ]}
                             />

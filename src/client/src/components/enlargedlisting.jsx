@@ -138,16 +138,11 @@ const EnlargedListingPage = () => {
 
             return () => clearInterval(interval);
         }
-    }, []);
+    }, [item?.Available_until]);
 
     useEffect(() => {
         if (user && item) {
             check_watchlist();
-        }
-    }, []);
-
-    useEffect(() => {
-        if (item && user) {
             fetchSellerListings();
         }
     }, []);
@@ -269,23 +264,23 @@ const EnlargedListingPage = () => {
     };
 
     if (!item) {
-        return <div className="text-center py-20 text-gray-600">Loading listing...</div>;
+        return <div className="py-20 text-center text-gray-600">Loading listing...</div>;
     }
 
     return (
-        <div className="bg-gray-50 min-h-screen py-8 px-4 lg:px-6" role="main">
-            <div className="container mx-auto bg-white shadow-lg rounded-2xl p-6 lg:p-8">
+        <div className="min-h-screen px-4 py-8 bg-gray-50 lg:px-6" role="main">
+            <div className="container p-6 mx-auto bg-white shadow-lg rounded-2xl lg:p-8">
                 <h1
-                    className="text-2xl lg:text-4xl font-bold text-gray-800 mb-4"
+                    className="mb-4 text-2xl font-bold text-gray-800 lg:text-4xl"
                     id="product-title"
                 >
                     {item.Listing_name}
                 </h1>
-                <p className="text-gray-600 mb-6 text-sm lg:text-base">
+                <p className="mb-6 text-sm text-gray-600 lg:text-base">
                     Seller: <span className="font-semibold">{item.Seller_username}</span>
                 </p>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-10">
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-10">
                     <div className="lg:col-span-2">
                         <div
                             className="relative rounded-xl overflow-hidden bg-gray-100 h-72 sm:h-96 lg:h-[30rem]"
@@ -300,7 +295,7 @@ const EnlargedListingPage = () => {
                                         alt={`${item.Listing_name} - Image ${
                                             currentImageIndex + 1
                                         } of ${imageCount}`}
-                                        className="w-full h-full object-cover"
+                                        className="object-cover w-full h-full"
                                     />
                                     <div
                                         className="absolute inset-0 flex items-center justify-between px-4"
@@ -309,29 +304,29 @@ const EnlargedListingPage = () => {
                                     >
                                         <button
                                             onClick={prevImage}
-                                            className="bg-white/80 hover:bg-gray-200 rounded-full p-3 shadow-lg"
+                                            className="p-3 rounded-full shadow-lg bg-white/80 hover:bg-gray-200"
                                             aria-label="Previous image"
                                             disabled={currentImageIndex === 0}
                                         >
                                             <ChevronLeft
-                                                className="h-6 w-6 text-gray-800"
+                                                className="w-6 h-6 text-gray-800"
                                                 aria-hidden="true"
                                             />
                                         </button>
                                         <button
                                             onClick={nextImage}
-                                            className="bg-white/80 hover:bg-gray-200 rounded-full p-3 shadow-lg"
+                                            className="p-3 rounded-full shadow-lg bg-white/80 hover:bg-gray-200"
                                             aria-label="Next image"
                                             disabled={currentImageIndex === imageCount - 1}
                                         >
                                             <ChevronRight
-                                                className="h-6 w-6 text-gray-800"
+                                                className="w-6 h-6 text-gray-800"
                                                 aria-hidden="true"
                                             />
                                         </button>
                                     </div>
                                     <div
-                                        className="absolute bottom-4 right-4 bg-black/60 text-white px-4 py-2 rounded-lg text-sm"
+                                        className="absolute px-4 py-2 text-sm text-white rounded-lg bottom-4 right-4 bg-black/60"
                                         aria-live="polite"
                                     >
                                         <span
@@ -357,19 +352,19 @@ const EnlargedListingPage = () => {
                     <div>
                         <section aria-labelledby="description-heading">
                             <h2
-                                className="text-xl lg:text-2xl font-semibold mb-6"
+                                className="mb-6 text-xl font-semibold lg:text-2xl"
                                 id="description-heading"
                             >
                                 Product Description
                             </h2>
-                            <p className="text-gray-700 text-sm lg:text-base">
+                            <p className="text-sm text-gray-700 lg:text-base">
                                 {item.Description || "No description available."}
                             </p>
                         </section>
 
                         <section className="mt-8" aria-labelledby="details-heading">
                             <h3
-                                className="text-lg lg:text-xl font-medium mb-4"
+                                className="mb-4 text-lg font-medium lg:text-xl"
                                 id="details-heading"
                             >
                                 Listing Details
@@ -442,15 +437,22 @@ const EnlargedListingPage = () => {
                     </div>
                 </div>
 
-
                 {/* Bidding Section */}
-                <section class name="mt-8 text-center" aria-labelledby="bidding-section">
-                    <h2 id="bidding-section" className="sr-only">Bidding Section</h2>
+                <section className="mt-8 text-center" aria-labelledby="bidding-section">
+                    <h2 id="bidding-section" className="sr-only">
+                        Bidding Section
+                    </h2>
                     <div className="mt-8 text-center">
-                        { user & user.level_of_access === 1 & user.user_id !== item.Seller_id ? ( // if user, user isn't manager/expert, and user isn't seller
-                        <>
-                            <div className="mb-4">
-                                    <label htmlFor="bid-amount-input" className="block text-lg font-semibold">Place a Bid: </label>
+
+                        {user & user?.level_of_access === 1 & user?.user_id !== item.Seller_id ? ( // if user, user isn't manager/expert, and user isn't seller
+                            <>
+                                <div className="mb-4">
+                                    <label
+                                        htmlFor="bid-amount-input"
+                                        className="block text-lg font-semibold"
+                                    >
+                                        Place a Bid:{" "}
+                                    </label>
                                     <input
                                         id="bid-amount-input"
                                         type="number"
@@ -461,15 +463,23 @@ const EnlargedListingPage = () => {
                                         aria-describedby="bid-instructions"
                                     />
                                     <div id="bid-instructions" className="sr-only">
-                                        Enter your bid amount. Must be higher than the minimum price and the current bid.
+                                        Enter your bid amount. Must be higher than the minimum price
+                                        and the current bid.
                                     </div>
-                            </div>
+                                </div>
                                 {!isExpired ? (
-                                    <button onClick={handlePlaceBid} className="bg-blue-600 text-white py-2 px-6 rounded-lg text-lg hover:bg-blue-700 transition" aria-label="Submit your bid">
+                                    <button
+                                        onClick={handlePlaceBid}
+                                        className="px-6 py-2 text-lg text-white transition bg-blue-600 rounded-lg hover:bg-blue-700"
+                                        aria-label="Submit your bid"
+                                    >
                                         Place a Bid
                                     </button>
                                 ) : (
-                                    <button className="bg-blue-600 text-white py-2 px-6 rounded-lg text-lg hover:bg-blue-700 transition ml-4" aria-label="Auction has expired, bidding no longer available">
+                                    <button
+                                        className="px-6 py-2 ml-4 text-lg text-white transition bg-blue-600 rounded-lg hover:bg-blue-700"
+                                        aria-label="Auction has expired, bidding no longer available"
+                                    >
                                         Auction Expired
                                     </button>
                                 )}
@@ -477,27 +487,25 @@ const EnlargedListingPage = () => {
                         ) : (
                             <button
                                 onClick={() => navigate(`/signup`)}
-                                className="bg-blue-600 text-white py-3 px-6 rounded-lg text-base lg:text-lg hover:bg-blue-700 transition-all"
+                                className="px-6 py-3 text-base text-white transition-all bg-blue-600 rounded-lg lg:text-lg hover:bg-blue-700"
                             >
-                            Login or Signup to place a Bid
+                                Login or Signup to place a Bid
                             </button>
                         )}
                     </div>
                 </section>
             </div>
 
-
-
             {user &&
                 user.level_of_access === 1 &&
                 sellerListings?.filter((listing) => listing.Item_id !== item.Item_id).length >
                     0 && (
                     <section
-                        className="container mx-auto bg-white shadow-lg rounded-2xl p-6 lg:p-8 mt-12"
+                        className="container p-6 mx-auto mt-12 bg-white shadow-lg rounded-2xl lg:p-8"
                         aria-labelledby="other-products-heading"
                     >
                         <h2
-                            className="text-2xl lg:text-3xl font-bold text-gray-800 mb-6"
+                            className="mb-6 text-2xl font-bold text-gray-800 lg:text-3xl"
                             id="other-products-heading"
                         >
                             Other Products by {item.Seller_username}
@@ -505,7 +513,7 @@ const EnlargedListingPage = () => {
 
                         <div
                             id="scrollContainer"
-                            className="flex overflow-x-auto space-x-6 p-2 scroll-smooth"
+                            className="flex p-2 space-x-6 overflow-x-auto scroll-smooth"
                             role="region"
                             aria-label="Scrollable list of other products by this seller"
                             tabIndex="0"
@@ -528,7 +536,6 @@ const EnlargedListingPage = () => {
                         </div>
                     </section>
                 )}
-
         </div>
     );
 };
