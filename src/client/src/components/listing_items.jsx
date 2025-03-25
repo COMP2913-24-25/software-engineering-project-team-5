@@ -142,21 +142,22 @@ const Listing_item = (props) => {
                     <div className="flex justify-between items-center font-bold mb-2">
                         <span className="text-blue-600 hover:underline">{item.Listing_name}</span>
                         {item.Verified && <span className="text-yellow-500 text-xl">★</span>}
-                        {item.Tags && item.Tags.length > 0 ? (
-                            <div className="flex flex-wrap justify-start gap-2 mt-2">
-                                {item.Tags.map((tag, index) => (
-                                    <span
-                                        key={index}
-                                        className="px-3 py-1 text-sm text-white bg-gray-600 rounded-full transition-all"
-                                    >
-                                        {tag}
-                                    </span>
-                                ))}
-                            </div>
-                        ) : (
-                            <div></div>
-                        )}
                     </div>
+
+                    {item.Tags && item.Tags.length > 0 ? (
+                        <div className="flex justify-start gap-2 ">
+                            {item.Tags.map((tag, index) => (
+                                <span
+                                    key={index}
+                                    className="px-3 py-1 text-sm text-white bg-gray-600 rounded-full transition-all"
+                                >
+                                    {tag}
+                                </span>
+                            ))}
+                        </div>
+                    ) : (
+                        <div></div>
+                    )}
 
                     <div className="flex justify-between items-center text-sm text-gray-700">
                         <span>{item.Seller_username}</span>
