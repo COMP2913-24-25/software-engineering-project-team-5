@@ -56,14 +56,15 @@ from sqlalchemy import func
 # Email
 
 from flask_mail import Mail, Message
-#from flask_mailman import Mail, EmailMessage
-app.config['MAIL_SERVER'] = 'smtp.fastmail.com'
-app.config['MAIL_PORT'] = 465
-app.config['MAIL_USERNAME'] = 'ebuy@fastmail.com'
-app.config['MAIL_PASSWORD'] = '3d3y6d472e2j7635'
-app.config['MAIL_USE_TLS'] = False
-app.config['MAIL_USE_SSL'] = True
-app.config['MAIL_DEFAULT_SENDER'] = 'ebuy@fastmail.com'
+
+# from flask_mailman import Mail, EmailMessage
+app.config["MAIL_SERVER"] = "smtp.fastmail.com"
+app.config["MAIL_PORT"] = 465
+app.config["MAIL_USERNAME"] = "ebuy@fastmail.com"
+app.config["MAIL_PASSWORD"] = "3d3y6d472e2j7635"
+app.config["MAIL_USE_TLS"] = False
+app.config["MAIL_USE_SSL"] = True
+app.config["MAIL_DEFAULT_SENDER"] = "ebuy@fastmail.com"
 mail = Mail(app)
 
 # Admin mode accessed using "http://<url>/admin"
@@ -80,7 +81,6 @@ admin.add_view(ModelView(Bidding_history, db.session))
 admin.add_view(ModelView(Profit_structure, db.session))
 admin.add_view(ModelView(Middle_expertise, db.session))
 admin.add_view(ModelView(Availabilities, db.session))
-
 
 
 @app.route("/api/login", methods=["POST"])
@@ -310,7 +310,6 @@ def create_setup_intent():
         return jsonify({"error": e}), 400
 
 
-
 def update_item_bid(item_id, bid_amount, user_id):
     """
     Updates the current bid of an item in the database.
@@ -399,6 +398,7 @@ def place_bid():
         print(f"Error: {e}")
         return jsonify({"error": "Failed to place bid"}), 400
 
+
 def send_email(recipient, subject, body):
     """
     Sends an email to the specified recipient with the given subject and body.
@@ -417,6 +417,7 @@ def send_email(recipient, subject, body):
     except Exception as e:
         print(f"Error sending email: {e}")
         return False
+
 
 # @app.route("/api/charge-user", methods=["POST"])
 def charge_user(
@@ -460,7 +461,7 @@ def charge_user(
     except Exception as e:
         print(f"Error: {e}")
         return {"error": "Failed to charge user", "success": False}
-        #return jsonify({"error": "Failed to charge user"}), 400
+        # return jsonify({"error": "Failed to charge user"}), 400
 
 
 @app.route("/api/charge-expired-auctions", methods=["POST"])
@@ -501,16 +502,26 @@ def charge_expired_auctions():
                         charge_response = charge_user(bidder, bid_price)
                         if charge_response["success"] == True:
 
-                            # After charging the user, update the item status: Sold = True 
-                            item.Sold = True  
+                            # After charging the user, update the item status: Sold = True
+                            item.Sold = True
                             highest_bid.Winning_bid = True
                             db.session.commit()
                             logger.info("Charged user for item {item.Item_id}!\n")
                             # send email to user
                             #
-                            #msg.body = ("Congratulations " + user_name + "! You have won the auction for the item " + item_name + " at a price of £" + item_price + ".")
-                            email_body = "Congratulations " + bidder.First_name + "! You have won the auction for the item " + item.Listing_name + " at a price of £" + str(bid_price) + "."
-                            email_sent = send_email(bidder.Email, "Auction Won!", email_body)
+                            # msg.body = ("Congratulations " + user_name + "! You have won the auction for the item " + item_name + " at a price of £" + item_price + ".")
+                            email_body = (
+                                "Congratulations "
+                                + bidder.First_name
+                                + "! You have won the auction for the item "
+                                + item.Listing_name
+                                + " at a price of £"
+                                + str(bid_price)
+                                + "."
+                            )
+                            email_sent = send_email(
+                                bidder.Email, "Auction Won!", email_body
+                            )
                             if email_sent == True:
                                 print("Email sent successfully!\n")
                             else:
@@ -822,7 +833,7 @@ def get_user_details():
             "is_expert": user_details.Is_expert,
             "Customer_ID": user_details.Customer_ID,
             "Setup_intent_ID": user_details.Setup_intent_ID,
-            "Payment_method_ID": user_details.Payment_method_ID
+            "Payment_method_ID": user_details.Payment_method_ID,
         }
 
         # If the user is an expert, retrieve their expertise types
@@ -1000,17 +1011,19 @@ def update_level():
         return jsonify({"error": "Missing user_id or level_of_access in request"}), 400
 
     if len(user_ids) != len(new_levels):
-        return jsonify({"error": "Mismatch between user_id and level_of_access lengths"}), 400
-    
+        return (
+            jsonify({"error": "Mismatch between user_id and level_of_access lengths"}),
+            400,
+        )
+
     valid_levels = {"1", "2", "3"}  # Using string values here for validation
-    
+
     for level in new_levels:
         if level not in valid_levels:
             return jsonify({"error": f"Invalid level_of_access value: {level}"}), 500
-    
-        
+
     try:
-       
+
         for i in range(len(user_ids)):
             user = User.query.filter_by(User_id=user_ids[i]).first()
             # print(f"will update user_id {user_ids[i]} to level : {new_levels[i]}")
@@ -1032,7 +1045,8 @@ def update_level():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route("/api/get_bid_filtering", methods = ["POST"])
+
+@app.route("/api/get_bid_filtering", methods=["POST"])
 def get_bid_filtering():
     data = request.json
     print("IN BID FILTERIN")
@@ -1042,50 +1056,57 @@ def get_bid_filtering():
     filtered_listing_Ids = []
     print(bid_status_selected)
     user_id = current_user.User_id
-    
+
     for Id in listing_Ids:
-        bid_table = db.session.query(Items.Item_id, Items.Available_until, Bidding_history.Successful_bid, Bidding_history.Winning_bid).join(
-                                        Bidding_history, 
-                                        Items.Item_id == Bidding_history.Item_id
-                                    ).filter(
-                                        Bidding_history.Bidder_id == user_id ,
-                                        Items.Item_id == Id
-                                    ).all()
-                    # Items.Available_until < datetime.datetime.now(),  # Only expired bids
-        
+        bid_table = (
+            db.session.query(
+                Items.Item_id,
+                Items.Available_until,
+                Bidding_history.Successful_bid,
+                Bidding_history.Winning_bid,
+            )
+            .join(Bidding_history, Items.Item_id == Bidding_history.Item_id)
+            .filter(Bidding_history.Bidder_id == user_id, Items.Item_id == Id)
+            .all()
+        )
+        # Items.Available_until < datetime.datetime.now(),  # Only expired bids
+
         print("BID", bid_table)
         for item_id, available_until, successful_bid, winning_bid in bid_table:
             # Condition to check if the bid has expired
-            if available_until < datetime.datetime.now():  # Check if the bid has expired, won is only possible after expired
+            if (
+                available_until < datetime.datetime.now()
+            ):  # Check if the bid has expired, won is only possible after expired
                 if bid_status_selected:  # Ensure bid_status_selected is not None
                     if bid_status_selected == "won":
                         print("in won")
-                        if successful_bid == True and  winning_bid == True:
+                        if successful_bid == True and winning_bid == True:
                             print(successful_bid, winning_bid)
                             filtered_listing_Ids.append(Id)
                     elif bid_status_selected == "payment_failed":
                         print("in payment failed")
                         if successful_bid == True and winning_bid != True:
                             filtered_listing_Ids.append(Id)
-                    elif bid_status_selected == "expired" :
+                    elif bid_status_selected == "expired":
                         filtered_listing_Ids.append(Id)
                     if bid_status_selected == "out_bid":
                         print("in out_bid, checking succesful_bid", successful_bid)
-                        if successful_bid ==False:
+                        if successful_bid == False:
                             filtered_listing_Ids.append(Id)
             else:
                 # print("expired")
                 if bid_status_selected == "out_bid":
-                        print("in out_bid, checking succesful_bid", successful_bid)
-                        if successful_bid ==False:
-                            filtered_listing_Ids.append(Id)
-                
+                    print("in out_bid, checking succesful_bid", successful_bid)
+                    if successful_bid == False:
+                        filtered_listing_Ids.append(Id)
+
     print(filtered_listing_Ids)
     return jsonify(filtered_listing_Ids)
 
-@app.route("/api/get_category_filters", methods = ["POST"])
+
+@app.route("/api/get_category_filters", methods=["POST"])
 def get_category_filters():
-    
+
     data = request.json
     categories_str = data.get("categories", "")
     # print(categories_str)
@@ -1094,28 +1115,27 @@ def get_category_filters():
     filtered_items = []
     items_list = []
     available_items = (
-                    db.session.query(Items)
-                    .join(User, Items.Seller_id == User.User_id)
-                    .filter(
-                        Items.Available_until > datetime.datetime.now(),
-                        db.or_(
-                            db.and_(
-                                Items.Authentication_request == False,
-                                Items.Verified == True,
-                                Items.Authentication_request_approved == True,
-                            ),
-                            db.and_(
-                                Items.Authentication_request == False,
-                                Items.Verified == False,
-                                Items.Authentication_request_approved == None,
-                            ),
-                        ),
-                    )
-                    .all()
-                )
-                # print("in item bool")
-                
-                
+        db.session.query(Items)
+        .join(User, Items.Seller_id == User.User_id)
+        .filter(
+            Items.Available_until > datetime.datetime.now(),
+            db.or_(
+                db.and_(
+                    Items.Authentication_request == False,
+                    Items.Verified == True,
+                    Items.Authentication_request_approved == True,
+                ),
+                db.and_(
+                    Items.Authentication_request == False,
+                    Items.Verified == False,
+                    Items.Authentication_request_approved == None,
+                ),
+            ),
+        )
+        .all()
+    )
+    # print("in item bool")
+
     # print(available_items)
     if len(categories_list) == 0:
         # Return all items
@@ -1123,14 +1143,13 @@ def get_category_filters():
         filtered_items = available_items
         # print(filtered_items)
 
-    
     type_names = (
-            db.session.query(Types.Type_name, Items.Item_id)
-            .join(Middle_type, Middle_type.Item_id == Items.Item_id)
-            .join(Types, Types.Type_id == Middle_type.Type_id)
-            .all()
-        )
-    for category in categories_list :
+        db.session.query(Types.Type_name, Items.Item_id)
+        .join(Middle_type, Middle_type.Item_id == Items.Item_id)
+        .join(Types, Types.Type_id == Middle_type.Type_id)
+        .all()
+    )
+    for category in categories_list:
         # print("Checking for category: ", category)
         for tag_name, item_id in type_names:
             tag_name_tokens = tag_name.split()
@@ -1149,29 +1168,30 @@ def get_category_filters():
 
         # print("Item Ids",filtered_ids)
         # get items from filtered Ids
-        
+
     # print(filtered_ids)
-    if(len(filtered_ids)) != 0:
+    if (len(filtered_ids)) != 0:
         filtered_items = (
             db.session.query(Items).filter(Items.Item_id.in_(filtered_ids)).all()
         )
-        
+
     # print(filtered_items)
-    
+
     for item in filtered_items:
         image = Images.query.filter(Images.Item_id == item.Item_id).first()
 
         item_details_dict = {
             "Item_id": item.Item_id,
+            "Seller_username": User.query.filter_by(User_id=item.Seller_id)
+            .first()
+            .First_name,
             "Listing_name": item.Listing_name,
             "Seller_id": item.Seller_id,
             "Available_until": item.Available_until,
             "Verified": item.Verified,
             "Min_price": item.Min_price,
             "Current_bid": item.Current_bid,
-            "Image": (
-                base64.b64encode(image.Image).decode("utf-8") if image else None
-            ),
+            "Image": (base64.b64encode(image.Image).decode("utf-8") if image else None),
         }
 
         items_list.append(item_details_dict)
@@ -1204,7 +1224,7 @@ def get_search_filter():
     print("SEARCH QUERY IN BACKEND", searchQuery)
     # print("ITEM", item)
     filtered_ids = []
-    
+
     filtered_items = []
     filtered_users = []
 
@@ -1279,7 +1299,7 @@ def get_search_filter():
             filtered_items = (
                 db.session.query(Items).filter(Items.Item_id.in_(filtered_ids)).all()
             )
-        
+
         print(filtered_items)
 
         # Turn into dict
@@ -1290,6 +1310,9 @@ def get_search_filter():
             item_details_dict = {
                 "Item_id": item.Item_id,
                 "Listing_name": item.Listing_name,
+                "Seller_name": User.query.filter_by(User_id=item.Seller_id)
+                .first()
+                .First_name,
                 "Seller_id": item.Seller_id,
                 "Available_until": item.Available_until,
                 "Verified": item.Verified,
@@ -1644,7 +1667,9 @@ def Create_listing():
 
         struct_id = None
 
-        prof_struct = Profit_structure.query.order_by(Profit_structure.Enforced_datetime.desc()).first()
+        prof_struct = Profit_structure.query.order_by(
+            Profit_structure.Enforced_datetime.desc()
+        ).first()
 
         if prof_struct:
             struct_id = prof_struct.Structure_id
@@ -1660,7 +1685,7 @@ def Create_listing():
             Current_bid=0,
             Description=request.form["listing_description"],
             Authentication_request=authentication_request,
-            Structure_id=struct_id
+            Structure_id=struct_id,
         )
         print(
             "Authentication Request:", request.form.get("authentication_request", False)
@@ -1825,6 +1850,7 @@ def get_seller_listings():
         print("Error: ", e)
         return jsonify({"Error": "Failed to retrieve items"}), 401
 
+
 @app.route("/api/get-sellerss-items", methods=["POST"])
 def get_sellerss_listings():
     """
@@ -1851,7 +1877,6 @@ def get_sellerss_listings():
         items_list = []
         for item, username in available_items:
 
-
             image = Images.query.filter(Images.Item_id == item.Item_id).first()
 
             item_details_dict = {
@@ -1866,7 +1891,7 @@ def get_sellerss_listings():
                 "Image": base64.b64encode(image.Image).decode("utf-8"),
                 "Expert_id": item.Expert_id,
                 "Authentication_request_approved": item.Authentication_request_approved,
-                "Authentication_request": item.Authentication_request
+                "Authentication_request": item.Authentication_request,
             }
             items_list.append(item_details_dict)
         return jsonify(items_list), 200
@@ -2185,13 +2210,17 @@ def get_expert_id():
                 # Convert list of tuples to a flat list
                 tag_names = [tag.Type_name for tag in tags]
                 full_name = " ".join(
-                    filter(None, [expert.First_name, expert.Middle_name, expert.Surname])
+                    filter(
+                        None, [expert.First_name, expert.Middle_name, expert.Surname]
+                    )
                 )
-                expert_data.append({
-                    "Expert_id": expert.User_id,
-                    "Full_Name": full_name,
-                    "Tags": tag_names
-                })
+                expert_data.append(
+                    {
+                        "Expert_id": expert.User_id,
+                        "Full_Name": full_name,
+                        "Tags": tag_names,
+                    }
+                )
             return jsonify({"Available Experts": expert_data}), 200
 
         except Exception as e:
@@ -2362,10 +2391,11 @@ def get_sold():
                         Profit_structure,
                         Items.Structure_id == Profit_structure.Structure_id,
                     )
-                    .join (Bidding_history,
-                           Items.Item_id == Bidding_history.Item_id)
-                    .filter(Items.Available_until < datetime.datetime.now(),
-                            Bidding_history.Winning_bid == 1)
+                    .join(Bidding_history, Items.Item_id == Bidding_history.Item_id)
+                    .filter(
+                        Items.Available_until < datetime.datetime.now(),
+                        Bidding_history.Winning_bid == 1,
+                    )
                     .with_entities(
                         Items.Item_id,
                         Items.Listing_name,
@@ -2382,7 +2412,7 @@ def get_sold():
                         Profit_structure.Enforced_datetime,
                         Items.Authentication_request,
                         Items.Authentication_request_approved,
-                        Bidding_history.Bid_price
+                        Bidding_history.Bid_price,
                     )
                 )
 
@@ -2420,7 +2450,7 @@ def get_sold():
                             "Enforced_datetime": item.Enforced_datetime,
                             "Authentication_request": item.Authentication_request,
                             "Authentication_request_approved": item.Authentication_request_approved,
-                            "Bid_price": item.Bid_price
+                            "Bid_price": item.Bid_price,
                         }
                     )
 
