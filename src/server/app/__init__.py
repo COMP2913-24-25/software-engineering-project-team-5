@@ -54,7 +54,7 @@ from app.messaging import socketio
 
 socketio.init_app(
     app,
-    cors_allowed_origins="http://localhost:5173",
+    cors_allowed_origins=["http://localhost:5173", "http://localhost:4173"],
     max_http_buffer_size=50 * 1024 * 1024,
 )
 
