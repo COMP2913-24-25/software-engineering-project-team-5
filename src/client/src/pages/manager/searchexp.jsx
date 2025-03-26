@@ -147,7 +147,6 @@ const SearchExperts = () => {
                     <p>Searching experts...</p>
                 </div>
             ) : (
-                {/* Experts Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 mb-8" role="list" aria-label="List of experts">
                     {filteredExperts.length > 0 ? (
                         filteredExperts.map((expert) => (
