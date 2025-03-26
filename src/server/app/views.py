@@ -1151,13 +1151,15 @@ def get_category_filters():
         )
         filtered_ids.update(item_id for item_id, in matching_items)
 
-    # Get items that match the filtered IDs and are available
-    filtered_items = [
-    item for item in available_items if item.Item_id in filtered_ids
-]
+    # If no matching items found for given categories, return empty response
+    if not filtered_ids:
+        return _generate_response([])
 
+    # Get items that match the filtered IDs and are available
+    filtered_items = [item for item in available_items if item.Item_id in filtered_ids]
 
     return _generate_response(filtered_items)
+
 
 def _generate_response(items):
     """Helper function to format and return JSON response."""
