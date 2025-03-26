@@ -56,6 +56,9 @@ from sqlalchemy import func
 # Email
 
 from flask_mail import Mail, Message
+from sqlalchemy.orm import joinedload
+from flask_caching import Cache
+cache = Cache(app, config={'CACHE_TYPE': 'simple'})
 
 # from flask_mailman import Mail, EmailMessage
 app.config["MAIL_SERVER"] = "smtp.fastmail.com"
@@ -1103,17 +1106,13 @@ def get_bid_filtering():
     print(filtered_listing_Ids)
     return jsonify(filtered_listing_Ids)
 
-
 @app.route("/api/get_category_filters", methods=["POST"])
 def get_category_filters():
-
     data = request.json
     categories_str = data.get("categories", "")
-    # print(categories_str)
     categories_list = categories_str.split(",") if categories_str else []
-    filtered_ids = []
-    filtered_items = []
-    items_list = []
+
+    # Query all available items efficiently
     available_items = (
         db.session.query(Items)
         .join(User, Items.Seller_id == User.User_id)
@@ -1132,70 +1131,64 @@ def get_category_filters():
                 ),
             ),
         )
+        .options(joinedload(Items.seller))  # Preload seller data
         .all()
     )
-    # print("in item bool")
 
-    # print(available_items)
-    if len(categories_list) == 0:
-        # Return all items
-        # print("nothing selected")
-        filtered_items = available_items
-        # print(filtered_items)
+    # If no categories are selected, return all available items
+    if not categories_list:
+        return _generate_response(available_items)
 
-    type_names = (
-        db.session.query(Types.Type_name, Items.Item_id)
-        .join(Middle_type, Middle_type.Item_id == Items.Item_id)
-        .join(Types, Types.Type_id == Middle_type.Type_id)
-        .all()
-    )
+    # Query item types and filter by category using SQL
+    filtered_ids = set()
     for category in categories_list:
-        # print("Checking for category: ", category)
-        for tag_name, item_id in type_names:
-            tag_name_tokens = tag_name.split()
-            # print(item_id, tag_name)
-            category_tokens = category.split()
-            for i in range(len(tag_name_tokens) - len(category_tokens) + 1):
-                # print("Search tags",search_tokens)
-                # print("here")
-                if all(
-                    tag_name_tokens[i + j].startswith(category_tokens[j])
-                    for j in range(len(category_tokens))
-                ):
-                    # ensure no duplicates of item_ids
-                    if item_id not in filtered_ids:
-                        filtered_ids.append(item_id)
-
-        # print("Item Ids",filtered_ids)
-        # get items from filtered Ids
-
-    # print(filtered_ids)
-    if (len(filtered_ids)) != 0:
-        filtered_items = (
-            db.session.query(Items).filter(Items.Item_id.in_(filtered_ids)).all()
+        matching_items = (
+            db.session.query(Items.Item_id)
+            .join(Middle_type, Middle_type.Item_id == Items.Item_id)
+            .join(Types, Types.Type_id == Middle_type.Type_id)
+            .filter(Types.Type_name.ilike(f"%{category}%"))  # SQL filtering
+            .all()
         )
+        filtered_ids.update(item_id for item_id, in matching_items)
 
-    # print(filtered_items)
+    # If no matching items found for given categories, return empty response
+    if not filtered_ids:
+        return _generate_response([])
 
-    for item in filtered_items:
-        image = Images.query.filter(Images.Item_id == item.Item_id).first()
+    # Get items that match the filtered IDs and are available
+    filtered_items = [item for item in available_items if item.Item_id in filtered_ids]
 
-        item_details_dict = {
+    return _generate_response(filtered_items)
+
+
+def _generate_response(items):
+    """Helper function to format and return JSON response."""
+    item_ids = [item.Item_id for item in items]
+
+    # Fetch images in a single query
+    images = {
+        img.Item_id: base64.b64encode(img.Image).decode("utf-8")
+        for img in Images.query.filter(Images.Item_id.in_(item_ids)).all()
+    }
+
+    items_list = [
+        {
             "Item_id": item.Item_id,
-            "Seller_username": User.query.filter_by(User_id=item.Seller_id)
-            .first()
-            .First_name,
+            "Seller_username": item.seller.First_name if item.seller else None,
             "Listing_name": item.Listing_name,
             "Seller_id": item.Seller_id,
             "Available_until": item.Available_until,
             "Verified": item.Verified,
             "Min_price": item.Min_price,
             "Current_bid": item.Current_bid,
-            "Image": (base64.b64encode(image.Image).decode("utf-8") if image else None),
+            "Image": images.get(item.Item_id),
         }
+        for item in items
+    ]
 
-        items_list.append(item_details_dict)
-    return jsonify(items_list), 200
+    response = jsonify(items_list)
+    response.headers["Cache-Control"] = "public, max-age=86400"  # Cache for 24 hours
+    return response, 200
 
 
 @app.route("/api/get_search_filter", methods=["POST"])
@@ -1929,7 +1922,7 @@ def get_sellerss_listings():
         print("Error: ", e)
         return jsonify({"Error": "Failed to retrieve items"}), 401
 
-
+@cache.cached(timeout=30, key_prefix=lambda: f"user_bids_{current_user.User_id}")
 @app.route("/api/get-bids", methods=["GET"])
 def get_bids():
     """
@@ -2031,13 +2024,14 @@ def get_bids():
 
         # Convert dictionary to list for JSON response
         current_bids = list(unique_bids.values())
-
-        return jsonify({"bids": current_bids}), 200
+        response = jsonify({"bids": current_bids})
+        response.headers["Cache-Control"] = "public, max-age=86400"  # Cache for 24 hours
+        return response, 200
 
     else:
         return jsonify({"message": "No user logged in"}), 401
 
-
+@cache.cached(timeout=30, key_prefix=lambda: f"user_history_{current_user.User_id}")
 @app.route("/api/get-history", methods=["GET"])
 def get_history():
     """
@@ -2147,8 +2141,9 @@ def get_history():
 
         # Convert dictionary to list for JSON response
         history = list(unique_bids.values())
-
-        return jsonify({"history": history}), 200
+        response = jsonify({"history": history})
+        response.headers["Cache-Control"] = "public, max-age=86400"  # Cache for 24 hours
+        return response, 200
 
     else:
         return jsonify({"message": "No user logged in"}), 401
@@ -2605,7 +2600,6 @@ def request_second_opinion():
         return jsonify({"message": "Invalid Level of Access"}), 401
 
     return jsonify({"message": "No user logged in"}), 401
-
 
 @app.route("/api/get-watchlist", methods=["GET"])
 def get_watchlist():

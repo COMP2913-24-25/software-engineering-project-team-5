@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser, useCSRF } from "../App"; // Calls the user
 import config from "../../config";
+import { LazyLoadImage } from "react-lazy-load-image-component";
+import "react-lazy-load-image-component/src/effects/blur.css";
 
 const Listing_item = (props) => {
     const navigate = useNavigate();
@@ -14,16 +16,13 @@ const Listing_item = (props) => {
     const { api_base_url } = config;
 
     const handleClick = () => {
-        {
-            if (item.Authentication_request === true && item.Expert_id !== null) {
-                // Under review item
-                let url =
-                    "/authrequest/" + encodeURIComponent(item.Listing_name) + "/" + item.Item_id;
-                navigate(url);
-            } else {
-                // Regular item details page
-                navigate(`/item/${encodeURIComponent(item.Listing_name)}/${item.Item_id}`);
-            }
+        if (item.Authentication_request === true && item.Expert_id !== null) {
+            // Under review item
+            let url = "/authrequest/" + encodeURIComponent(item.Listing_name) + "/" + item.Item_id;
+            navigate(url);
+        } else {
+            // Regular item details page
+            navigate(`/item/${encodeURIComponent(item.Listing_name)}/${item.Item_id}`);
         }
     };
 
@@ -130,17 +129,23 @@ const Listing_item = (props) => {
                                 e.stopPropagation();
                                 toggle_wishlist(item.Item_id);
                             }}
+
+                            style={{ zIndex: 10 }}
+
                             aria-label={wishlist ? "Remove from watchlist" : "Add to watchlist"}
                             aria-pressed={wishlist}
+
                         >
                             ♥
                         </span>
                     )}
-                    <img
+                    <LazyLoadImage
                         src={`data:image/${item.Image};base64,${item.Image}`}
                         alt={item.Listing_name}
-                        className="object-cover w-full h-full"
+                        effect="blur"
+                        className="w-full h-48 object-cover"
                         aria-hidden="false"
+
                     />
                 </div>
 

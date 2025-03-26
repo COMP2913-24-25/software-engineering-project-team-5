@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useUser } from "../App";
 import config from "../../config";
+import { LazyLoadImage } from "react-lazy-load-image-component";
+import "react-lazy-load-image-component/src/effects/blur.css";
 
 const ItemListing = ({
     itemId,
@@ -66,24 +68,38 @@ const ItemListing = ({
             onClick={handleNavigation}
         >
             {/* Image Carousel */}
-            <div className="w-70 h-40 bg-gray-200 flex-shrink-0 rounded-lg overflow-hidden flex items-center justify-center relative">
+            <div className="w-70 max-h-[10rem] bg-gray-200 flex-shrink-0 rounded-lg overflow-hidden flex items-center justify-center relative">
                 {images.length > 1 ? (
                     <>
+                        {/* <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setCurrentImageIndex(
+                                    (prevIndex) => (prevIndex === 0 ? images.length - 1 : prevIndex - 1)
+                                );
+                            }}
+                            className="absolute left-1 bg-white/80 hover:bg-gray-200 rounded-full p-1 shadow-md"
+                        >
+                            <ChevronLeft className="h-5 w-5 text-gray-800" />
+                        </button> */}
+
+                        <LazyLoadImage
+                            src={`data:image/jpeg;base64,${images[currentImageIndex].Image}`}
+                            alt="Item image"
+                            effect="blur"
+                            className="h-full object-contain"
+                        />
                         <button
                             onClick={(e) => {
                                 e.stopPropagation();
                                 setCurrentImageIndex(
-                                    (prevIndex) => (prevIndex - 1 + images.length) % images.length
+                                    (prevIndex) => (prevIndex === 0 ? images.length - 1 : prevIndex - 1)
                                 );
                             }}
                             className="absolute left-1 bg-white/80 hover:bg-gray-200 rounded-full p-1 shadow-md"
                         >
                             <ChevronLeft className="h-5 w-5 text-gray-800" />
                         </button>
-                        <img
-                            src={`data:image/${images[currentImageIndex].Image};base64,${images[currentImageIndex].Image}`}
-                            className="w-full h-full object-cover"
-                        />
                         <button
                             onClick={(e) => {
                                 e.stopPropagation();
@@ -100,9 +116,10 @@ const ItemListing = ({
                         </div>
                     </>
                 ) : (
-                    <img
-                        src={`data:image/${images[0].Image};base64,${images[0].Image}`}
+                    <LazyLoadImage
+                        src={`data:image/jpeg;base64,${images[0].Image}`}
                         alt="Item image"
+                        effect="blur"
                         className="w-full h-full object-cover"
                     />
                 )}
