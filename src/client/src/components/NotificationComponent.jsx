@@ -23,6 +23,7 @@ export const NotificationProvider = ({ children }) => {
                 closeOnClick: true,
                 pauseOnHover: true,
                 draggable: true,
+                role: "alert",
             }
         );
     };
@@ -94,7 +95,7 @@ export const NotificationProvider = ({ children }) => {
     return (
         <NotificationContext.Provider value={{ notify, emitNotificationEvent }}>
             {children}
-            <ToastContainer />
+            <ToastContainer aria-live="polite" role="alert" />
         </NotificationContext.Provider>
     );
 };

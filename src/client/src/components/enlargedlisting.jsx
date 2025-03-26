@@ -6,6 +6,8 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import Listing_item from "../components/listing_items";
 import config from "../../config";
 import { get_notification_socket, release_notification_socket } from "../hooks/notification_socket";
+import { LazyLoadImage } from "react-lazy-load-image-component";
+import "react-lazy-load-image-component/src/effects/blur.css";
 
 const EnlargedListingPage = () => {
     const { user } = useUser();
@@ -320,19 +322,20 @@ const EnlargedListingPage = () => {
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-10">
                     <div className="lg:col-span-2">
                         <div
-                            className="relative rounded-xl overflow-hidden bg-gray-100 h-72 sm:h-96 lg:h-[30rem]"
+                            className="relative rounded-xl overflow-hidden bg-gray-100 h-[30rem] flex items-center justify-center"
                             aria-labelledby="product-title"
                             role="region"
                             aria-label="Product images"
                         >
                             {item.Images && imageCount > 0 ? (
                                 <>
-                                    <img
+                                    <LazyLoadImage
                                         src={`data:image/jpeg;base64,${item.Images[currentImageIndex]}`}
                                         alt={`${item.Listing_name} - Image ${
                                             currentImageIndex + 1
                                         } of ${imageCount}`}
-                                        className="object-cover w-full h-full"
+                                        effect="blur"
+                                        className="object-contain w-full max-h-[30rem]"
                                     />
                                     <div
                                         className="absolute inset-0 flex items-center justify-between px-4"
@@ -447,7 +450,20 @@ const EnlargedListingPage = () => {
                                         £{item.Current_bid || "0.00"}
                                     </span>
                                 </li>
-
+                                {item.Tags && item.Tags.length > 0 ? (
+                                    <ul className="flex space-x-2">
+                                        {item.Tags.map((tag, index) => (
+                                            <li
+                                                key={index}
+                                                className="px-3 py-1 text-sm text-white bg-gray-600 rounded-full"
+                                            >
+                                                {tag}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <li></li>
+                                )}
                                 {user && user.level_of_access === 1 && (
                                     <li className="text-gray-600">
                                         <button
@@ -480,7 +496,9 @@ const EnlargedListingPage = () => {
                         Bidding Section
                     </h2>
                     <div className="mt-8 text-center">
-                        {user || user?.level_of_access === 1 || user?.user_id !== item.Seller_id ? ( // if user, user isn't manager/expert, and user isn't seller
+                        {user &
+                        (user?.level_of_access === 1) &
+                        (user?.user_id !== item.Seller_id) ? ( // if user, user isn't manager/expert, and user isn't seller
                             <>
                                 <div className="mb-4">
                                     <label

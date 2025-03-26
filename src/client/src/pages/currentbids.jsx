@@ -114,6 +114,7 @@ const CurrentBids = () => {
                                 description={item.Description}
                                 images={item.Images}
                                 availableUntil={item.Available_until}
+                                tags={item.Tags}
                                 buttons={
                                     item.Successful_bid == 1
                                         ? [

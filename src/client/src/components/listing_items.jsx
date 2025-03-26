@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser, useCSRF } from "../App"; // Calls the user
 import config from "../../config";
+import { LazyLoadImage } from "react-lazy-load-image-component";
+import "react-lazy-load-image-component/src/effects/blur.css";
 
 const Listing_item = (props) => {
     const navigate = useNavigate();
@@ -14,16 +16,13 @@ const Listing_item = (props) => {
     const { api_base_url } = config;
 
     const handleClick = () => {
-        {
-            if (item.Authentication_request === true && item.Expert_id !== null) {
-                // Under review item
-                let url =
-                    "/authrequest/" + encodeURIComponent(item.Listing_name) + "/" + item.Item_id;
-                navigate(url);
-            } else {
-                // Regular item details page
-                navigate(`/item/${encodeURIComponent(item.Listing_name)}/${item.Item_id}`);
-            }
+        if (item.Authentication_request === true && item.Expert_id !== null) {
+            // Under review item
+            let url = "/authrequest/" + encodeURIComponent(item.Listing_name) + "/" + item.Item_id;
+            navigate(url);
+        } else {
+            // Regular item details page
+            navigate(`/item/${encodeURIComponent(item.Listing_name)}/${item.Item_id}`);
         }
     };
 
@@ -113,10 +112,12 @@ const Listing_item = (props) => {
     }, [user, item.Item_id]);
 
     return (
-        <div className="flex flex-wrap justify-center gap-5 mb-8">
+        <div className="flex flex-wrap justify-center gap-5 mb-8" role="list">
             <div
                 className="w-[300px] border border-gray-300 rounded-lg overflow-hidden bg-gray-100 transition-transform transform hover:scale-105 cursor-pointer flex flex-col items-center"
                 onClick={handleClick}
+                role="listitem"
+                aria-label={`Listing: ${item.Listing_name}`}
             >
                 <div className="w-full h-[180px] bg-gray-200 flex items-center justify-center overflow-hidden relative">
                     {user && user.level_of_access === 1 && (
@@ -128,26 +129,63 @@ const Listing_item = (props) => {
                                 e.stopPropagation();
                                 toggle_wishlist(item.Item_id);
                             }}
+
+                            style={{ zIndex: 10 }}
+
+                            aria-label={wishlist ? "Remove from watchlist" : "Add to watchlist"}
+                            aria-pressed={wishlist}
+
                         >
                             ♥
                         </span>
                     )}
-                    <img
+                    <LazyLoadImage
                         src={`data:image/${item.Image};base64,${item.Image}`}
-                        alt="An image"
-                        className="w-full h-full object-cover"
+                        alt={item.Listing_name}
+                        effect="blur"
+                        className="w-full h-48 object-cover"
+                        aria-hidden="false"
+
                     />
                 </div>
 
-                <div className="p-4 w-full font-sans">
-                    <div className="flex justify-between items-center font-bold mb-2">
-                        <span className="text-blue-600 hover:underline">{item.Listing_name}</span>
-                        {item.Verified && <span className="text-yellow-500 text-xl">★</span>}
+                <div className="w-full p-4 font-sans">
+                    <div className="flex items-center justify-between mb-2 font-bold">
+                        <span className="text-blue-600 hover:underline" aria-label="Listing name">
+                            {item.Listing_name}
+                        </span>
+                        {item.Verified && (
+                            <span className="text-xl text-yellow-500" aria-label="Verified item">
+                                ★
+                            </span>
+                        )}
                     </div>
 
-                    <div className="flex justify-between items-center text-sm text-gray-700">
-                        <span>{item.Seller_username}</span>
-                        <span>
+                    {item.Tags && item.Tags.length > 0 ? (
+                        <div className="flex justify-start gap-2 ">
+                            {item.Tags.map((tag, index) => (
+                                <span
+                                    key={index}
+                                    className="px-3 py-1 text-sm text-white transition-all bg-gray-600 rounded-full"
+                                >
+                                    {tag}
+                                </span>
+                            ))}
+                        </div>
+                    ) : (
+                        <div></div>
+                    )}
+
+                    <div className="flex items-center justify-between text-sm text-gray-700">
+                        <span aria-label={`Seller: ${item.Seller_username}`}>
+                            {item.Seller_username}
+                        </span>
+                        <span
+                            aria-label={`Current price: £${Math.max(
+                                item.Current_bid,
+                                item.Min_price
+                            ).toFixed(2)}`}
+                        >
                             £
                             {item.Current_bid > item.Min_price
                                 ? item.Current_bid.toFixed(2)
@@ -161,6 +199,7 @@ const Listing_item = (props) => {
                                 ? "text-red-600"
                                 : "text-gray-700"
                         }`}
+                        aria-label={`Time remaining: ${time_left}`}
                     >
                         <span>{time_left}</span>
                     </div>

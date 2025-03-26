@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useUser } from "../App";
 import config from "../../config";
+import { LazyLoadImage } from "react-lazy-load-image-component";
+import "react-lazy-load-image-component/src/effects/blur.css";
 
 const ItemListing = ({
     itemId,
@@ -13,6 +15,7 @@ const ItemListing = ({
     images = [],
     labels = [],
     buttons = [],
+    tags = [],
 }) => {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [timeRemaining, setTimeRemaining] = useState("");
@@ -60,30 +63,43 @@ const ItemListing = ({
 
     return (
         <div
-            className={`flex flex-col md:flex-row border rounded-lg p-4 shadow-md bg-white w-full items-center transition ${
-                user?.level_of_access === 3 ? "cursor-default" : "cursor-pointer hover:shadow-lg"
-            }`}
+            className={`flex flex-col md:flex-row border rounded-lg p-4 shadow-md bg-white w-full items-center transition ${user?.level_of_access === 3 ? "cursor-default" : "cursor-pointer hover:shadow-lg"
+                }`}
             onClick={handleNavigation}
         >
             {/* Image Carousel */}
-            <div className="w-70 h-40 bg-gray-200 flex-shrink-0 rounded-lg overflow-hidden flex items-center justify-center relative">
+            <div className="w-70 max-h-[10rem] bg-gray-200 flex-shrink-0 rounded-lg overflow-hidden flex items-center justify-center relative">
                 {images.length > 1 ? (
                     <>
+                        {/* <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setCurrentImageIndex(
+                                    (prevIndex) => (prevIndex === 0 ? images.length - 1 : prevIndex - 1)
+                                );
+                            }}
+                            className="absolute left-1 bg-white/80 hover:bg-gray-200 rounded-full p-1 shadow-md"
+                        >
+                            <ChevronLeft className="h-5 w-5 text-gray-800" />
+                        </button> */}
+
+                        <LazyLoadImage
+                            src={`data:image/jpeg;base64,${images[currentImageIndex].Image}`}
+                            alt="Item image"
+                            effect="blur"
+                            className="h-full object-contain"
+                        />
                         <button
                             onClick={(e) => {
                                 e.stopPropagation();
                                 setCurrentImageIndex(
-                                    (prevIndex) => (prevIndex - 1 + images.length) % images.length
+                                    (prevIndex) => (prevIndex === 0 ? images.length - 1 : prevIndex - 1)
                                 );
                             }}
                             className="absolute left-1 bg-white/80 hover:bg-gray-200 rounded-full p-1 shadow-md"
                         >
                             <ChevronLeft className="h-5 w-5 text-gray-800" />
                         </button>
-                        <img
-                            src={`data:image/${images[currentImageIndex].Image};base64,${images[currentImageIndex].Image}`}
-                            className="w-full h-full object-cover"
-                        />
                         <button
                             onClick={(e) => {
                                 e.stopPropagation();
@@ -100,9 +116,10 @@ const ItemListing = ({
                         </div>
                     </>
                 ) : (
-                    <img
-                        src={`data:image/${images[0].Image};base64,${images[0].Image}`}
+                    <LazyLoadImage
+                        src={`data:image/jpeg;base64,${images[0].Image}`}
                         alt="Item image"
+                        effect="blur"
                         className="w-full h-full object-cover"
                     />
                 )}
@@ -126,6 +143,20 @@ const ItemListing = ({
                             Time Remaining: {timeRemaining}
                         </p>
                     )}
+                    {tags && tags.length > 0 ? (
+                        <div className="flex space-x-2">
+                            {tags.map((tag, index) => (
+                                <div
+                                    key={index}
+                                    className="px-3 py-1 text-sm text-white bg-gray-600 rounded-full"
+                                >
+                                    {tag}
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div></div>
+                    )}
                 </div>
             </div>
 
@@ -140,9 +171,8 @@ const ItemListing = ({
                                     e.stopPropagation();
                                     onClick();
                                 }}
-                                className={`px-4 py-2 rounded-lg whitespace-nowrap ${
-                                    style || "bg-blue-500 text-white hover:bg-blue-600"
-                                }`}
+                                className={`px-4 py-2 rounded-lg whitespace-nowrap ${style || "bg-blue-500 text-white hover:bg-blue-600"
+                                    }`}
                             >
                                 {text}
                             </button>
