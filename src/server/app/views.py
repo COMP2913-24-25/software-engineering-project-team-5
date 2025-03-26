@@ -1153,8 +1153,9 @@ def get_category_filters():
 
     # Get items that match the filtered IDs and are available
     filtered_items = [
-        item for item in available_items if item.Item_id in filtered_ids
-    ] if filtered_ids else available_items  # Default to all if no filters apply
+    item for item in available_items if item.Item_id in filtered_ids
+]
+
 
     return _generate_response(filtered_items)
 
