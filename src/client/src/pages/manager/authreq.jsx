@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import ItemListing from "../../components/itemlisting";
 import { useUser, useCSRF } from "../../App";
+import { useNotification } from "../../components/NotificationComponent";
 import { useNavigate } from "react-router-dom";
 import Select from "react-select";
 import config from "../../../config";
@@ -13,6 +14,7 @@ export default function MAuthReq() {
     const { csrfToken } = useCSRF();
     const navigate = useNavigate();
     const { api_base_url } = config;
+    const { emitNotificationEvent } = useNotification();
 
     // Fetch items pending authentication
     const getPendingAuth = async () => {
@@ -60,6 +62,10 @@ export default function MAuthReq() {
             const data = await response.json();
             if (response.ok) {
                 alert("Expert assigned successfully!");
+                emitNotificationEvent("auth_request_assigned", {
+                    expert_id: expert_id,
+                    item_id: item_id,
+                });
                 getPendingAuth();
             } else {
                 alert("Failed to assign expert: " + data.message);
@@ -80,25 +86,25 @@ export default function MAuthReq() {
 
     return (
         <div className="relative min-h-screen bg-gray-100 px-[5%] md:px-[10%] py-8">
-            <div className="text-center mb-8">
-                <h1 className="text-2xl font-semibold text-center text-gray-800 mb-4">
+            <div className="mb-8 text-center">
+                <h1 className="mb-4 text-2xl font-semibold text-center text-gray-800">
                     Items Pending Authentication
                 </h1>
-                <p className="text-xl text-gray-500 mt-2">
+                <p className="mt-2 text-xl text-gray-500">
                     Assign authentication requests to experts.
                 </p>
             </div>
 
             {!user ? (
-                <p className="text-gray-600 text-center">
+                <p className="text-center text-gray-600">
                     Login to see items pending authentication
                 </p>
             ) : pendingauth.length === 0 ? (
-                <p className="text-gray-600 text-center">No items pending authentication</p>
+                <p className="text-center text-gray-600">No items pending authentication</p>
             ) : (
                 <div className="space-y-6">
                     {pendingauth.map((item) => (
-                        <div key={item.Item_id} className="bg-white p-4 rounded-lg border">
+                        <div key={item.Item_id} className="p-4 bg-white border rounded-lg">
                             <ItemListing
                                 images={item.Images}
                                 itemId={item.Item_id}
@@ -112,7 +118,7 @@ export default function MAuthReq() {
                                     Assign Expert:
                                 </label>
                                 <Select
-                                    className="border border-gray-300 rounded-md w-full"
+                                    className="w-full border border-gray-300 rounded-md"
                                     value={
                                         selectedExperts[item.Item_id]
                                             ? experts.find(
@@ -151,7 +157,7 @@ export default function MAuthReq() {
                                 />
                             </div>
                             <button
-                                className="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md transition w-full sm:w-auto"
+                                className="w-full px-4 py-2 mt-4 font-semibold text-white transition bg-blue-600 rounded-md hover:bg-blue-700 sm:w-auto"
                                 onClick={() =>
                                     assignExpertToItem(item.Item_id, selectedExperts[item.Item_id])
                                 }

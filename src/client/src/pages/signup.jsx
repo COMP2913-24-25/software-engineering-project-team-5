@@ -5,7 +5,7 @@ import config from "../../config";
 
 const Signup = () => {
     const navigate = useNavigate();
-    const { user } = useUser(); // Access the user state
+    const { user, setUser } = useUser(); // Access the user state
     const { csrfToken } = useCSRF(); // Access the CSRF token
     const { api_base_url } = config;
 
@@ -112,7 +112,6 @@ const Signup = () => {
                 set_errors({ general: ["Signup failed. Please try again."] });
             }
         } else {
-            alert("Signup successful!");
             // create customer for stripe
             const stripe_response = await fetch(`${api_base_url}/api/create-stripe-customer`, {
                 method: "POST",
@@ -122,14 +121,45 @@ const Signup = () => {
                 },
                 credentials: "include",
             });
+
             if (stripe_response.ok) {
                 // Successful creation of Stripe customer
                 const stripe_responseData = await stripe_response.json();
-                alert("Customer creation successful!");
             } else {
                 // Handle errors, e.g., user not logged in
                 const errorData = await stripe_response.json();
             }
+
+            const response = await fetch(`${api_base_url}/api/login`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
+                },
+                credentials: "include",
+                body: JSON.stringify({
+                    email_or_username: form_data.username,
+                    password: form_data.password,
+                }),
+            });
+
+            const data = await response.json();
+
+            // If response is not ok (not err code 200)
+            if (!response.ok) {
+                if (data.errors) {
+                    set_errors(data.errors);
+                } else {
+                    // No errors caught by the backend, but response still not ok
+                    // Potential server failure/unknown error.
+                    set_errors({ general: ["Login failed. Please try again."] });
+                }
+            } else {
+                setUser(data.user);
+                navigate("/home-page");
+            }
+
+            alert("Signup successful!");
             navigate("/accountsummary");
         }
     };
@@ -139,14 +169,14 @@ const Signup = () => {
         <div className="relative min-h-screen bg-gray-100 flex px-[5%] md:px-[10%] py-8 justify-center">
             <form
                 onSubmit={handle_submit}
-                className="absolute top-10 w-full max-w-xs sm:max-w-md px-6 space-y-4"
+                className="absolute w-full max-w-xs px-6 space-y-4 top-10 sm:max-w-md"
                 aria-labelledby="signup-heading"
                 noValidate
             >
                 {/* Signup Header */}
                 <h2
                     id="signup-heading"
-                    className="text-2xl font-semibold text-center text-gray-800 mb-2"
+                    className="mb-2 text-2xl font-semibold text-center text-gray-800"
                 >
                     Sign Up
                 </h2>
@@ -155,7 +185,7 @@ const Signup = () => {
                     errors.general.map((error, index) => (
                         <div
                             key={index}
-                            className="text-red-600 text-center"
+                            className="text-center text-red-600"
                             role="alert"
                             aria-live="assertive"
                         >
@@ -190,7 +220,7 @@ const Signup = () => {
                             </label>
                             <input
                                 id={inputId}
-                                className="bg-white w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 type={type}
                                 name={name}
                                 placeholder={placeholder}
@@ -206,7 +236,7 @@ const Signup = () => {
                                     <p
                                         id={errorId}
                                         key={index}
-                                        className="text-red-500 text-sm mt-1"
+                                        className="mt-1 text-sm text-red-500"
                                         role="alert"
                                         aria-live="polite"
                                     >
@@ -220,14 +250,14 @@ const Signup = () => {
                 {/* Signup Button */}
                 <button
                     type="submit"
-                    className="w-full py-3 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full py-3 font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     aria-label="Create new account"
                 >
                     Sign Up
                 </button>
 
                 {/* Login Link */}
-                <div className="text-center mt-4">
+                <div className="mt-4 text-center">
                     <p className="text-sm text-gray-600">
                         Already have an account?{" "}
                         <a

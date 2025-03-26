@@ -8,6 +8,11 @@ from flask_bootstrap import Bootstrap
 from flask_wtf.csrf import CSRFProtect, generate_csrf
 from flask_cors import CORS
 from flask_socketio import SocketIO
+import stripe
+from flask_compress import Compress
+from apscheduler.schedulers.background import BackgroundScheduler
+
+stripe.api_key = "sk_test_51QvN8MIrwvA3VrIBU92sndiPG7ZWIgYImzVxVP2ofd1xEDLpwPgF4fgWNsWpVm46klGLfcfbjTvbec7Vfi11p9vk00ODQbcday"
 
 
 def get_locale():
@@ -23,6 +28,7 @@ app.config["SESSION_COOKIE_SECURE"] = True
 app.config["REMEMBER_COOKIE_HTTPONLY"] = True
 app.config["REMEMBER_COOKIE_SECURE"] = True
 
+# Configure CORS
 CORS(
     app,
     resources={
@@ -37,46 +43,68 @@ CORS(
 
 Bootstrap(app)
 csrf = CSRFProtect(app)
-
 babel = Babel(app, locale_selector=get_locale)
 admin = Admin(app, template_mode="bootstrap4")
 
+# Initialize database
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
+# Login manager setup
 login_manager = LoginManager()
 login_manager.session_protection = "strong"
 login_manager.login_view = "/"
 login_manager.init_app(app)
 
 # Initialize SocketIO
-from app.messaging import socketio
-
+socketio = SocketIO(maxHttpBufferSize=50 * 1024 * 1024)
 socketio.init_app(
     app,
     cors_allowed_origins=["http://localhost:5173", "http://localhost:4173"],
     max_http_buffer_size=50 * 1024 * 1024,
 )
 
+# Initialize scheduler
+scheduler = BackgroundScheduler()
+app.scheduler = scheduler
 
+with app.app_context():
+    from . import models, views, taskqueue
+    from .notifications import *
+    from .messaging import *
+
+    # Create database tables
+    db.create_all()
+
+    # Initialize task queue
+    taskqueue.init_scheduler()
+
+# Enables GZIP compression
+Compress(app)
+
+
+# CSRF Token creation
 @app.route("/api/get-csrf-token", methods=["GET"])
 def get_csrf_token():
     return jsonify({"csrf_token": generate_csrf()})
 
 
-from app.models import User
-from app import views, models
-
-
+# User loader
 @login_manager.user_loader
 def load_user(id):
     if id is None:
         return None
     try:
-        user = User.query.get(int(id))
-        return user
+        return models.User.query.get(int(id))
     except ValueError:
         return None
 
 
-from app.prepopulatedb import *
+from .prepopulatedb import *
+
+
+# Scheduler shuts down when app exits
+@app.teardown_appcontext
+def shutdown_scheduler(exception=None):
+    if hasattr(app, "scheduler") and app.scheduler.running:
+        app.scheduler.shutdown()

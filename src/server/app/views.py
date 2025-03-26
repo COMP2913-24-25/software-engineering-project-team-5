@@ -1,6 +1,10 @@
-from app import app, db, admin
+from app import app, db, admin, stripe
+from app.notifications import *
 import base64
+import datetime
+from app.taskqueue import schedule_auction
 
+# Flask related imports
 from flask import (
     render_template,
     flash,
@@ -19,6 +23,13 @@ from flask_wtf.csrf import generate_csrf
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import and_, exists
 
+# Cache related imports
+from sqlalchemy.orm import joinedload
+from flask_caching import Cache
+
+cache = Cache(app, config={"CACHE_TYPE": "simple"})
+
+# Models, forms and database related imports
 from .models import (
     User,
     Address,
@@ -34,41 +45,21 @@ from .models import (
     Middle_expertise,
 )
 from .forms import login_form, sign_up_form, Create_listing_form, update_user_form
+from sqlalchemy.orm import aliased
+from sqlalchemy import func
 
+# Security related imports
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 
-import datetime
 
-# Stripe API/payment related imports
-import stripe
-
-stripe.api_key = "sk_test_51QvN8MIrwvA3VrIBU92sndiPG7ZWIgYImzVxVP2ofd1xEDLpwPgF4fgWNsWpVm46klGLfcfbjTvbec7Vfi11p9vk00ODQbcday"
-
+# Debug and loggin related imports
 import traceback
 import logging
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-from sqlalchemy.orm import aliased
-from sqlalchemy import func
 
-# Email
-
-from flask_mail import Mail, Message
-from sqlalchemy.orm import joinedload
-from flask_caching import Cache
-cache = Cache(app, config={'CACHE_TYPE': 'simple'})
-
-# from flask_mailman import Mail, EmailMessage
-app.config["MAIL_SERVER"] = "smtp.fastmail.com"
-app.config["MAIL_PORT"] = 465
-app.config["MAIL_USERNAME"] = "ebuy@fastmail.com"
-app.config["MAIL_PASSWORD"] = "3d3y6d472e2j7635"
-app.config["MAIL_USE_TLS"] = False
-app.config["MAIL_USE_SSL"] = True
-app.config["MAIL_DEFAULT_SENDER"] = "ebuy@fastmail.com"
-mail = Mail(app)
 
 # Admin mode accessed using "http://<url>/admin"
 # Used to view database on website instead of app.db
@@ -366,6 +357,7 @@ def place_bid():
     Places a bid on an auction item.
     Args: Item_id: item_id, Bid_amount: bidAmount, User_id: user.User_id
     """
+    print("Placing bid...\n")
     data = request.json
     item_id = data.get("Item_id")
     bid_amount = data.get("Bid_amount")
@@ -400,355 +392,6 @@ def place_bid():
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({"error": "Failed to place bid"}), 400
-
-
-def send_email(recipient, subject, body):
-    """
-    Sends an email to the specified recipient with the given subject and body.
-
-    Args:
-    - subject (str): The subject of the email.
-    - recipient (str): The email address of the recipient.
-    - body (str): The body of the email.
-    """
-    try:
-        msg = Message(subject, recipients=[recipient])
-        msg.body = body
-        mail.send(msg)
-        print("Email sent successfully (in send_email!\n")
-        return True
-    except Exception as e:
-        print(f"Error sending email: {e}")
-        return False
-
-
-# @app.route("/api/charge-user", methods=["POST"])
-def charge_user(
-    user_tbc,
-    bid_price,
-):
-    """
-    Args:
-    - user_tbc: user to be charged
-    - bid_price: price to be charged
-    Charges the user for an auction item
-
-    Returns:
-        json_object: message to the user saying success"""
-    # currently will just do user who is logged in
-    # later will use item id of finished auction and the user id to charge the correct user
-    # use item id to find most recent bid and get:
-    # -bidder id
-    # -bid price
-    # -if successful bid
-    # bidder_id = None # user id to be charged
-    try:
-
-        payment_intent = stripe.PaymentIntent.create(
-            amount=int(bid_price * 100),  # convert to pence
-            currency="gbp",
-            confirm=True,
-            customer=user_tbc.Customer_ID,
-            payment_method=user_tbc.Payment_method_ID,
-            receipt_email=user_tbc.Email,
-            # off_session=True
-            automatic_payment_methods={"enabled": True, "allow_redirects": "never"},
-        )
-        print("Charged user in charge_user()!\n")
-        return {  # jsonify({
-            "payment_intent_id": payment_intent.id,
-            "client_secret": payment_intent.client_secret,
-            "status": payment_intent.status,
-            "success": True,
-        }  # }), 200
-    except Exception as e:
-        print(f"Error: {e}")
-        return {"error": "Failed to charge user", "success": False}
-        # return jsonify({"error": "Failed to charge user"}), 400
-
-
-@app.route("/api/charge-expired-auctions", methods=["POST"])
-def charge_expired_auctions():
-    """
-    Check expired auctions and charge the highest bidder for each item.
-    """
-
-    try:
-        # Get all items where the auction time has ended
-        logger.info("Processing expired auctions...\n")
-        expired_items = Items.query.filter(
-            Items.Available_until < datetime.datetime.now(),
-            Items.Sold == False,  # check that they have not been sold
-        ).all()
-
-        # Process each expired item
-        for item in expired_items:
-            # Get the highest bid from the bidding history
-            highest_bid = (
-                Bidding_history.query.filter_by(Item_id=item.Item_id)
-                .order_by(Bidding_history.Bid_price.desc())
-                .first()
-            )
-
-            if highest_bid:
-                bidder_id = (
-                    highest_bid.Bidder_id
-                )  # Get the user who placed the highest bid
-                bid_price = highest_bid.Bid_price  # Get the bid amount
-
-                # Get the bidder's details (e.g., Customer ID, Payment Method ID, etc.)
-                bidder = User.query.filter_by(User_id=bidder_id).first()
-
-                if bidder:
-                    # Call the charge function
-                    try:
-                        charge_response = charge_user(bidder, bid_price)
-                        if charge_response["success"] == True:
-
-                            # After charging the user, update the item status: Sold = True
-                            item.Sold = True
-                            highest_bid.Winning_bid = True
-                            db.session.commit()
-                            logger.info("Charged user for item {item.Item_id}!\n")
-                            # send email to user
-                            #
-                            # msg.body = ("Congratulations " + user_name + "! You have won the auction for the item " + item_name + " at a price of £" + item_price + ".")
-                            email_body = (
-                                "Congratulations "
-                                + bidder.First_name
-                                + "! You have won the auction for the item "
-                                + item.Listing_name
-                                + " at a price of £"
-                                + str(bid_price)
-                                + "."
-                            )
-                            email_sent = send_email(
-                                bidder.Email, "Auction Won!", email_body
-                            )
-                            if email_sent == True:
-                                print("Email sent successfully!\n")
-                            else:
-                                print("Error sending email!\n")
-                                raise Exception("Failed to send email")
-                        else:
-                            raise Exception("Failed to charge user")
-
-                    except Exception as e:
-                        print(f"Error charging user for item {item.Item_id}: {e}")
-
-        print("\nProcessed expired auctions! \n")
-        return jsonify({"message": "Processed expired auctions"}), 200
-
-    except Exception as e:
-        print(f"Error processing expired auctions: {e}")
-        return jsonify({"error": "Failed to process expired auctions"}), 500
-
-
-@app.route("/api/charge-manual", methods=["POST"])
-def charge_manual():
-    """
-    API endpoint to manually trigger the charge_expired_auctions function.
-    """
-    try:
-        charge_expired_auctions()
-        return jsonify({"message": "Processed expired auctions"}), 200
-    except Exception as e:
-        print(f"Error processing expired auctions: {e}")
-        return jsonify({"error": "Failed to process expired auctions"}), 500
-
-
-@app.route("/api/outbid-notification-check", methods=["POST"])
-def outbid_notification():
-    """
-    Checks for any notifications that need to be sent to users (e.g. outbid, won auction, lost/ended auction)
-    uses the user
-    process:
-        get user ID
-        get all items user has bid on
-            get the items that user has the highest bid on/latest bid (bid_datetime)
-        for each item id:
-            get the bid with the latest Bid_datetime
-            get the user id of that bid
-            if user id is the same as the user id of the user:
-                send no notification
-            else if user id is different:
-                send outbid notification
-    Returns:
-    - Status: 0=error, 1=outbid, 2=not outbid
-    """
-    print("\nStarting outbid_notification \n")
-    try:
-        notification_list = []
-        # Check for expired auctions and charge the highest bidder
-        user_to_notify = current_user.User_id
-        # trying to fix
-
-        # Subquery to get the most recent bid for each Item_id by the user
-        subquery = (
-            db.session.query(
-                Bidding_history.Item_id,
-                func.max(Bidding_history.Bid_datetime).label("max_bid_datetime"),
-            )
-            .filter(Bidding_history.Bidder_id == user_to_notify)
-            .group_by(Bidding_history.Item_id)
-            .subquery()
-        )
-
-        # Main query to get the most recent bids for each Item_id for the specified Bidder_id
-        item_bids_list = (
-            db.session.query(Bidding_history)
-            .join(
-                subquery,
-                (Bidding_history.Item_id == subquery.c.Item_id)
-                & (Bidding_history.Bid_datetime == subquery.c.max_bid_datetime),
-            )
-            .join(Items, Bidding_history.Item_id == Items.Item_id)
-            .filter(
-                Bidding_history.Bidder_id == user_to_notify,
-                Items.Sold == False,
-                Items.Available_until
-                > datetime.datetime.now(),  # prevents notifications on expired items
-            )
-            .order_by(Bidding_history.Bid_datetime.desc())
-            .all()
-        )
-        # Print the results
-        print("\nItem_bid_list: ", item_bids_list, "-------------\n\n")
-        for item_bid in item_bids_list:
-            print(
-                "Item bid is :",
-                item_bid,
-                "with id of ",
-                item_bid.Item_id,
-                "for user with id ",
-                item_bid.Bidder_id,
-            )
-        # end trying to fix
-        # get the most recent bid of unique items that user has bid on
-        # item_bids_list = Bidding_history.query.filter_by(Bidder_id=user_to_notify).distinct(Bidding_history.Item_id).order_by(Bidding_history.Bid_datetime.desc()).all()
-        # get the items that user has the highest/latest bid on
-        # logger.info("Item_bid_list: ",  item_bids_list)
-        print("\nItem_bid_list: ", item_bids_list, "-------------\n\n")
-        for item_bid in item_bids_list:
-            print(
-                "ITem bid is :",
-                item_bid,
-                "with id of ",
-                item_bid.Item_id,
-                "for user with id ",
-                item_bid.Bidder_id,
-            )
-            print(
-                "     Price is :", item_bid.Bid_price, "at time ", item_bid.Bid_datetime
-            )
-            item_id = item_bid.Item_id
-            # logger.info("   Item id in list: ",  item_id)
-            item_obj = Items.query.filter_by(Item_id=item_id).first()
-            # get the latest bid for that item
-            latest_bid = (
-                Bidding_history.query.filter_by(Item_id=item_id)
-                .order_by(Bidding_history.Bid_datetime.desc())
-                .first()
-            )
-            if latest_bid.Bidder_id == user_to_notify:
-                # this is the users own bid, send no notification
-                # return jsonify({"status": 2, "message": "Notification checks complete"}), 200
-
-                pass
-            else:
-                notification_list.append(
-                    {
-                        "status": 1,
-                        "User_ID_outbid": current_user.User_id,
-                        "Item_ID": item_id,
-                        "Item_Name": item_obj.Listing_name,
-                        "Outbid_Price": item_obj.Current_bid,
-                        "message": "You have been out bid in an auction",
-                    }
-                )
-                # send outbid notification
-                # return jsonify({"status": 1, "ItemName": item_obj.Listing_name, "message": "You have been out bid in an auction"}), 200
-                pass
-        return (
-            jsonify(
-                {
-                    "outbid_notification_list": notification_list,
-                    "message": "Notification checks complete",
-                }
-            ),
-            200,
-        )
-
-    except Exception as e:
-        print(f"Error processing notifications: {e}")
-        return jsonify({"status": 0, "error": "Failed to process notifications"}), 500
-
-
-@app.route("/api/get-notify-bid-end", methods=["GET"])
-def get_notify_bid_end():
-    """
-    Check expired auctions and return a list containing:
-    - item_id: the item id of the ended auction
-    - user_won_id: the user id of the user who won the auction
-    - users_lost_id_list: a list of users who have bid on the item but lost
-    = return jsonify({"expired_items_list": expired_items_list, "message": "Processed expired auctions for notifications!"}), 200
-    """
-    try:
-        # Get all items where the auction time has ended
-        logger.info("Processing expired auctions for notifications...\n")
-        expired_items = Items.query.filter(
-            Items.Available_until < datetime.datetime.now(),
-            Items.Sold == False,  # check that they have not been sold
-        ).all()
-        expired_items_list = []
-        # Process each expired item
-        for item in expired_items:
-            # Get the highest bid from the bidding history
-            # not doing Winning_bid = True because this is also to let people know that they have won, not just that they've been charged
-            highest_bid = (
-                Bidding_history.query.filter_by(Item_id=item.Item_id)
-                .order_by(Bidding_history.Bid_price.desc())
-                .first()
-            )
-            if highest_bid:
-                winning_bidder_id = highest_bid.Bidder_id
-                losing_bidders = Bidding_history.query.filter(
-                    Bidding_history.Item_id == item.Item_id,
-                    Bidding_history.Bidder_id != winning_bidder_id,
-                ).all()
-                losing_bidders_id = list(set(bid.Bidder_id for bid in losing_bidders))
-                # add the info to the list
-                expired_items_list.append(
-                    {
-                        "item_id": item.Item_id,
-                        "item_name": item.Listing_name,
-                        "user_won_id": winning_bidder_id,
-                        "users_lost_id_list": losing_bidders_id,
-                    }
-                )
-        print("\nProcessed expired auctions for notifications! \n")
-        print("\nExpired items list: ", expired_items_list, "-------------\n\n")
-        return (
-            jsonify(
-                {
-                    "expired_items_list": expired_items_list,
-                    "message": "Processed expired auctions for notifications!",
-                }
-            ),
-            200,
-        )
-
-    except Exception as e:
-        print(f"Error processing expired auctions for notifications: {e}")
-        return (
-            jsonify(
-                {
-                    "error": "Failed to process expired auctions for auctions",
-                    "exception": str(e),
-                }
-            ),
-            500,
-        )
 
 
 @app.route("/api/logout", methods=["POST"])
@@ -1105,6 +748,7 @@ def get_bid_filtering():
 
     print(filtered_listing_Ids)
     return jsonify(filtered_listing_Ids)
+
 
 @app.route("/api/get_category_filters", methods=["POST"])
 def get_category_filters():
@@ -1663,6 +1307,9 @@ def Create_listing():
             authentication_request = True
 
         time_now = datetime.datetime.now(datetime.UTC)
+        # time_after_days_available = datetime.datetime.now(
+        #     datetime.UTC
+        # ) + datetime.timedelta(days=int(request.form["days_available"]))
         time_after_days_available = datetime.datetime.now(
             datetime.UTC
         ) + datetime.timedelta(days=int(request.form["days_available"]))
@@ -1679,7 +1326,7 @@ def Create_listing():
         # Creates a new listing with given data
         listing = Items(
             Listing_name=request.form["listing_name"],
-            Seller_id=float(request.form["seller_id"]),
+            Seller_id=int(request.form["seller_id"]),
             Verified=False,
             Upload_datetime=time_now,
             Available_until=time_after_days_available,
@@ -1721,6 +1368,15 @@ def Create_listing():
 
         # Commits to complete the transaction
         db.session.commit()
+        print("here")
+        item = Items.query.filter_by(
+            Seller_id=int(request.form["seller_id"]), Upload_datetime=time_now
+        ).first()
+
+        try:
+            schedule_auction(item)  # Use the already-created `listing` object
+        except Exception as e:
+            logger.error(f"Failed to schedule auction: {e}")
 
         # Returns a success message and a status code of 200 (ok)
         return jsonify({"message": "Listing created successfully"}), 200
@@ -1922,6 +1578,7 @@ def get_sellerss_listings():
         print("Error: ", e)
         return jsonify({"Error": "Failed to retrieve items"}), 401
 
+
 @cache.cached(timeout=30, key_prefix=lambda: f"user_bids_{current_user.User_id}")
 @app.route("/api/get-bids", methods=["GET"])
 def get_bids():
@@ -2025,11 +1682,14 @@ def get_bids():
         # Convert dictionary to list for JSON response
         current_bids = list(unique_bids.values())
         response = jsonify({"bids": current_bids})
-        response.headers["Cache-Control"] = "public, max-age=86400"  # Cache for 24 hours
+        response.headers["Cache-Control"] = (
+            "public, max-age=86400"  # Cache for 24 hours
+        )
         return response, 200
 
     else:
         return jsonify({"message": "No user logged in"}), 401
+
 
 @cache.cached(timeout=30, key_prefix=lambda: f"user_history_{current_user.User_id}")
 @app.route("/api/get-history", methods=["GET"])
@@ -2142,7 +1802,9 @@ def get_history():
         # Convert dictionary to list for JSON response
         history = list(unique_bids.values())
         response = jsonify({"history": history})
-        response.headers["Cache-Control"] = "public, max-age=86400"  # Cache for 24 hours
+        response.headers["Cache-Control"] = (
+            "public, max-age=86400"  # Cache for 24 hours
+        )
         return response, 200
 
     else:
@@ -2600,6 +2262,7 @@ def request_second_opinion():
         return jsonify({"message": "Invalid Level of Access"}), 401
 
     return jsonify({"message": "No user logged in"}), 401
+
 
 @app.route("/api/get-watchlist", methods=["GET"])
 def get_watchlist():
