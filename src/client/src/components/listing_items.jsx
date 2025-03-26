@@ -123,8 +123,9 @@ const Listing_item = (props) => {
                 <div className="w-full h-[180px] bg-gray-200 flex items-center justify-center overflow-hidden relative">
                     {user && user.level_of_access === 1 && (
                         <span
-                            className={`absolute top-2 right-2 cursor-pointer text-xl ${wishlist ? "text-red-600" : "text-white"
-                                }`}
+                            className={`absolute top-2 right-2 cursor-pointer text-xl ${
+                                wishlist ? "text-red-600" : "text-white"
+                            }`}
                             onClick={(e) => {
                                 e.stopPropagation();
                                 toggle_wishlist(item.Item_id);
@@ -133,7 +134,7 @@ const Listing_item = (props) => {
                             aria-pressed={wishlist}
                         >
                             ♥
-                        </button>
+                        </span>
                     )}
                     <img
                         src={`data:image/${item.Image};base64,${item.Image}`}
@@ -142,7 +143,7 @@ const Listing_item = (props) => {
                         aria-hidden="false"
                     />
                 </div>
-    
+
                 <div className="w-full p-4 font-sans">
                     <div className="flex items-center justify-between mb-2 font-bold">
                         <span className="text-blue-600 hover:underline" aria-label="Listing name">
@@ -174,14 +175,19 @@ const Listing_item = (props) => {
                         <span aria-label={`Seller: ${item.Seller_username}`}>
                             {item.Seller_username}
                         </span>
-                        <span aria-label={`Current price: £${Math.max(item.Current_bid, item.Min_price).toFixed(2)}`}>
+                        <span
+                            aria-label={`Current price: £${Math.max(
+                                item.Current_bid,
+                                item.Min_price
+                            ).toFixed(2)}`}
+                        >
                             £
                             {item.Current_bid > item.Min_price
                                 ? item.Current_bid.toFixed(2)
                                 : item.Min_price.toFixed(2)}
                         </span>
                     </div>
-    
+
                     <div
                         className={`flex justify-between items-center text-sm ${
                             new Date(item.Available_until) - new Date() < 12 * 60 * 60 * 1000
@@ -196,7 +202,6 @@ const Listing_item = (props) => {
             </div>
         </div>
     );
-
 };
 
 export default Listing_item;
