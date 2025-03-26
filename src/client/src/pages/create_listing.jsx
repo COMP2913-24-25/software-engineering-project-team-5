@@ -214,32 +214,33 @@ const CreateListing = () => {
 
     // Where the actual html for the web page is described.
     return (
-        <div className="relative min-h-screen bg-gray-100 px-[5%] md:px-[10%] py-8">
+        <div className="relative min-h-screen bg-gray-100 px-[5%] md:px-[10%] py-8" role="main">
             {/* Page Header */}
             <div className="text-center mb-8">
-                <h1 className="text-2xl font-semibold text-center text-gray-800 mb-4">
+                <h1 className="text-2xl font-semibold text-center text-gray-800 mb-4" id="page-title">
                     Create a New Listing
                 </h1>
-                <p className="text-xl text-gray-500 mt-2">
+                <p className="text-xl text-gray-500 mt-2" aria-describedby="page-title">
                     Fill out the details for your auction item
                 </p>
             </div>
 
             <div className="p-6 mb-8">
-                <form onSubmit={handle_submit} className="space-y-4">
+                <form onSubmit={handle_submit} className="space-y-4" aria-labelledby="page-title">
                     {errors.general &&
                         errors.general.map((error, index) => (
-                            <div key={index} className="text-red-600 text-center mb-2">
+                            <div key={index} className="text-red-600 text-center mb-2" role="alert">
                                 {error}
                             </div>
                         ))}
 
                     {/* Listing Name */}
                     <div>
-                        <label className="block text-gray-700 text-xl font-medium mt-5">
+                        <label htmlFor="listing-name" className="block text-gray-700 text-xl font-medium mt-5">
                             Listing Name
                         </label>
                         <input
+                            id="listing-name"
                             className="bg-white w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             type="text"
                             name="listing_name"
@@ -247,10 +248,11 @@ const CreateListing = () => {
                             value={formData.listing_name}
                             onChange={handleChange}
                             required
+                            aria-required="true"
                         />
                         {errors.listing_name &&
                             errors.listing_name.map((error, index) => (
-                                <p key={index} className="text-red-500 text-sm mt-1">
+                                <p key={index} className="text-red-500 text-sm mt-1" role="alert">
                                     {error}
                                 </p>
                             ))}
@@ -258,10 +260,11 @@ const CreateListing = () => {
 
                     {/* Listing Description */}
                     <div>
-                        <label className="block text-gray-700 text-xl font-medium mt-5">
+                        <label htmlFor="listing-description" className="block text-gray-700 text-xl font-medium mt-5">
                             Description
                         </label>
                         <textarea
+                            id="listing-description"
                             className="bg-white w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             rows="4"
                             name="listing_description"
@@ -269,10 +272,11 @@ const CreateListing = () => {
                             value={formData.listing_description}
                             onChange={handleChange}
                             required
+                            aria-required="true"
                         />
                         {errors.listing_description &&
                             errors.listing_description.map((error, index) => (
-                                <p key={index} className="text-red-500 text-sm mt-1">
+                                <p key={index} className="text-red-500 text-sm mt-1" role="alert">
                                     {error}
                                 </p>
                             ))}
@@ -280,14 +284,15 @@ const CreateListing = () => {
 
                     {/* Minimum Price */}
                     <div>
-                        <label className="block text-gray-700 text-xl font-medium mt-5">
+                        <label htmlFor="minimum-price" className="block text-gray-700 text-xl font-medium mt-5">
                             Starting Price
                         </label>
                         <div className="relative">
-                            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+                            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500" aria-hidden="true">
                                 £
                             </span>
                             <input
+                                id="minimum-price"
                                 className="bg-white w-full pl-8 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 type="number"
                                 name="minimum_price"
@@ -297,10 +302,11 @@ const CreateListing = () => {
                                 value={formData.minimum_price}
                                 onChange={handleChange}
                                 required
+                                aria-required="true"
                             />
                             {errors.minimum_price &&
                                 errors.minimum_price.map((error, index) => (
-                                    <p key={index} className="text-red-500 text-sm mt-1">
+                                    <p key={index} className="text-red-500 text-sm mt-1" role="alert">
                                         {error}
                                     </p>
                                 ))}
@@ -312,23 +318,24 @@ const CreateListing = () => {
 
                     {/* Tag Selector */}
                     <div>
-                        <label className="block text-gray-700 text-xl font-medium mt-5">
+                        <label className="block text-gray-700 text-xl font-medium mt-5" id="tag-selector-label">
                             Select Tags
                         </label>
                         <Tag_selector
                             selected_tags={selected_tags}
                             set_selected_tags={set_selected_tags}
                             is_item_tags={true}
+                            aria-labelledby="tag-selector-label"
                         />
                     </div>
 
                     {/* Days Available */}
                     <div>
-                        <label className="block text-gray-700 text-xl font-medium mt-5">
+                        <label htmlFor="days-available" className="block text-gray-700 text-xl font-medium mt-5">
                             Auction Duration (Days)
                         </label>
-
                         <input
+                            id="days-available"
                             className="bg-white w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             type="number"
                             name="days_available"
@@ -339,10 +346,11 @@ const CreateListing = () => {
                             value={formData.days_available}
                             onChange={handleChange}
                             required
+                            aria-required="true"
                         />
                         {errors.days_available &&
                             errors.days_available.map((error, index) => (
-                                <p key={index} className="text-red-500 text-sm mt-1">
+                                <p key={index} className="text-red-500 text-sm mt-1" role="alert">
                                     {error}
                                 </p>
                             ))}
@@ -350,7 +358,7 @@ const CreateListing = () => {
 
                     {/* Authentication Request */}
                     <div className="pt-2">
-                        <label className="block text-gray-700 text-xl font-medium mt-5">
+                        <label className="block text-gray-700 text-xl font-medium mt-5" id="auth-request-label">
                             Authentication Request
                         </label>
                         <label className="flex items-center space-x-2">
@@ -360,6 +368,7 @@ const CreateListing = () => {
                                 checked={formData.authentication_request}
                                 onChange={handleChange}
                                 className="focus:ring-blue-500 h-4 w-4"
+                                aria-labelledby="auth-request-label"
                             />
                             <span className="text-gray-600">
                                 Enable Authentication ({Math.round(eFee * 100)}% Expert fee added to
@@ -371,10 +380,11 @@ const CreateListing = () => {
 
                     {/* File Upload */}
                     <div className="pt-2">
-                        <label className="block text-gray-700 text-xl font-medium mt-5">
+                        <label htmlFor="item-images" className="block text-gray-700 text-xl font-medium mt-5">
                             Item Images
                         </label>
                         <input
+                            id="item-images"
                             className="bg-white w-full py-2 px-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             type="file"
                             name="images"
@@ -382,11 +392,12 @@ const CreateListing = () => {
                             multiple
                             onChange={handle_file_change}
                             required
+                            aria-required="true"
                         />
 
                         {/* Display list of uploaded files */}
                         {formData.images && formData.images.length > 0 && (
-                            <div className="mt-3">
+                            <div className="mt-3" role="region" aria-live="polite">
                                 <p className="text-gray-700 mb-2">
                                     Uploaded files ({formData.images.length}):
                                 </p>
@@ -397,7 +408,7 @@ const CreateListing = () => {
                                             className="flex items-center justify-between py-1"
                                         >
                                             <div className="flex items-center text-gray-700">
-                                                <Image className="h-5 w-5 mr-2 text-blue-500" />
+                                                <Image className="h-5 w-5 mr-2 text-blue-500" aria-hidden="true" />
                                                 <span className="truncate max-w-xs">
                                                     {file.name}
                                                 </span>
@@ -409,6 +420,7 @@ const CreateListing = () => {
                                                 className="ml-2 p-2 bg-red-500 text-white rounded right hover:bg-red-600 transition-colors"
                                                 type="button"
                                                 onClick={() => handle_remove_image(index)}
+                                                aria-label={`Remove file ${file.name}`}
                                             >
                                                 Remove
                                             </button>
@@ -420,7 +432,7 @@ const CreateListing = () => {
 
                         {errors.images &&
                             errors.images.map((error, index) => (
-                                <p key={index} className="text-red-500 text-sm mt-1">
+                                <p key={index} className="text-red-500 text-sm mt-1" role="alert">
                                     {error}
                                 </p>
                             ))}

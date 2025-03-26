@@ -1,16 +1,21 @@
-import React, { useState, useEffect } from "react";
-
-import { useUser, useCSRF } from "../App"; // changed to include useUser
+import React, { useState, useEffect, useRef } from "react";
+import { useUser, useCSRF } from "../App";
+import { useNotification } from "./NotificationComponent";
 import { useParams, useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Listing_item from "../components/listing_items";
 import config from "../../config";
+import { get_notification_socket, release_notification_socket } from "../hooks/notification_socket";
+import { LazyLoadImage } from "react-lazy-load-image-component";
+import "react-lazy-load-image-component/src/effects/blur.css";
 
 const EnlargedListingPage = () => {
     const { user } = useUser();
+    const { emitNotificationEvent } = useNotification();
     const navigate = useNavigate();
     const { csrfToken } = useCSRF();
     const { api_base_url } = config;
+    const notificationSocketRef = useRef(null);
 
     const params = useParams();
     const item_id = params.Item_id;
@@ -127,6 +132,33 @@ const EnlargedListingPage = () => {
 
     useEffect(() => {
         fetchListingInformation();
+
+        // Initialises socket connection when component mounts
+        notificationSocketRef.current = get_notification_socket();
+        const socket = notificationSocketRef.current;
+
+        // On successful connect, joins the bids room
+        socket.on("connect", () => {
+            console.log("joined bids socket");
+            socket.emit("join_get_bids");
+        });
+
+        // Refreshes the listing information a bid update is received
+        socket.on("bid_update", () => {
+            fetchListingInformation();
+            setBidAmount(item.Current_bid);
+        });
+
+        socket.emit("join_get_bids");
+
+        return () => {
+            // Clean up the socket event listeners and release the
+            // socket connection when the component unmounts
+            console.log("closed connection");
+            socket.off("connect");
+            socket.off("bid_update");
+            release_notification_socket();
+        };
     }, []);
 
     useEffect(() => {
@@ -205,6 +237,7 @@ const EnlargedListingPage = () => {
         }
 
         try {
+            console.log("Bid placing");
             const response = await fetch(`${api_base_url}/api/place-bid`, {
                 method: "POST",
                 headers: {
@@ -221,7 +254,13 @@ const EnlargedListingPage = () => {
             const data = await response.json();
             if (response.ok) {
                 alert("Bid placed successfully!");
-                setItem((prev) => ({ ...prev, Current_bid: parseFloat(bidAmount) })); //?
+
+                emitNotificationEvent("place_bid", {
+                    item_id: item_id,
+                    bid_amount: bidAmount,
+                });
+
+                setItem((prev) => ({ ...prev, Current_bid: parseFloat(bidAmount) }));
             } else if (response.status === 402) {
                 // 402 Payment Required
                 alert("Please set up your payment method before placing a bid.");
@@ -274,18 +313,20 @@ const EnlargedListingPage = () => {
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-10">
                     <div className="lg:col-span-2">
                         <div
-                            className="relative rounded-xl overflow-hidden bg-gray-100 h-72 sm:h-96 lg:h-[30rem]"
+                            className="relative rounded-xl overflow-hidden bg-gray-100 h-[30rem] flex items-center justify-center"
                             aria-labelledby="product-title"
                             role="region"
                             aria-label="Product images"
                         >
                             {item.Images && imageCount > 0 ? (
                                 <>
-                                    <img
+                                    <LazyLoadImage
                                         src={`data:image/jpeg;base64,${item.Images[currentImageIndex]}`}
-                                        alt={`${item.Listing_name} - Image ${currentImageIndex + 1
-                                            } of ${imageCount}`}
-                                        className="object-cover w-full h-full"
+                                        alt={`${item.Listing_name} - Image ${
+                                            currentImageIndex + 1
+                                        } of ${imageCount}`}
+                                        effect="blur"
+                                        className="object-contain w-full max-h-[30rem]"
                                     />
                                     <div
                                         className="absolute inset-0 flex items-center justify-between px-4"
@@ -399,6 +440,20 @@ const EnlargedListingPage = () => {
                                         £{item.Current_bid || "0.00"}
                                     </span>
                                 </li>
+                                {item.Tags && item.Tags.length > 0 ? (
+                                    <ul className="flex space-x-2">
+                                        {item.Tags.map((tag, index) => (
+                                            <li
+                                                key={index}
+                                                className="px-3 py-1 text-sm text-white bg-gray-600 rounded-full"
+                                            >
+                                                {tag}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <li></li>
+                                )}
                             </ul>
                         </section>
 

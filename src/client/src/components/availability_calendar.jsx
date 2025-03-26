@@ -55,10 +55,10 @@ const Availability_calendar_set = ({ onSubmit }) => {
     return (
         <div className="p-6 bg-white shadow rounded-lg">
             {days.map((day) => (
-                <div key={day} className="mb-6">
-                    <h3 className="text-xl font-semibold mb-4">{day}</h3>
+                <div key={day} className="mb-6" role="group" aria-labelledby={`${day.toLowerCase()}-group`}>
+                    <h3 className="text-xl font-semibold mb-4" id={`${day.toLowerCase()}-group`}>{day}</h3>
                     {availability[day].map((block, index) => (
-                        <div key={index} className="flex items-center gap-4 mb-3">
+                        <div key={index} className="flex items-center gap-4 mb-3" role="group" aria-label={`Time block ${index + 1} for ${day}`}>
                             <select
                                 value={block.start_time}
                                 onChange={(event) =>
@@ -70,6 +70,8 @@ const Availability_calendar_set = ({ onSubmit }) => {
                                     )
                                 }
                                 className="p-2 border border-gray-300 rounded-md flex-1"
+                                aria-label={`Start time for block ${index + 1}`}
+                                aria-required="true"
                             >
                                 <option value="">Start Time</option>
                                 {time_options.map((time) => (
@@ -89,6 +91,8 @@ const Availability_calendar_set = ({ onSubmit }) => {
                                     )
                                 }
                                 className="p-2 border border-gray-300 rounded-md flex-1"
+                                aria-label={`End time for block ${index + 1}`}
+                                aria-required="true"
                             >
                                 <option value="">End Time</option>
                                 {time_options.map((time) => (
@@ -100,6 +104,7 @@ const Availability_calendar_set = ({ onSubmit }) => {
                             <button
                                 onClick={() => remove_time_block(day, index)}
                                 className="p-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+                                aria-label={`Remove time block ${index + 1} for ${day}`}
                             >
                                 Remove
                             </button>
@@ -108,6 +113,7 @@ const Availability_calendar_set = ({ onSubmit }) => {
                     <button
                         onClick={() => add_time_block(day)}
                         className="w-full p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                        aria-label={`Add new time block for ${day}`}
                     >
                         Add Time Block
                     </button>
@@ -116,6 +122,7 @@ const Availability_calendar_set = ({ onSubmit }) => {
             <button
                 onClick={handle_submit}
                 className="w-full p-3 bg-green-500 text-white rounded-md hover:bg-green-600 mt-6"
+                aria-label="Submit weekly availability"
             >
                 Submit Availability
             </button>

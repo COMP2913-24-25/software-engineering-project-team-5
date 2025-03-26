@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import ItemListing from "../../components/itemlisting";
 import { useUser, useCSRF } from "../../App";
+import { useNotification } from "../../components/NotificationComponent";
 import { useNavigate } from "react-router-dom";
 import Select from "react-select";
 import config from "../../../config";
@@ -14,7 +15,7 @@ export default function MAuthReq() {
     const navigate = useNavigate();
     const { api_base_url } = config;
     const [loading, setLoading] = useState(true);
-
+    const { emitNotificationEvent } = useNotification();
 
     // Fetch items pending authentication
     const getPendingAuth = async () => {
@@ -64,6 +65,10 @@ export default function MAuthReq() {
             const data = await response.json();
             if (response.ok) {
                 alert("Expert assigned successfully!");
+                emitNotificationEvent("auth_request_assigned", {
+                    expert_id: expert_id,
+                    item_id: item_id,
+                });
                 getPendingAuth();
             } else {
                 alert("Failed to assign expert: " + data.message);
@@ -84,11 +89,11 @@ export default function MAuthReq() {
 
     return (
         <div className="relative min-h-screen bg-gray-100 px-[5%] md:px-[10%] py-8">
-            <div className="text-center mb-8">
-                <h1 className="text-2xl font-semibold text-center text-gray-800 mb-4">
+            <div className="mb-8 text-center">
+                <h1 className="mb-4 text-2xl font-semibold text-center text-gray-800">
                     Items Pending Authentication
                 </h1>
-                <p className="text-xl text-gray-500 mt-2">
+                <p className="mt-2 text-xl text-gray-500">
                     Assign authentication requests to experts.
                 </p>
             </div>

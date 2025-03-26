@@ -79,16 +79,23 @@ const Availability_calendar_view = ({ onSubmit }) => {
     return (
         <div className="p-6 bg-white shadow rounded-lg">
             {days.map((day) => (
-                <div key={day} className="mb-6">
-                    <h3 className="text-xl font-semibold mb-4">{day}</h3>
+                <div key={day} className="mb-6" role="listitem" aria-label={`Availability for ${day}`}>
+                    <h3 className="text-xl font-semibold mb-4" id={`${day.toLowerCase()}-heading`}>{day}</h3>
                     {availability[day].length > 0 ? (
-                        availability[day].map((block, index) => (
-                            <div key={index} className="flex items-center gap-4 mb-3">
+                        <ul role="list" aria-labelledby={`${day.toLowerCase()}-heading`}>
+                        {availability[day].map((block, index) => (
+                            <li 
+                                key={index} 
+                                className="flex items-center gap-4 mb-3"
+                                role="listitem"
+                                aria-label={`Available from ${block}`}
+                            >
                                 <span>{block}</span>
-                            </div>
-                        ))
+                            </li>
+                        ))}
+                    </ul>
                     ) : (
-                        <p>You are not working on this day.</p>
+                        <p aria-live="polite">You are not working on this day.</p>
                     )}
                 </div>
             ))}

@@ -4,6 +4,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import ChatWindow from "./chatwindow";
 import config from "../../config";
+import { LazyLoadImage } from "react-lazy-load-image-component";
+import "react-lazy-load-image-component/src/effects/blur.css";
 
 const EnlargedAuthRequest = () => {
     const { csrfToken } = useCSRF();
@@ -319,16 +321,17 @@ const EnlargedAuthRequest = () => {
                 {/* Image and product description */}
                 <div className="w-full mb-8">
                     <div
-                        className="relative mb-8 overflow-hidden bg-gray-100 rounded-lg h-96"
+                        className="relative rounded-xl overflow-hidden bg-gray-100 h-[30rem] flex items-center justify-center"
                         role="region"
                         aria-label="Product Image Gallery"
                     >
                         {item.Images && image_count > 0 ? (
                             <>
-                                <img
+                                <LazyLoadImage
                                     src={`data:image/jpeg;base64,${item.Images[current_image_index]}`}
                                     alt={`${item.Listing_name} - Image ${current_image_index + 1}`}
-                                    className="object-contain w-full h-full"
+                                    effect="blur"
+                                    className="object-contain w-full max-h-[30rem]"
                                     aria-describedby="image-navigation"
                                 />
 
@@ -354,6 +357,7 @@ const EnlargedAuthRequest = () => {
                                 </div>
 
                                 {/* Image Counter */}
+
                                 <div
                                     className="absolute px-3 py-1 text-sm text-white rounded-full bottom-4 right-4 bg-black/70"
                                     aria-live="polite"
@@ -398,6 +402,22 @@ const EnlargedAuthRequest = () => {
                                 </li>
                             </ul>
                         </div>
+
+                        {item.Tags && item.Tags.length > 0 ? (
+                            <div className="flex space-x-2">
+                                {item.Tags.map((tag, index) => (
+                                    <div
+                                        key={index}
+                                        className="px-3 py-1 text-sm text-white bg-gray-600 rounded-full"
+                                    >
+                                        {tag}
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div></div>
+                        )}
+
                     </div>
                 </div>
 

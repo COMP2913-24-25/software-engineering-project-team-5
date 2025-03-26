@@ -11,12 +11,14 @@ const CategoryFilter = ({ update_listings }) => {
     const { api_base_url } = config;
 
     const categories = [
-        { label: "Electronics", value: "electronics" },
-        { label: "Furniture", value: "furniture" },
-        { label: "Clothing", value: "clothing" },
-        { label: "Books", value: "books" },
-        { label: "Toys", value: "toys" },
-        { label: "Sports", value: "sports" },
+        { label: "Electronics", value: "Electronics" },
+        { label: "Clothing", value: "Clothing" },
+        { label: "Accessories", value: "Accessories" },
+        { label: "Beauty & Skincare", value: "Beauty & Skincare" },
+        { label: "Sports Equipment", value: "Sports Equipment" },
+        { label: "Art & Collectibles", value: "Art & Collectibles" },
+        { label: "Antiques", value: "Antiques" },
+        { label: "Outdoor & Camping", value: "Outdoor & Camping" },
     ];
 
     const handleCategoryChange = (event) => {

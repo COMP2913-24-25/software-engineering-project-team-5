@@ -93,12 +93,18 @@ const SellerDashboard = () => {
 
     const renderItemsSection = (title, items, index, setIndex) => (
         <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">{title}</h2>
+            <h2 className="text-xl font-semibold mb-4" id={title.replace(/\s+/g, "-").toLowerCase()}>
+                {title}
+            </h2>
             {items.length === 0 && title !== "Currently Listed Items" ? (
                 <p className="text-gray-500">No items available.</p>
             ) : (
-                <div className="flex items-center gap-4">
-                    <button onClick={() => prevPage(setIndex)}>
+                <div className="flex items-center gap-4" role="region" aria-labelledby={title.replace(/\s+/g, "-").toLowerCase()}>
+                    <button 
+                        onClick={() => prevPage(setIndex)} 
+                        aria-label={`Previous page of ${title}`} 
+                        disabled={index === 0}
+                    >
                         <ChevronLeft />
                     </button>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -121,7 +127,11 @@ const SellerDashboard = () => {
                             <Listing_item key={item.Item_id} item={item} />
                         ))}
                     </div>
-                    <button onClick={() => nextPage(setIndex, items)}>
+                    <button 
+                        onClick={() => nextPage(setIndex, items)} 
+                        aria-label={`Next page of ${title}`} 
+                        disabled={index + itemsPerPage >= items.length}
+                    >
                         <ChevronRight />
                     </button>
                 </div>

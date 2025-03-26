@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import ItemListing from "../components/itemlisting";
 import { useUser, useCSRF } from "../App";
 import { useNavigate } from "react-router-dom";
 import config from "../../config";
+import { get_notification_socket, release_notification_socket } from "../hooks/notification_socket";
 
 const CurrentBids = () => {
     /*  
@@ -20,6 +21,8 @@ const CurrentBids = () => {
     const { csrfToken } = useCSRF();
     const { api_base_url } = config;
     const [loading, setLoading] = useState(true);
+
+    const notificationSocketRef = useRef(null);
 
     // Function to fetch bidding history from the server
     const getBids = async () => {
@@ -58,9 +61,32 @@ const CurrentBids = () => {
     useEffect(() => {
         if (user?.level_of_access === 1) {
             getBids();
-            const interval = setInterval(() => {
+
+            // Initialize the notification socket
+            notificationSocketRef.current = get_notification_socket();
+            const socket = notificationSocketRef.current;
+
+            // On successful connection, join the bids room
+            socket.on("connect", () => {
+                console.log("joined bids socket");
+                socket.emit("join_get_bids");
+            });
+
+            // When a bid is updated, update the bids
+            socket.on("bid_update", () => {
                 getBids();
-            }, 3000);
+            });
+
+            socket.emit("join_get_bids");
+
+            return () => {
+                // Clean up the socket event listeners and
+                // releases the socket when component unmounts
+                console.log("closed connection");
+                socket.off("connect");
+                socket.off("bid_update");
+                release_notification_socket();
+            };
         } else {
             navigate("/invalid-access-rights");
         }
@@ -68,11 +94,14 @@ const CurrentBids = () => {
 
     return (
         <div className="relative min-h-screen bg-gray-100 px-[5%] md:px-[10%] py-8">
-            <div className="text-center mb-8">
-                <h1 aria-label="Current Bids Page" className="text-2xl font-semibold text-center text-gray-800 mb-4">
+            <div className="mb-8 text-center">
+                <h1
+                    aria-label="Current Bids Page"
+                    className="mb-4 text-2xl font-semibold text-center text-gray-800"
+                >
                     Current Bids
                 </h1>
-                <p className="text-xl text-gray-500 mt-2">
+                <p className="mt-2 text-xl text-gray-500">
                     View items you are currently bidding on.
                 </p>
             </div>
@@ -96,33 +125,34 @@ const CurrentBids = () => {
                                 description={item.Description}
                                 images={item.Images}
                                 availableUntil={item.Available_until}
+                                tags={item.Tags}
                                 buttons={
                                     item.Successful_bid == 1
                                         ? [
-                                            {
-                                                text: "Highest Bidder",
-                                                style: "bg-green-500 text-white",
-                                                "aria-label": "You are the highest bidder"
-                                            },
-                                            {
-                                                text: `Your Bid: £${item.Bid_price}`,
-                                                style: "bg-gray-200 text-black",
-                                                "aria-label": `Your bid is £${item.Bid_price}`
-                                            },
-                                        ]
+                                              {
+                                                  text: "Highest Bidder",
+                                                  style: "bg-green-500 text-white",
+                                                  "aria-label": "You are the highest bidder",
+                                              },
+                                              {
+                                                  text: `Your Bid: £${item.Bid_price}`,
+                                                  style: "bg-gray-200 text-black",
+                                                  "aria-label": `Your bid is £${item.Bid_price}`,
+                                              },
+                                          ]
                                         : [
-                                            { text: "Out Bid", style: "bg-red-500 text-white" },
-                                            {
-                                                text: `Your Bid: £${item.Bid_price}`,
-                                                style: "bg-gray-200 text-black",
-                                                "aria-label": "You have been outbid"
-                                            },
-                                            {
-                                                text: `Highest Bid: £${item.Current_bid}`,
-                                                style: "bg-gray-500 text-white",
-                                                "aria-label": `The highest bid is £${item.Current_bid}`
-                                            },
-                                        ]
+                                              { text: "Out Bid", style: "bg-red-500 text-white" },
+                                              {
+                                                  text: `Your Bid: £${item.Bid_price}`,
+                                                  style: "bg-gray-200 text-black",
+                                                  "aria-label": "You have been outbid",
+                                              },
+                                              {
+                                                  text: `Highest Bid: £${item.Current_bid}`,
+                                                  style: "bg-gray-500 text-white",
+                                                  "aria-label": `The highest bid is £${item.Current_bid}`,
+                                              },
+                                          ]
                                 }
                             />
                         ))}
@@ -131,7 +161,9 @@ const CurrentBids = () => {
                     <p role="status" className="text-center text-gray-600">You have no current bids.</p>
                 )
             ) : (
-                <p role="status" className="text-gray-600">Login to see Current Bids</p>
+                <p role="status" className="text-gray-600">
+                    Login to see Current Bids
+                </p>
             )}
         </div>
     );

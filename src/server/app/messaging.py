@@ -1,13 +1,11 @@
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from flask import request, current_app
 from flask_login import current_user
-from app import db
+from app import db, socketio
 from app.models import Chat, ChatMessages
 import datetime
 import base64
 import json
-
-socketio = SocketIO(maxHttpBufferSize=50 * 1024 * 1024)
 
 
 @socketio.on("connect")

@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useUser, useCSRF } from "../../App";
 import Manager_view_expert from "../../components/manager_view_expert";
 import config from "../../../config";
+import { List } from "lucide-react";
 
 const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
@@ -96,24 +97,31 @@ const SearchExperts = () => {
     }, [navigate, user]);
 
     return (
-        <div className="relative min-h-screen bg-gray-100 px-[5%] md:px-[10%] py-8">
+        <div className="relative min-h-screen bg-gray-100 px-[5%] md:px-[10%] py-8" role="main">
             {/* Page Header */}
             <div className="text-center mb-8">
-                <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-4">
+                <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-4" id="page-title">
                     Search Experts
                 </h1>
-                <p className="text-lg text-gray-600">Manage and search for experts.</p>
+                <p className="text-lg text-gray-600" aria-describedby="page-title">Manage and search for experts.</p>
             </div>
 
-            <div className="mb-8 flex flex-col sm:flex-row gap-6 relative">
+            <div className="mb-8 flex flex-col sm:flex-row gap-6 relative" role="search">
                 {/* Search Input */}
                 <div className="flex-1">
+
+                    <label htmlFor="expert-search" className="sr-only">
+                        Search experts by name or expertise
+                    </label>
+
                     <input
+                        id="expert-search"
                         type="text"
                         className="p-3 border rounded-lg w-full shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400"
                         placeholder="Search by name or expertise"
                         value={search}
                         onChange={(e) => set_search(e.target.value)}
+                        aria-label="Search experts by name or expertise"
                     />
                 </div>
 
@@ -125,6 +133,7 @@ const SearchExperts = () => {
                             checked={show_available_only}
                             onChange={(e) => set_show_available_only(e.target.checked)}
                             className="form-checkbox h-5 w-5 text-blue-600"
+                            aria-label="Show available experts only"
                         />
                         <span className="text-sm">Show available only</span>
                     </label>
@@ -138,17 +147,20 @@ const SearchExperts = () => {
                     <p>Searching experts...</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 mb-8">
+                {/* Experts Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 mb-8" role="list" aria-label="List of experts">
                     {filteredExperts.length > 0 ? (
                         filteredExperts.map((expert) => (
                             <Manager_view_expert
                                 key={expert.User_id}
                                 expert={expert}
                                 refresh_expert={fetch_experts}
+                                role="listitem"
+                                aria-label={`Expert: ${expert.First_name} ${expert.Surname}`}
                             />
                         ))
                     ) : (
-                        <div className="col-span-full text-center text-gray-500 mt-8">
+                        <div className="col-span-full text-center text-gray-500 mt-8" role="status" aria-live="polite">
                             No experts found matching your search criteria.
                         </div>
                     )}
