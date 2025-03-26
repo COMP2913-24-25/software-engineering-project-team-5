@@ -15,6 +15,7 @@ const ItemListing = ({
     images = [],
     labels = [],
     buttons = [],
+    tags = [],
 }) => {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [timeRemaining, setTimeRemaining] = useState("");
@@ -62,9 +63,8 @@ const ItemListing = ({
 
     return (
         <div
-            className={`flex flex-col md:flex-row border rounded-lg p-4 shadow-md bg-white w-full items-center transition ${
-                user?.level_of_access === 3 ? "cursor-default" : "cursor-pointer hover:shadow-lg"
-            }`}
+            className={`flex flex-col md:flex-row border rounded-lg p-4 shadow-md bg-white w-full items-center transition ${user?.level_of_access === 3 ? "cursor-default" : "cursor-pointer hover:shadow-lg"
+                }`}
             onClick={handleNavigation}
         >
             {/* Image Carousel */}
@@ -143,6 +143,20 @@ const ItemListing = ({
                             Time Remaining: {timeRemaining}
                         </p>
                     )}
+                    {tags && tags.length > 0 ? (
+                        <div className="flex space-x-2">
+                            {tags.map((tag, index) => (
+                                <div
+                                    key={index}
+                                    className="px-3 py-1 text-sm text-white bg-gray-600 rounded-full"
+                                >
+                                    {tag}
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div></div>
+                    )}
                 </div>
             </div>
 
@@ -157,9 +171,8 @@ const ItemListing = ({
                                     e.stopPropagation();
                                     onClick();
                                 }}
-                                className={`px-4 py-2 rounded-lg whitespace-nowrap ${
-                                    style || "bg-blue-500 text-white hover:bg-blue-600"
-                                }`}
+                                className={`px-4 py-2 rounded-lg whitespace-nowrap ${style || "bg-blue-500 text-white hover:bg-blue-600"
+                                    }`}
                             >
                                 {text}
                             </button>

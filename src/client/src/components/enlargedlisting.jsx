@@ -413,7 +413,20 @@ const EnlargedListingPage = () => {
                                         £{item.Current_bid || "0.00"}
                                     </span>
                                 </li>
-
+                                {item.Tags && item.Tags.length > 0 ? (
+                                    <ul className="flex space-x-2">
+                                        {item.Tags.map((tag, index) => (
+                                            <li
+                                                key={index}
+                                                className="px-3 py-1 text-sm text-white bg-gray-600 rounded-full"
+                                            >
+                                                {tag}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <li></li>
+                                )}
                                 {user && user.level_of_access === 1 && (
                                     <li className="text-gray-600">
                                         <button
@@ -446,7 +459,8 @@ const EnlargedListingPage = () => {
                         Bidding Section
                     </h2>
                     <div className="mt-8 text-center">
-                        {user || user?.level_of_access === 1 || user?.user_id !== item.Seller_id ? ( // if user, user isn't manager/expert, and user isn't seller
+
+                        {user & user?.level_of_access === 1 & user?.user_id !== item.Seller_id ? ( // if user, user isn't manager/expert, and user isn't seller
                             <>
                                 <div className="mb-4">
                                     <label

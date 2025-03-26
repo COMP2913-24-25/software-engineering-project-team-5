@@ -357,6 +357,7 @@ const EnlargedAuthRequest = () => {
                                 </div>
 
                                 {/* Image Counter */}
+
                                 <div
                                     className="absolute px-3 py-1 text-sm text-white rounded-full bottom-4 right-4 bg-black/70"
                                     aria-live="polite"
@@ -402,6 +403,22 @@ const EnlargedAuthRequest = () => {
                                 </li>
                             </ul>
                         </div>
+
+                        {item.Tags && item.Tags.length > 0 ? (
+                            <div className="flex space-x-2">
+                                {item.Tags.map((tag, index) => (
+                                    <div
+                                        key={index}
+                                        className="px-3 py-1 text-sm text-white bg-gray-600 rounded-full"
+                                    >
+                                        {tag}
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div></div>
+                        )}
+
                     </div>
                 </div>
 
