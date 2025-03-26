@@ -9,6 +9,7 @@ from flask_wtf.csrf import CSRFProtect, generate_csrf
 from flask_cors import CORS
 from flask_socketio import SocketIO
 import stripe
+from flask_compress import Compress
 from apscheduler.schedulers.background import BackgroundScheduler
 
 stripe.api_key = "sk_test_51QvN8MIrwvA3VrIBU92sndiPG7ZWIgYImzVxVP2ofd1xEDLpwPgF4fgWNsWpVm46klGLfcfbjTvbec7Vfi11p9vk00ODQbcday"
@@ -77,6 +78,9 @@ with app.app_context():
 
     # Initialize task queue
     taskqueue.init_scheduler()
+
+# Enables GZIP compression
+Compress(app)
 
 
 # CSRF Token creation
