@@ -23,6 +23,12 @@ from flask_wtf.csrf import generate_csrf
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import and_, exists
 
+# Cache related imports
+from sqlalchemy.orm import joinedload
+from flask_caching import Cache
+
+cache = Cache(app, config={"CACHE_TYPE": "simple"})
+
 # Models, forms and database related imports
 from .models import (
     User,
