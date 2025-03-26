@@ -245,16 +245,14 @@ const ChatWindow = ({ senderId, recipientId, itemId, is_chat_closed }) => {
                         return (
                             <div
                                 key={message.message_id || index}
-                                className={`flex ${
-                                    is_own_message ? "justify-end" : "justify-start"
-                                } mb-4`}
+                                className={`flex ${is_own_message ? "justify-end" : "justify-start"
+                                    } mb-4`}
                             >
                                 <div
-                                    className={`max-w-xs md:max-w-md lg:max-w-lg px-4 py-2 rounded-lg shadow ${
-                                        is_own_message
+                                    className={`max-w-xs md:max-w-md lg:max-w-lg px-4 py-2 rounded-lg shadow break-words whitespace-pre-wrap ${is_own_message
                                             ? "bg-blue-600 text-white"
                                             : "bg-gray-200 text-gray-800"
-                                    }`}
+                                        }`}
                                 >
                                     {!is_own_message && (
                                         <p className="text-xs font-semibold mb-1">
@@ -275,9 +273,8 @@ const ChatWindow = ({ senderId, recipientId, itemId, is_chat_closed }) => {
                                     )}
 
                                     <p
-                                        className={`text-xs mt-1 ${
-                                            is_own_message ? "text-blue-200" : "text-gray-500"
-                                        }`}
+                                        className={`text-xs mt-1 ${is_own_message ? "text-blue-200" : "text-gray-500"
+                                            }`}
                                     >
                                         {format_time(message.timestamp)}
                                     </p>
@@ -326,11 +323,10 @@ const ChatWindow = ({ senderId, recipientId, itemId, is_chat_closed }) => {
 
                         <div className="flex w-full sm:w-auto sm:flex-row flex-col gap-2">
                             <label
-                                className={`cursor-pointer px-3 py-2 bg-gray-200 rounded-md flex justify-center items-center ${
-                                    is_image_upload_disabled
+                                className={`cursor-pointer px-3 py-2 bg-gray-200 rounded-md flex justify-center items-center ${is_image_upload_disabled
                                         ? "opacity-50 cursor-not-allowed"
                                         : "hover:bg-gray-300"
-                                }`}
+                                    }`}
                             >
                                 <Image className="h-5 w-5 text-gray-700" />
 
