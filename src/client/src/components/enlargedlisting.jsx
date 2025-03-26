@@ -456,7 +456,8 @@ const EnlargedListingPage = () => {
                         Bidding Section
                     </h2>
                     <div className="mt-8 text-center">
-                        {user || user?.level_of_access === 1 || user?.user_id !== item.Seller_id ? ( // if user, user isn't manager/expert, and user isn't seller
+
+                        {user & user?.level_of_access === 1 & user?.user_id !== item.Seller_id ? ( // if user, user isn't manager/expert, and user isn't seller
                             <>
                                 <div className="mb-4">
                                     <label
