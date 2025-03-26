@@ -105,6 +105,7 @@ export default function MAuthReq() {
                                 title={item.Listing_name}
                                 seller={item.Username}
                                 description={item.Description}
+                                tags={item.Tags}
                             />
                             <div className="mt-2">
                                 <label className="block text-sm font-medium text-gray-700">
@@ -115,18 +116,18 @@ export default function MAuthReq() {
                                     value={
                                         selectedExperts[item.Item_id]
                                             ? experts.find(
-                                                  (expert) =>
-                                                      expert.Expert_id ===
-                                                      selectedExperts[item.Item_id]
-                                              )
+                                                (expert) =>
+                                                    expert.Expert_id ===
+                                                    selectedExperts[item.Item_id]
+                                            )
                                                 ? {
-                                                      value: selectedExperts[item.Item_id],
-                                                      label: experts.find(
-                                                          (expert) =>
-                                                              expert.Expert_id ===
-                                                              selectedExperts[item.Item_id]
-                                                      )?.Full_Name,
-                                                  }
+                                                    value: selectedExperts[item.Item_id],
+                                                    label: experts.find(
+                                                        (expert) =>
+                                                            expert.Expert_id ===
+                                                            selectedExperts[item.Item_id]
+                                                    )?.Full_Name,
+                                                }
                                                 : null
                                             : null
                                     }
@@ -140,11 +141,10 @@ export default function MAuthReq() {
                                     }
                                     options={experts.map((expert) => ({
                                         value: expert.Expert_id,
-                                        label: `${expert.Full_Name} ${
-                                            expert.Tags.length > 0
+                                        label: `${expert.Full_Name} ${expert.Tags.length > 0
                                                 ? `(${expert.Tags.join(", ")})`
                                                 : ""
-                                        }`,
+                                            }`,
                                     }))}
                                     isSearchable
                                     placeholder="Select an expert"

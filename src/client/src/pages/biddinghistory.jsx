@@ -91,6 +91,7 @@ const BiddingHistory = () => {
                                 description={item.Description}
                                 images={item.Images}
                                 availableUntil={item.Available_until}
+                                tags={item.Tags}
                                 buttons={
                                     item.Successful_bid == 1 ? (
                                         item.Winning_bid == 1 ? (
@@ -131,6 +132,7 @@ const BiddingHistory = () => {
                                                 text: `Your Bid: £${item.Bid_price}`,
                                                 style: "bg-gray-200 text-black",
                                                 "aria-label": `Your bid was £${item.Bid_price}`,
+
                                             },
                                             {
                                                 text: `Highest Bid: £${item.Current_bid}`,
