@@ -67,7 +67,7 @@ def validate_description():
     message = "Invalid description."
 
     def _validate_description(form, field):
-        if len(field.data) < 2:
+        if len(field.data) < 20:
             raise ValidationError(message)
     
     return _validate_description
