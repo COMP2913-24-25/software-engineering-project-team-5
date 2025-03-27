@@ -13,6 +13,7 @@ import WatchList from "./pages/watchlist";
 import BiddingHistory from "./pages/biddinghistory";
 import CurrentBids from "./pages/currentbids";
 import CreateListing from "./pages/create_listing";
+import EditListing from "./pages/editlisting";
 import AccountSummary from "./pages/accountsummary";
 import CurrentListings from "./pages/current_listings";
 import EnlargedListingPage from "./components/enlargedlisting";
@@ -164,6 +165,10 @@ function App() {
                         <Route path="/chatwindow" element={<ChatWindow />} />
                         <Route path="/bidding-history" element={<BiddingHistory />} />
                         <Route path="/current_listings" element={<CurrentListings />} />
+                        <Route
+                            path="/edit-listing/:Listing_name/:Item_id"
+                            element={<EditListing />}
+                        />
 
                         <Route path="/current-bids" element={<CurrentBids />} />
                         <Route path="/create-listing" element={<CreateListing />} />
