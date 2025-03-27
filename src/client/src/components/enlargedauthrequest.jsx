@@ -254,22 +254,22 @@ const EnlargedAuthRequest = () => {
                     <div className="md:col-span-1">
                         {((user.level_of_access === 2 && item.Approved !== null) ||
                             user.level_of_access === 1) && (
-                            <div>
-                                <h2
-                                    className="mb-4 text-2xl font-semibold"
-                                    id="authentication-status-heading"
-                                >
-                                    Authentication Status
-                                </h2>
-                                <div
-                                    className={`w-full text-white py-3 px-4 rounded-lg font-medium text-center ${getAuthStatusColor()}`}
-                                    role="status"
-                                    aria-labelledby="authentication-status-heading"
-                                >
-                                    {getAuthStatusText()}
+                                <div>
+                                    <h2
+                                        className="mb-4 text-2xl font-semibold"
+                                        id="authentication-status-heading"
+                                    >
+                                        Authentication Status
+                                    </h2>
+                                    <div
+                                        className={`w-full text-white py-3 px-4 rounded-lg font-medium text-center ${getAuthStatusColor()}`}
+                                        role="status"
+                                        aria-labelledby="authentication-status-heading"
+                                    >
+                                        {getAuthStatusText()}
+                                    </div>
                                 </div>
-                            </div>
-                        )}
+                            )}
                     </div>
                 </div>
 
@@ -361,9 +361,8 @@ const EnlargedAuthRequest = () => {
                                 <div
                                     className="absolute px-3 py-1 text-sm text-white rounded-full bottom-4 right-4 bg-black/70"
                                     aria-live="polite"
-                                    aria-label={`Image ${
-                                        current_image_index + 1
-                                    } of ${image_count}`}
+                                    aria-label={`Image ${current_image_index + 1
+                                        } of ${image_count}`}
                                 >
                                     {current_image_index + 1} / {image_count}
                                 </div>
@@ -399,7 +398,7 @@ const EnlargedAuthRequest = () => {
                                 </li>
                                 <li className="text-gray-600">
                                     Proposed Price:{" "}
-                                    <span className="font-medium">${item.Min_price || "0.00"}</span>
+                                    <span className="font-medium">£{item.Min_price || "0.00"}</span>
                                 </li>
                             </ul>
                         </div>

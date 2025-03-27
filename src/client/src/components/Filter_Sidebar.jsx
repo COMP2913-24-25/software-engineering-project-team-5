@@ -88,8 +88,8 @@ const Filter_component = ({ update_listings, listings }) => {
     }, [filter_applied]);
 
     return (
-        <div className="p-3 m-2 bg-white shadow-lg rounded-lg">
-            <div className="flex items-center justify-between">
+        <div className="p-4 m-2 bg-white shadow-lg rounded-lg">
+            <div className="flex flex-wrap items-center justify-between">
                 <h2 className="text-xl font-semibold text-gray-800" id="price-filter-heading">
                     Price Filter
                 </h2>
@@ -111,32 +111,33 @@ const Filter_component = ({ update_listings, listings }) => {
             {isDropdownOpen && (
                 <div
                     id="price-filter-content"
-                    className="mt-3 space-y-4"
+                    className="mt-4"
                     aria-labelledby="price-filter-heading"
                 >
-                    <div className="flex items-center space-x-6">
-                        <div className="flex items-center space-x-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        <div className="flex flex-col">
                             <label
                                 htmlFor="minPrice"
-                                className="text-gray-700 font-small"
+                                className="text-gray-700 font-medium mb-1"
                                 id="minPrice-label"
                             >
-                                Min price:
+                                Min Price:
                             </label>
                             <input
                                 type="number"
                                 id="minPrice"
                                 value={minPrice}
                                 onChange={handleMinPriceChange}
-                                className="border-2 border-gray-300 p-1 rounded-lg w-28 focus:ring-2 focus:ring-blue-500"
-                                placeholder="Enter.."
+                                className="border-2 border-gray-300 p-2 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                placeholder="Enter..."
                                 aria-labelledby="minPrice-label"
                             />
                         </div>
-                        <div className="flex items-center space-x-2">
+
+                        <div className="flex flex-col">
                             <label
                                 htmlFor="maxPrice"
-                                className="text-gray-700 font-smalls"
+                                className="text-gray-700 font-medium mb-1"
                                 id="maxPrice-label"
                             >
                                 Max Price:
@@ -146,18 +147,21 @@ const Filter_component = ({ update_listings, listings }) => {
                                 id="maxPrice"
                                 value={maxPrice}
                                 onChange={handleMaxPriceChange}
-                                className="border-2 border-gray-300 p-1 rounded-lg w-28 focus:ring-2 focus:ring-blue-500"
-                                placeholder="Enter.."
+                                className="border-2 border-gray-300 p-2 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                placeholder="Enter..."
                                 aria-labelledby="maxPrice-label"
                             />
                         </div>
-                        <button
-                            onClick={handleApplyFilter}
-                            className="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-600 transition"
-                            aria-label="Apply selected price filter"
-                        >
-                            Apply Price Filter
-                        </button>
+
+                        <div className="flex items-end">
+                            <button
+                                onClick={handleApplyFilter}
+                                className="w-full bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 transition"
+                                aria-label="Apply selected price filter"
+                            >
+                                Apply Filter
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

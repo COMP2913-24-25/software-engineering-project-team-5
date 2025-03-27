@@ -102,7 +102,7 @@ const EnlargedListingPage = () => {
                     updateTimeRemaining(data.Available_until);
                 }
             }
-        } catch (error) {}
+        } catch (error) { }
     };
 
     const fetchSellerListings = async () => {
@@ -127,7 +127,7 @@ const EnlargedListingPage = () => {
                     setSellerListings();
                 }
             }
-        } catch (error) {}
+        } catch (error) { }
     };
 
     useEffect(() => {
@@ -224,17 +224,6 @@ const EnlargedListingPage = () => {
     };
 
     const handlePlaceBid = async () => {
-        // if (user.Setup_intent_ID === null || user.Setup_intent_ID === undefined) {
-        //     console.log("user? = ", user.User_id);
-        //     console.log("user = ", user.user_id);
-        //     console.log("setup intent = ", user.Setup_intent_ID);
-        //     console.log("Payment_method_ID = ", user.Payment_method_ID);
-        //     console.log("customer = ", user.Customer_ID);
-        //     alert("Please set up your payment method before placing a bid.");
-        //     navigate("/accountsummary");
-        //     return;
-        // }
-        // checks that bid amount is valid and also more than minimum/current bid
 
         if (!bidAmount || parseFloat(bidAmount) <= 0) {
             alert("Please enter a valid bid amount.");
@@ -279,41 +268,43 @@ const EnlargedListingPage = () => {
             } else {
                 alert(`Failed to place bid: ${data.message}`);
             }
-        } catch (error) {}
-    };
-
-    const manualCharge = async () => {
-        try {
-            const response = await fetch(`${api_base_url}/api/charge-manual`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRF-TOKEN": csrfToken,
-                },
-                credentials: "include",
-            });
-            const data = await response.json();
-            if (response.ok) {
-                alert("Item charged successfully!");
-                //setItem((prev) => ({ ...prev, Current_bid: parseFloat(bidAmount) })); //?;
-            } else {
-                alert(`Failed to charge: ${data.message}`);
-            }
-        } catch (error) {}
+        } catch (error) { }
     };
 
     if (!item) {
-        return <div className="py-20 text-center text-gray-600">Loading listing...</div>;
+        return (
+            <div className="py-20 text-center text-gray-600">
+                <div className="flex justify-center items-center">
+                    <div className="w-16 h-16 border-t-4 border-blue-600 border-dashed rounded-full animate-spin" role="status" aria-label="Loading current bids"></div>
+                </div>
+                <p>Loading listing...</p>
+            </div>
+        );
     }
+
 
     return (
         <div className="min-h-screen px-4 py-8 bg-gray-50 lg:px-6" role="main">
-            <div className="container p-6 mx-auto bg-white shadow-lg rounded-2xl lg:p-8">
+            <div className="relative container p-6 mx-auto bg-white shadow-lg rounded-2xl lg:p-8">
+                {user && user.level_of_access === 1 && (
+                    <button
+                        className={`absolute top-8 right-8 cursor-pointer text-2xl p-2 ${wishlist ? "text-red-600" : "text-gray-500"}`}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            toggle_wishlist(item.Item_id);
+                        }}
+                        aria-label={wishlist ? "Remove from wishlist" : "Add to wishlist"}
+                        aria-pressed={wishlist}
+                    >
+                        ♥
+                    </button>
+                )}
                 <h1
-                    className="mb-4 text-2xl font-bold text-gray-800 lg:text-4xl"
+                    className="mb-4 text-2xl font-bold text-gray-800 lg:text-4xl flex items-center gap-4"
                     id="product-title"
                 >
                     {item.Listing_name}
+                    {item.Verified && <span className="text-yellow-500 text-xl">★</span>}
                 </h1>
                 <p className="mb-6 text-sm text-gray-600 lg:text-base">
                     Seller: <span className="font-semibold">{item.Seller_username}</span>
@@ -370,9 +361,8 @@ const EnlargedListingPage = () => {
                                         aria-live="polite"
                                     >
                                         <span
-                                            aria-label={`Image ${
-                                                currentImageIndex + 1
-                                            } of ${imageCount}`}
+                                            aria-label={`Image ${currentImageIndex + 1
+                                                } of ${imageCount}`}
                                         >
                                             {currentImageIndex + 1} / {imageCount}
                                         </span>
@@ -464,96 +454,74 @@ const EnlargedListingPage = () => {
                                 ) : (
                                     <li></li>
                                 )}
-                                {user && user.level_of_access === 1 && (
-                                    <li className="text-gray-600">
-                                        <button
-                                            className={`cursor-pointer text-2xl p-2 ${
-                                                wishlist ? "text-red-600" : "text-gray-500"
-                                            }`}
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                toggle_wishlist(item.Item_id);
-                                            }}
-                                            aria-label={
-                                                wishlist
-                                                    ? "Remove from wishlist"
-                                                    : "Add to wishlist"
-                                            }
-                                            aria-pressed={wishlist}
-                                        >
-                                            ♥
-                                        </button>
-                                    </li>
-                                )}
                             </ul>
+                        </section>
+
+                        {/* Bidding Section */}
+                        <section className="py-6" aria-labelledby="bidding-section">
+                            {user ? (
+                                user.level_of_access === 1 ? ( // if user, user isn't manager/expert, and user isn't seller
+                                    user.user_id !== item.Seller_id && (
+                                        <>
+                                            <div className="mb-4">
+                                                <label
+                                                    htmlFor="bid-amount-input"
+                                                    className="block text-lg font-semibold"
+                                                >
+                                                    Place a Bid:{" "}
+                                                </label>
+                                                <input
+                                                    id="bid-amount-input"
+                                                    type="number"
+                                                    placeholder="Enter your bid amount"
+                                                    onChange={handleBidChange}
+                                                    className="px-4 py-2 border border-gray-300 rounded-lg"
+                                                    aria-label="Bid amount"
+                                                    aria-describedby="bid-instructions"
+                                                />
+                                                <div id="bid-instructions" className="sr-only">
+                                                    Enter your bid amount. Must be higher than the minimum price
+                                                    and the current bid.
+                                                </div>
+                                            </div>
+                                            {!isExpired ? (
+                                                <button
+                                                    onClick={handlePlaceBid}
+                                                    className="px-6 py-2 text-lg text-white transition bg-blue-600 rounded-lg hover:bg-blue-700"
+                                                    aria-label="Submit your bid"
+                                                >
+                                                    Place a Bid
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    className="px-6 py-2 ml-4 text-lg text-white transition bg-blue-600 rounded-lg hover:bg-blue-700"
+                                                    aria-label="Auction has expired, bidding no longer available"
+                                                >
+                                                    Auction Expired
+                                                </button>
+                                            )}
+                                        </>
+                                    )
+                                ) : (
+                                    <></>
+                                )
+                            ) : (
+                                <button
+                                    onClick={() => navigate(`/signup`)}
+                                    className="px-6 py-3 text-base text-white transition-all bg-blue-600 rounded-lg lg:text-lg hover:bg-blue-700"
+                                >
+                                    Login or Signup to place a Bid
+                                </button>
+                            )}
                         </section>
                     </div>
                 </div>
-
-                {/* Bidding Section */}
-                <section className="mt-8 text-center" aria-labelledby="bidding-section">
-                    <h2 id="bidding-section" className="sr-only">
-                        Bidding Section
-                    </h2>
-                    <div className="mt-8 text-center">
-                        {user &
-                        (user?.level_of_access === 1) &
-                        (user?.user_id !== item.Seller_id) ? ( // if user, user isn't manager/expert, and user isn't seller
-                            <>
-                                <div className="mb-4">
-                                    <label
-                                        htmlFor="bid-amount-input"
-                                        className="block text-lg font-semibold"
-                                    >
-                                        Place a Bid:{" "}
-                                    </label>
-                                    <input
-                                        id="bid-amount-input"
-                                        type="number"
-                                        placeholder="Enter your bid amount"
-                                        onChange={handleBidChange}
-                                        className="px-4 py-2 border border-gray-300 rounded-lg"
-                                        aria-label="Bid amount"
-                                        aria-describedby="bid-instructions"
-                                    />
-                                    <div id="bid-instructions" className="sr-only">
-                                        Enter your bid amount. Must be higher than the minimum price
-                                        and the current bid.
-                                    </div>
-                                </div>
-                                {!isExpired ? (
-                                    <button
-                                        onClick={handlePlaceBid}
-                                        className="px-6 py-2 text-lg text-white transition bg-blue-600 rounded-lg hover:bg-blue-700"
-                                        aria-label="Submit your bid"
-                                    >
-                                        Place a Bid
-                                    </button>
-                                ) : (
-                                    <button
-                                        className="px-6 py-2 ml-4 text-lg text-white transition bg-blue-600 rounded-lg hover:bg-blue-700"
-                                        aria-label="Auction has expired, bidding no longer available"
-                                    >
-                                        Auction Expired
-                                    </button>
-                                )}
-                            </>
-                        ) : (
-                            <button
-                                onClick={() => navigate(`/signup`)}
-                                className="px-6 py-3 text-base text-white transition-all bg-blue-600 rounded-lg lg:text-lg hover:bg-blue-700"
-                            >
-                                Login or Signup to place a Bid
-                            </button>
-                        )}
-                    </div>
-                </section>
             </div>
 
             {user &&
                 user.level_of_access === 1 &&
                 sellerListings?.filter((listing) => listing.Item_id !== item.Item_id).length >
-                    0 && (
+                0 && (
                     <section
                         className="container p-6 mx-auto mt-12 bg-white shadow-lg rounded-2xl lg:p-8"
                         aria-labelledby="other-products-heading"

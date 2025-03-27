@@ -77,10 +77,7 @@ const Availability_calendar_view = ({ onSubmit }) => {
 
     // Return the html needed to create the component.
     return (
-        <div className="max-w-2xl mx-auto p-6 bg-white shadow-lg rounded-lg" role="region" aria-labelledby="availability-heading">
-            <h2 className="text-2xl font-bold mb-6 text-center" id="availability-heading">
-                View Your Availability for this Week
-            </h2>
+        <div className="p-6 bg-white shadow rounded-lg">
             {days.map((day) => (
                 <div key={day} className="mb-6" role="listitem" aria-label={`Availability for ${day}`}>
                     <h3 className="text-xl font-semibold mb-4" id={`${day.toLowerCase()}-heading`}>{day}</h3>

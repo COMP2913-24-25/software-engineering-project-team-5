@@ -20,6 +20,7 @@ const CurrentBids = () => {
 
     const { csrfToken } = useCSRF();
     const { api_base_url } = config;
+    const [loading, setLoading] = useState(true);
 
     const notificationSocketRef = useRef(null);
 
@@ -51,6 +52,8 @@ const CurrentBids = () => {
             }
         } catch (error) {
             console.error("Error fetching bids:", error);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -102,7 +105,15 @@ const CurrentBids = () => {
                     View items you are currently bidding on.
                 </p>
             </div>
-            {user ? (
+            {loading ? (
+                <div className="py-20 text-center text-gray-600">
+                    <div className="flex justify-center items-center">
+                        <div className="w-16 h-16 border-t-4 border-blue-600 border-dashed rounded-full animate-spin" role="status" aria-label="Loading current bids"></div>
+                    </div>
+                    <p>Loading listings...</p>
+                </div>
+
+            ) : user ? (
                 bids.length > 0 ? (
                     <div aria-live="polite" className="space-y-6">
                         {bids.map((item) => (
@@ -147,9 +158,7 @@ const CurrentBids = () => {
                         ))}
                     </div>
                 ) : (
-                    <p role="status" className="text-gray-600">
-                        You have no current bids.
-                    </p>
+                    <p role="status" className="text-center text-gray-600">You have no current bids.</p>
                 )
             ) : (
                 <p role="status" className="text-gray-600">

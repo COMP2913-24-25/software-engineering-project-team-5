@@ -126,10 +126,10 @@ const ItemListing = ({
             </div>
 
             {/* Item Details */}
-            <div className="flex flex-col flex-grow ml-0 md:ml-4 mt-4 md:mt-0">
+            <div className="flex flex-col flex-grow ml-0 px-4 mt-4 w-full ">
                 <h2 className="text-lg font-semibold">{title}</h2>
                 <p className="text-sm text-gray-600">{seller}</p>
-                <p className="text-sm text-gray-700 mt-1">{description}</p>
+                <p className="text-sm text-gray-700 break-words">{description}</p>
 
                 {/* Labels */}
                 <div className="mt-2 space-y-1">
@@ -143,12 +143,13 @@ const ItemListing = ({
                             Time Remaining: {timeRemaining}
                         </p>
                     )}
+
                     {tags && tags.length > 0 ? (
-                        <div className="flex space-x-2">
+                        <div className="flex flex-wrap gap-2 mt-2">
                             {tags.map((tag, index) => (
                                 <div
                                     key={index}
-                                    className="px-3 py-1 text-sm text-white bg-gray-600 rounded-full"
+                                    className="px-3 py-1 text-sm text-white bg-gray-600 rounded-lg"
                                 >
                                     {tag}
                                 </div>
@@ -161,25 +162,24 @@ const ItemListing = ({
             </div>
 
             {/* Buttons */}
-            <div className="mt-4 flex flex-wrap gap-2">
-                {buttons.length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                        {buttons.map(({ text, onClick, style }, index) => (
-                            <button
-                                key={index}
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    onClick();
-                                }}
-                                className={`px-4 py-2 rounded-lg whitespace-nowrap ${style || "bg-blue-500 text-white hover:bg-blue-600"
-                                    }`}
-                            >
-                                {text}
-                            </button>
-                        ))}
-                    </div>
-                )}
-            </div>
+            {buttons.length > 0 && (
+                <div className="flex gap-2 mt-2 flex-wrap">
+                    {buttons.map(({ text, onClick, style }, index) => (
+                        <button
+                            key={index}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onClick();
+                            }}
+                            className={`px-4 py-4 rounded-lg whitespace-nowrap ${style || "bg-blue-500 text-white hover:bg-blue-600"
+                                }`}
+                        >
+                            {text}
+                        </button>
+                    ))}
+                </div>
+            )}
+
         </div>
     );
 };

@@ -2224,6 +2224,7 @@ def get_single_listing():
                 base64.b64encode(image.Image).decode("utf-8") for image in images
             ],
             "Available_until": item.Available_until,
+            "Verified": item.Verified,
             "Tags": [tag[0] for tag in tags],
         }
 

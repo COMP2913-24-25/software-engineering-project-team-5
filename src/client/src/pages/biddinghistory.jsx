@@ -18,6 +18,7 @@ const BiddingHistory = () => {
 
     // Variable to store the bids stored and bidding history
     const [history, setHistory] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     const { csrfToken } = useCSRF();
     const [filtered_listings, setfiltered_listings] = useState([]); // Stores bid-status-filtered data
@@ -46,6 +47,8 @@ const BiddingHistory = () => {
             }
         } catch (error) {
             console.error("Error fetching history:", error);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -76,79 +79,84 @@ const BiddingHistory = () => {
                     View items that you have previously bidded on.
                 </p>
             </div>
-
-            {user ? (
-                filtered_listings.length === 0 ? (
-                    <p role="status" className="text-gray-600">You have no expired auctions.</p>
-                ) : (
-                    <div aria-live="polite" className="space-y-4">
-                        {filtered_listings.map((item, index) => (
-                            <ItemListing
-                                key={index}
-                                itemId={item.Item_id}
-                                title={item.Listing_name}
-                                seller={item.Seller_name}
-                                description={item.Description}
-                                images={item.Images}
-                                availableUntil={item.Available_until}
-                                tags={item.Tags}
-                                buttons={
-                                    item.Successful_bid == 1 ? (
-                                        item.Winning_bid == 1 ? (
-                                            [
-                                                {
-                                                    text: "Auction Won",
-                                                    style: "bg-green-500 text-white",
-                                                    "aria-label": "You won the auction",
-                                                },
-                                                {
-                                                    text: `Your Bid: £${item.Bid_price}`,
-                                                    style: "bg-gray-200 text-black",
-                                                    "aria-label": `Your bid was £${item.Bid_price}`,
-                                                },
-                                            ]
+            {loading ? (
+                <div className="py-20 text-center text-gray-600">
+                    <div className="flex justify-center items-center">
+                        <div className="w-16 h-16 border-t-4 border-blue-600 border-dashed rounded-full animate-spin" role="status" aria-label="Loading current bids"></div>
+                    </div>
+                    <p>Loading listings...</p>
+                </div>
+            ) : (
+                user ? (
+                    filtered_listings.length === 0 ? (
+                        <p role="status" className="text-center text-gray-600">You have no expired auctions.</p>
+                    ) : (
+                        <div aria-live="polite" className="space-y-4">
+                            {filtered_listings.map((item, index) => (
+                                <ItemListing
+                                    key={index}
+                                    itemId={item.Item_id}
+                                    title={item.Listing_name}
+                                    seller={item.Seller_name}
+                                    description={item.Description}
+                                    images={item.Images}
+                                    availableUntil={item.Available_until}
+                                    buttons={
+                                        item.Successful_bid == 1 ? (
+                                            item.Winning_bid == 1 ? (
+                                                [
+                                                    {
+                                                        text: "Auction Won",
+                                                        style: "bg-green-500 text-white",
+                                                        "aria-label": "You won the auction",
+                                                    },
+                                                    {
+                                                        text: `Your Bid: £${item.Bid_price}`,
+                                                        style: "bg-gray-200 text-black",
+                                                        "aria-label": `Your bid was £${item.Bid_price}`,
+                                                    },
+                                                ]
+                                            ) : (
+                                                [
+                                                    {
+                                                        text: "Payment Incomplete",
+                                                        style: "bg-yellow-500 text-white",
+                                                        "aria-label": "Payment is incomplete for this auction",
+                                                    },
+                                                    {
+                                                        text: `Your Bid: £${item.Bid_price}`,
+                                                        style: "bg-gray-200 text-black",
+                                                        "aria-label": `Your bid was £${item.Bid_price}`,
+                                                    },
+                                                ]
+                                            )
                                         ) : (
                                             [
                                                 {
-                                                    text: "Payment Incomplete",
-                                                    style: "bg-yellow-500 text-white",
-                                                    "aria-label": "Payment is incomplete for this auction",
+                                                    text: "Out Bid",
+                                                    style: "bg-red-500 text-white",
+                                                    "aria-label": "You were outbid in this auction",
                                                 },
                                                 {
                                                     text: `Your Bid: £${item.Bid_price}`,
                                                     style: "bg-gray-200 text-black",
                                                     "aria-label": `Your bid was £${item.Bid_price}`,
                                                 },
+                                                {
+                                                    text: `Highest Bid: £${item.Current_bid}`,
+                                                    style: "bg-gray-500 text-white",
+                                                    "aria-label": `The highest bid was £${item.Current_bid}`,
+                                                },
                                             ]
                                         )
-                                    ) : (
-                                        [
-                                            {
-                                                text: "Out Bid",
-                                                style: "bg-red-500 text-white",
-                                                "aria-label": "You were outbid in this auction",
-                                            },
-                                            {
-                                                text: `Your Bid: £${item.Bid_price}`,
-                                                style: "bg-gray-200 text-black",
-                                                "aria-label": `Your bid was £${item.Bid_price}`,
-
-                                            },
-                                            {
-                                                text: `Highest Bid: £${item.Current_bid}`,
-                                                style: "bg-gray-500 text-white",
-                                                "aria-label": `The highest bid was £${item.Current_bid}`,
-                                            },
-                                        ]
-                                    )
-
-                                }
-                            />
-                        ))}
-                    </div>
+                                    }
+                                />
+                            ))}
+                        </div>
+                    )
+                ) : (
+                    <p role="status" className="text-gray-600">Login to see Bidding History</p>
                 )
-            ) : (
-                <p role="status" className="text-gray-600">Login to see Bidding History</p>
             )}
         </div>
     );
