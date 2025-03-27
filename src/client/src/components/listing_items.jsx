@@ -16,10 +16,13 @@ const Listing_item = (props) => {
     const { api_base_url } = config;
 
     const handleClick = () => {
-        if (item.Authentication_request === true && item.Expert_id !== null) {
+        const isExpired = new Date(item.Available_until) < new Date();
+        if (isExpired && item.Sold === false) {
+            // Expired with no bids
+            navigate(`/edit-listing/${encodeURIComponent(item.Listing_name)}/${item.Item_id}`);
+        } else if (item.Authentication_request === true && item.Expert_id !== null) {
             // Under review item
-            let url = "/authrequest/" + encodeURIComponent(item.Listing_name) + "/" + item.Item_id;
-            navigate(url);
+            navigate(`/authrequest/${encodeURIComponent(item.Listing_name)}/${item.Item_id}`);
         } else {
             // Regular item details page
             navigate(`/item/${encodeURIComponent(item.Listing_name)}/${item.Item_id}`);
@@ -129,12 +132,9 @@ const Listing_item = (props) => {
                                 e.stopPropagation();
                                 toggle_wishlist(item.Item_id);
                             }}
-
                             style={{ zIndex: 10 }}
-
                             aria-label={wishlist ? "Remove from watchlist" : "Add to watchlist"}
                             aria-pressed={wishlist}
-
                         >
                             ♥
                         </span>
@@ -143,9 +143,8 @@ const Listing_item = (props) => {
                         src={`data:image/${item.Image};base64,${item.Image}`}
                         alt={item.Listing_name}
                         effect="blur"
-                        className="w-full h-48 object-cover"
+                        className="object-cover w-full h-48"
                         aria-hidden="false"
-
                     />
                 </div>
 

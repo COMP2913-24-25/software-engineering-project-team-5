@@ -1529,22 +1529,18 @@ def get_sellerss_listings():
         status_code: HTTP status code (200 for success,
                                        401 for unauthorized access)
     """
-
     try:
-        # Checks if the listing is available and doesn't still need authentication.
-        available_items = (
+        # Get all items for the current seller
+        items_query = (
             db.session.query(Items, User.Username)
             .join(User, Items.Seller_id == User.User_id)
-            .filter(
-                Items.Seller_id == current_user.User_id,
-                Items.Available_until > datetime.datetime.now(),
-            )
+            .filter(Items.Seller_id == current_user.User_id)
+            .order_by(Items.Available_until.desc())
             .all()
         )
 
         items_list = []
-        for item, username in available_items:
-
+        for item, username in items_query:
             image = Images.query.filter(Images.Item_id == item.Item_id).first()
 
             tags = (
@@ -1565,11 +1561,12 @@ def get_sellerss_listings():
                 "Verified": item.Verified,
                 "Min_price": item.Min_price,
                 "Current_bid": item.Current_bid,
-                "Image": base64.b64encode(image.Image).decode("utf-8"),
+                "Image": base64.b64encode(image.Image).decode("utf-8") if image else "",
                 "Expert_id": item.Expert_id,
                 "Authentication_request_approved": item.Authentication_request_approved,
                 "Authentication_request": item.Authentication_request,
                 "Tags": tag_list,
+                "Sold": item.Sold,
             }
             items_list.append(item_details_dict)
         return jsonify(items_list), 200
@@ -2206,6 +2203,24 @@ def get_single_listing():
             .all()
         )
 
+        buyer_info = None
+        if item.Sold:
+            winning_bid = (
+                db.session.query(Bidding_history, User)
+                .join(User, Bidding_history.Bidder_id == User.User_id)
+                .filter(
+                    Bidding_history.Item_id == item.Item_id,
+                    Bidding_history.Winning_bid == True,
+                )
+                .first()
+            )
+            if winning_bid:
+                buyer_info = {
+                    "buyer_name": f"{winning_bid[1].First_name} {winning_bid[1].Surname}",
+                    "buyer_username": winning_bid[1].Username,
+                    "sold_price": winning_bid[0].Bid_price,
+                }
+
         item_details = {
             "Current_bid": item.Current_bid,
             "Item_id": item.Item_id,
@@ -2226,6 +2241,8 @@ def get_single_listing():
             "Available_until": item.Available_until,
             "Verified": item.Verified,
             "Tags": [tag[0] for tag in tags],
+            "Sold": item.Sold,
+            "Buyer_info": buyer_info,
         }
 
         return jsonify(item_details), 200
@@ -2691,3 +2708,139 @@ def remove_expertise():
     except Exception as e:
         print("Error: ", e)
         return jsonify({"Error": "Failed to remove expertise"}), 400
+
+
+@app.route("/api/get-listing-details/<int:item_id>", methods=["POST"])
+def get_listing_details(item_id):
+    """
+    Retrieves detailed information about a specific listing for editing.
+    """
+    try:
+        item = Items.query.filter_by(
+            Item_id=item_id, Seller_id=current_user.User_id
+        ).first()
+        if not item:
+            return jsonify({"error": "Listing not found or access denied"}), 404
+
+        now = datetime.datetime.now(datetime.timezone.utc)
+        remaining_days = (item.Available_until - item.Upload_datetime).days
+
+        images = Images.query.filter_by(Item_id=item_id).all()
+        image_data = [
+            {"image_id": img.Image_id, "description": img.Image_description}
+            for img in images
+        ]
+
+        tags = (
+            db.session.query(Types.Type_id, Types.Type_name)
+            .join(Middle_type, Types.Type_id == Middle_type.Type_id)
+            .filter(Middle_type.Item_id == item_id)
+            .all()
+        )
+
+        return (
+            jsonify(
+                {
+                    "listing_name": item.Listing_name,
+                    "description": item.Description,
+                    "min_price": item.Min_price,
+                    "days_available": remaining_days,
+                    "images": image_data,
+                    "tags": [
+                        {"type_id": t.Type_id, "type_name": t.Type_name} for t in tags
+                    ],
+                }
+            ),
+            200,
+        )
+
+    except Exception as e:
+        print(f"Error getting listing details: {e}")
+        return jsonify({"error": "Failed to retrieve listing details"}), 500
+
+
+@app.route("/api/update-listing", methods=["POST"])
+def update_listing():
+    """
+    Updates an existing listing with new information.
+    """
+    try:
+        item_id = request.form.get("item_id")
+        if not item_id:
+            return jsonify({"error": "Item ID is required"}), 400
+
+        # Verify the item belongs to the current user
+        item = Items.query.filter_by(
+            Item_id=item_id, Seller_id=current_user.User_id
+        ).first()
+        if not item:
+            return jsonify({"error": "Listing not found or access denied"}), 404
+
+        # Validate required fields
+        if not all(
+            key in request.form
+            for key in [
+                "listing_name",
+                "listing_description",
+                "minimum_price",
+                "days_available",
+            ]
+        ):
+            return jsonify({"error": "Missing required fields"}), 400
+
+        # Update basic item information
+        item.Listing_name = request.form["listing_name"]
+        item.Description = request.form["listing_description"]
+        item.Min_price = float(request.form["minimum_price"])
+
+        # Set new available until date
+        days_available = int(request.form["days_available"])
+        time_now = datetime.datetime.now(datetime.UTC)
+        item.Upload_datetime = time_now
+        item.Available_until = time_now + datetime.timedelta(days=days_available)
+        item.Current_bid = 0
+        item.Sold = False
+
+        # Handle tags
+        tags = json.loads(request.form.get("tags", "[]"))
+
+        # Remove existing tags
+        Middle_type.query.filter_by(Item_id=item_id).delete()
+
+        # Add new tags
+        for tag_id in tags:
+            db.session.add(Middle_type(Item_id=item_id, Type_id=tag_id))
+
+        # Handle images
+        images_to_keep = json.loads(request.form.get("images_to_keep", "[]"))
+
+        # Delete images not being kept
+        Images.query.filter(
+            Images.Item_id == item_id, ~Images.Image_id.in_(images_to_keep)
+        ).delete()
+
+        # Add new images
+        if "new_images" in request.files:
+            for image in request.files.getlist("new_images"):
+                db.session.add(
+                    Images(
+                        Item_id=item_id,
+                        Image=image.read(),
+                        Image_description="Item image",
+                    )
+                )
+
+        db.session.commit()
+
+        # Reschedule the auction end task
+        try:
+            schedule_auction(item)
+        except Exception as e:
+            print(f"Error rescheduling auction: {e}")
+
+        return jsonify({"message": "Listing updated successfully"}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error updating listing: {e}")
+        return jsonify({"error": "Failed to update listing"}), 500

@@ -102,7 +102,7 @@ const EnlargedListingPage = () => {
                     updateTimeRemaining(data.Available_until);
                 }
             }
-        } catch (error) { }
+        } catch (error) {}
     };
 
     const fetchSellerListings = async () => {
@@ -127,7 +127,7 @@ const EnlargedListingPage = () => {
                     setSellerListings();
                 }
             }
-        } catch (error) { }
+        } catch (error) {}
     };
 
     useEffect(() => {
@@ -224,7 +224,6 @@ const EnlargedListingPage = () => {
     };
 
     const handlePlaceBid = async () => {
-
         if (!bidAmount || parseFloat(bidAmount) <= 0) {
             alert("Please enter a valid bid amount.");
             return;
@@ -268,27 +267,32 @@ const EnlargedListingPage = () => {
             } else {
                 alert(`Failed to place bid: ${data.message}`);
             }
-        } catch (error) { }
+        } catch (error) {}
     };
 
     if (!item) {
         return (
             <div className="py-20 text-center text-gray-600">
-                <div className="flex justify-center items-center">
-                    <div className="w-16 h-16 border-t-4 border-blue-600 border-dashed rounded-full animate-spin" role="status" aria-label="Loading current bids"></div>
+                <div className="flex items-center justify-center">
+                    <div
+                        className="w-16 h-16 border-t-4 border-blue-600 border-dashed rounded-full animate-spin"
+                        role="status"
+                        aria-label="Loading current bids"
+                    ></div>
                 </div>
                 <p>Loading listing...</p>
             </div>
         );
     }
 
-
     return (
         <div className="min-h-screen px-4 py-8 bg-gray-50 lg:px-6" role="main">
-            <div className="relative container p-6 mx-auto bg-white shadow-lg rounded-2xl lg:p-8">
+            <div className="container relative p-6 mx-auto bg-white shadow-lg rounded-2xl lg:p-8">
                 {user && user.level_of_access === 1 && (
                     <button
-                        className={`absolute top-8 right-8 cursor-pointer text-2xl p-2 ${wishlist ? "text-red-600" : "text-gray-500"}`}
+                        className={`absolute top-8 right-8 cursor-pointer text-2xl p-2 ${
+                            wishlist ? "text-red-600" : "text-gray-500"
+                        }`}
                         onClick={(e) => {
                             e.stopPropagation();
                             toggle_wishlist(item.Item_id);
@@ -300,11 +304,11 @@ const EnlargedListingPage = () => {
                     </button>
                 )}
                 <h1
-                    className="mb-4 text-2xl font-bold text-gray-800 lg:text-4xl flex items-center gap-4"
+                    className="flex items-center gap-4 mb-4 text-2xl font-bold text-gray-800 lg:text-4xl"
                     id="product-title"
                 >
                     {item.Listing_name}
-                    {item.Verified && <span className="text-yellow-500 text-xl">★</span>}
+                    {item.Verified && <span className="text-xl text-yellow-500">★</span>}
                 </h1>
                 <p className="mb-6 text-sm text-gray-600 lg:text-base">
                     Seller: <span className="font-semibold">{item.Seller_username}</span>
@@ -361,8 +365,9 @@ const EnlargedListingPage = () => {
                                         aria-live="polite"
                                     >
                                         <span
-                                            aria-label={`Image ${currentImageIndex + 1
-                                                } of ${imageCount}`}
+                                            aria-label={`Image ${
+                                                currentImageIndex + 1
+                                            } of ${imageCount}`}
                                         >
                                             {currentImageIndex + 1} / {imageCount}
                                         </span>
@@ -404,12 +409,16 @@ const EnlargedListingPage = () => {
                                 aria-label="Product details list"
                             >
                                 <li className="text-gray-600">
-                                    <span id="time-remaining-label">Time Remaining:</span>{" "}
+                                    <span id="time-remaining-label">
+                                        {item.Sold ? "Sold On:" : "Time Remaining:"}
+                                    </span>{" "}
                                     <span
                                         className="font-medium"
                                         aria-labelledby="time-remaining-label"
                                     >
-                                        {timeRemaining}
+                                        {item.Sold
+                                            ? new Date(item.Available_until).toLocaleString()
+                                            : timeRemaining}
                                     </span>
                                 </li>
                                 <li className="text-gray-600">
@@ -432,13 +441,38 @@ const EnlargedListingPage = () => {
                                     </span>
                                 </li>
                                 <li className="text-gray-600">
-                                    <span id="current-bid-label">Current Bid:</span>{" "}
-                                    <span
-                                        className="font-medium"
-                                        aria-labelledby="current-bid-label"
-                                    >
-                                        £{item.Current_bid || "0.00"}
-                                    </span>
+                                    {item.Sold ? (
+                                        <>
+                                            <span id="sold-price-label">Sold For:</span>{" "}
+                                            <span
+                                                className="font-medium"
+                                                aria-labelledby="sold-price-label"
+                                            >
+                                                £
+                                                {item.Buyer_info?.sold_price ||
+                                                    item.Current_bid ||
+                                                    "0.00"}
+                                            </span>
+                                            {item.Buyer_info?.buyer_username && (
+                                                <span className="ml-2">
+                                                    (to{" "}
+                                                    {item.Buyer_info.buyer_name ||
+                                                        item.Buyer_info.buyer_username}
+                                                    )
+                                                </span>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span id="current-bid-label">Current Bid:</span>{" "}
+                                            <span
+                                                className="font-medium"
+                                                aria-labelledby="current-bid-label"
+                                            >
+                                                £{item.Current_bid || "0.00"}
+                                            </span>
+                                        </>
+                                    )}
                                 </li>
                                 {item.Tags && item.Tags.length > 0 ? (
                                     <ul className="flex space-x-2">
@@ -459,7 +493,11 @@ const EnlargedListingPage = () => {
 
                         {/* Bidding Section */}
                         <section className="py-6" aria-labelledby="bidding-section">
-                            {user ? (
+                            {item.Sold ? (
+                                <div className="px-6 py-3 text-lg font-semibold text-white bg-green-600 rounded-lg">
+                                    This item has been sold
+                                </div>
+                            ) : user ? (
                                 user.level_of_access === 1 ? ( // if user, user isn't manager/expert, and user isn't seller
                                     user.user_id !== item.Seller_id && (
                                         <>
@@ -480,8 +518,8 @@ const EnlargedListingPage = () => {
                                                     aria-describedby="bid-instructions"
                                                 />
                                                 <div id="bid-instructions" className="sr-only">
-                                                    Enter your bid amount. Must be higher than the minimum price
-                                                    and the current bid.
+                                                    Enter your bid amount. Must be higher than the
+                                                    minimum price and the current bid.
                                                 </div>
                                             </div>
                                             {!isExpired ? (
@@ -521,7 +559,7 @@ const EnlargedListingPage = () => {
             {user &&
                 user.level_of_access === 1 &&
                 sellerListings?.filter((listing) => listing.Item_id !== item.Item_id).length >
-                0 && (
+                    0 && (
                     <section
                         className="container p-6 mx-auto mt-12 bg-white shadow-lg rounded-2xl lg:p-8"
                         aria-labelledby="other-products-heading"
