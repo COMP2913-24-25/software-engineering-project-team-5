@@ -336,7 +336,7 @@ def update_item_bid(item_id, bid_amount, user_id):
             Item_id=item_id,
             Bidder_id=user_id,
             Successful_bid=True,
-            Bid_datetime=datetime.datetime.now(datetime.UTC),
+            Bid_datetime=datetime.datetime.now(datetime.timezone.utc),
             Winning_bid=False,
             Bid_price=bid_amount,
         )
@@ -1306,12 +1306,12 @@ def Create_listing():
         else:
             authentication_request = True
 
-        time_now = datetime.datetime.now(datetime.UTC)
+        time_now = datetime.datetime.now(datetime.timezone.utc)
         # time_after_days_available = datetime.datetime.now(
-        #     datetime.UTC
+        #     datetime.timezone.utc
         # ) + datetime.timedelta(days=int(request.form["days_available"]))
         time_after_days_available = datetime.datetime.now(
-            datetime.UTC
+            datetime.timezone.utc
         ) + datetime.timedelta(days=int(request.form["days_available"]))
 
         struct_id = None
@@ -2015,7 +2015,7 @@ def get_profit_structure():
                                 "expert_split": 0.04,
                                 "manager_split": 0.01,
                                 "enforced_datetime": datetime.datetime.now(
-                                    datetime.UTC
+                                    datetime.timezone.utc
                                 ),
                             }
                         }
@@ -2069,7 +2069,7 @@ def update_profit_structure():
                 new_profit_structure = Profit_structure(
                     Expert_split=expert_split,
                     Manager_split=manager_split,
-                    Enforced_datetime=datetime.datetime.now(datetime.UTC),
+                    Enforced_datetime=datetime.datetime.now(datetime.timezone.utc),
                 )
 
                 db.session.add(new_profit_structure)
@@ -2795,7 +2795,7 @@ def update_listing():
 
         # Set new available until date
         days_available = int(request.form["days_available"])
-        time_now = datetime.datetime.now(datetime.UTC)
+        time_now = datetime.datetime.now(datetime.timezone.utc)
         item.Upload_datetime = time_now
         item.Available_until = time_now + datetime.timedelta(days=days_available)
         item.Current_bid = 0

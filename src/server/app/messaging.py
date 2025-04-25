@@ -32,7 +32,7 @@ def handle_join(data):
 
         for message in unread_messages:
             message.Read = True
-            message.Read_timestamp = datetime.datetime.now(datetime.UTC)
+            message.Read_timestamp = datetime.datetime.now(datetime.timezone.utc)
 
         db.session.commit()
 
@@ -62,7 +62,7 @@ def handle_message(data):
         Sender_id=current_user.User_id,
         Content=content,
         Image=image,
-        Timestamp=datetime.datetime.now(datetime.UTC),
+        Timestamp=datetime.datetime.now(datetime.timezone.utc),
         Read=False,
     )
 
@@ -159,7 +159,7 @@ def handle_get_messages(data):
     ]
     for msg in unread_messages:
         msg.Read = True
-        msg.Read_timestamp = datetime.datetime.now(datetime.UTC)
+        msg.Read_timestamp = datetime.datetime.now(datetime.timezone.utc)
 
     if unread_messages:
         db.session.commit()
