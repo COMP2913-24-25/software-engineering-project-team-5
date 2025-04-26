@@ -834,7 +834,6 @@ def _generate_response(items):
     response.headers["Cache-Control"] = "public, max-age=86400"  # Cache for 24 hours
     return response, 200
 
-
 @app.route("/api/get_search_filter", methods=["POST"])
 def get_search_filter():
     """
@@ -853,7 +852,7 @@ def get_search_filter():
     Returns:
         JSON: A list of filtered item details (based on the search query).
     """
-    # print("in search")
+
     data = request.json
     user = data.get("user", "")
     item = data.get("item", "")
@@ -861,7 +860,13 @@ def get_search_filter():
     print("SEARCH QUERY IN BACKEND", searchQuery)
     # print("ITEM", item)
     filtered_ids = []
-
+    # if user == True:
+    #     print("user : true")
+    # elif item == True:
+    #     print("item :true")
+    # else :
+    #     print("both false")
+    search_tokens = []
     filtered_items = []
     filtered_users = []
 
@@ -887,39 +892,61 @@ def get_search_filter():
             .all()
         )
         # print("in item bool")
+        # print(available_items)
         if searchQuery == "":
             # Return all items
             # print("Empty search Query")
             filtered_items = available_items
+            # print(filtered_items)
         else:
             # filter by item name, works with space seperated strings
             # item_names_and_Ids = db.session.query(Items.Listing_name, Items.Item_id).all()
             item_names_and_Ids = [
                 (item.Listing_name, item.Item_id) for item in available_items
             ]
+            # print(item_names_and_Ids)
+            # print(item_names_and_Ids)
             for name, item_id in item_names_and_Ids:
                 name = name.lower()
                 name_tokens = name.split()
+                # print(name_tokens)
                 search_tokens = searchQuery.split()
+                # print(search_tokens)
 
-                print(name_tokens)
+                # print(name_tokens)
                 for i in range(len(name_tokens) - len(search_tokens) + 1):
                     if all(
                         name_tokens[i + j].startswith(search_tokens[j])
                         for j in range(len(search_tokens))
                     ):
-                        print(f"name : {name_tokens} seach : {search_tokens}")
                         filtered_ids.append(item_id)
 
-            # filter by item_tags, works for tags that have more than one word
+             # filter by item_tags, works for tags that have more than one word
             type_names = (
                 db.session.query(Types.Type_name, Items.Item_id)
                 .join(Middle_type, Middle_type.Item_id == Items.Item_id)
                 .join(Types, Types.Type_id == Middle_type.Type_id)
+                .filter(
+                Items.Available_until > datetime.datetime.now(),
+                db.or_(
+                    db.and_(
+                        Items.Authentication_request == False,
+                        Items.Verified == True,
+                        Items.Authentication_request_approved == True,
+                    ),
+                    db.and_(
+                        Items.Authentication_request == False,
+                        Items.Verified == False,
+                        Items.Authentication_request_approved == None,
+                    ),
+                ),
+            )
                 .all()
             )
-
+            item_ids_unique = list(set(item_id for _, item_id in type_names)) 
+            # print(item_ids_unique)
             for tag_name, item_id in type_names:
+                tag_name = tag_name.lower()
                 tag_name_tokens = tag_name.split()
                 for i in range(len(tag_name_tokens) - len(search_tokens) + 1):
                     # print("Search tags",search_tokens)
@@ -930,14 +957,38 @@ def get_search_filter():
                         # ensure no duplicates of item_ids
                         if item_id not in filtered_ids:
                             filtered_ids.append(item_id)
+                            
+                
+            # search for multiple tags seperated by " ", tag 1 AND tag 2 AND ...
+            for item_id in item_ids_unique :
+                multiple_tags_count = 0
+                item_types = {type_name.lower() for type_name, id in type_names if id == item_id}
+                # print(item_id, item_types)
 
+                for token in search_tokens:
+                    for type_name in item_types:
+                        # print(f"comparing search token {token} with type {type_name}")
+                        if type_name.startswith(token):
+                            multiple_tags_count += 1
+                
+                # print(multiple_tags_count)
+                if multiple_tags_count >= len(search_tokens):
+                    if item_id not in filtered_ids:
+                            filtered_ids.append(item_id)
+                    
+                    
+                    
+                
             # print("Item Ids",filtered_ids)
             # get items from filtered Ids
+            
+            
+            print(type_names)
             filtered_items = (
                 db.session.query(Items).filter(Items.Item_id.in_(filtered_ids)).all()
             )
-
-        print(filtered_items)
+            
+            # print("Returned", filtered_items)
 
         # Turn into dict
         items_list = []
