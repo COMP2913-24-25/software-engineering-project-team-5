@@ -45,10 +45,14 @@ const Filter_component = ({ update_listings, listings }) => {
             // console.log("Filtered_listings reached in filter :", listings);
 
             const min = parseFloat(minPrice) || 0; // Default to 0 if empty or invalid
-            const max = parseFloat(maxPrice) || 9999999;
+            const max = parseFloat(maxPrice) || 99999999;
             console.log("min : ", min, "max : ", max);
             if (min > max) {
                 alert("Max price must be greater than Min price.");
+                return;
+            }
+            if (max > 99999999) {
+                alert("Max price cannot be over 99999999");
                 return;
             }
             const response = await fetch(`${api_base_url}/api/get_filtered_listings`, {
