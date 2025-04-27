@@ -47,7 +47,7 @@ def client():
             profit_structure = Profit_structure(
                 Expert_split=0.5,
                 Manager_split=0.5,
-                Enforced_datetime=datetime.datetime.now()
+                Enforced_datetime=datetime.datetime.now(datetime.timezone.utc),
             )
             db.session.add(profit_structure)
             db.session.commit()
@@ -58,7 +58,8 @@ def client():
                 Seller_id=test_user.User_id,
                 Min_price=100,
                 Current_bid=50,
-                Available_until=datetime.datetime.now() + datetime.timedelta(days=1),
+                Available_until=datetime.datetime.now(datetime.timezone.utc)
+                + datetime.timedelta(days=1),
                 Description="Test",
                 Verified=True,
                 Authentication_request=False,
@@ -86,7 +87,9 @@ def logged_in_user(client):
 
 def test_get_profit_structure(client, logged_in_user):
     """Test retrieving the most recent profit structure."""
-    response = client.get("/api/get-profit-structure", headers={"Content-Type": "application/json"})
+    response = client.get(
+        "/api/get-profit-structure", headers={"Content-Type": "application/json"}
+    )
     assert response.status_code == 200
     data = json.loads(response.data)
     assert "profit_data" in data
@@ -100,7 +103,9 @@ def test_get_profit_structure_no_record(client, logged_in_user):
     Profit_structure.query.delete()
     db.session.commit()
 
-    response = client.get("/api/get-profit-structure", headers={"Content-Type": "application/json"})
+    response = client.get(
+        "/api/get-profit-structure", headers={"Content-Type": "application/json"}
+    )
     assert response.status_code == 200
     data = json.loads(response.data)
     assert "profit_data" in data
@@ -120,7 +125,9 @@ def test_update_profit_structure(client, logged_in_user):
     assert data["message"] == "Profit structure updated successfully!"
 
     # Verify the updated structure in the database
-    updated_structure = Profit_structure.query.order_by(Profit_structure.Enforced_datetime.desc()).first()
+    updated_structure = Profit_structure.query.order_by(
+        Profit_structure.Enforced_datetime.desc()
+    ).first()
     assert updated_structure.Expert_split == 0.6
     assert updated_structure.Manager_split == 0.4
 
@@ -148,7 +155,12 @@ def test_get_sold(client, logged_in_user):
 def test_get_sold_no_items(client, logged_in_user):
     """Test when no sold items are found."""
     # Change the 'Available_until' to a future date so no items are sold
-    Items.query.update({Items.Available_until: datetime.datetime.now() + datetime.timedelta(days=1)})
+    Items.query.update(
+        {
+            Items.Available_until: datetime.datetime.now(datetime.timezone.utc)
+            + datetime.timedelta(days=1)
+        }
+    )
     db.session.commit()
 
     response = client.get("/api/get-sold", headers={"Content-Type": "application/json"})
@@ -183,4 +195,3 @@ def test_get_sold_no_access(client):
     assert response.status_code == 401
     data = json.loads(response.data)
     assert data["message"] == "User is not on correct level of access!"
-

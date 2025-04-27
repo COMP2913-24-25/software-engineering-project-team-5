@@ -9,6 +9,7 @@ from app.models import User, Items, Types, Middle_type, Images
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+
 # Test Setup - Fixtures
 @pytest.fixture
 def client():
@@ -50,7 +51,8 @@ def client():
             test_item = Items(
                 Listing_name="Vintage Watch",
                 Seller_id=test_seller.User_id,
-                Available_until=datetime.datetime.now() + datetime.timedelta(days=30),
+                Available_until=datetime.datetime.now(datetime.timezone.utc)
+                + datetime.timedelta(days=30),
                 Verified=True,
                 Authentication_request=False,
                 Authentication_request_approved=True,
@@ -65,21 +67,21 @@ def client():
             db.session.add(test_type)
             db.session.commit()
 
-            test_middle_type = Middle_type(Item_id=test_item.Item_id, Type_id=test_type.Type_id)
+            test_middle_type = Middle_type(
+                Item_id=test_item.Item_id, Type_id=test_type.Type_id
+            )
             db.session.add(test_middle_type)
             db.session.commit()
-
 
             yield client
 
             db.session.remove()
             db.drop_all()
 
+
 # Test Case for /api/get_category_filters
 def test_get_category_filters(client):
-    data = {
-        "categories": "adidas blue"  # Category should match the item type
-    }
+    data = {"categories": "adidas blue"}  # Category should match the item type
 
     response = client.post("/api/get_category_filters", json=data)
 
@@ -90,9 +92,7 @@ def test_get_category_filters(client):
 
 
 def test_get_category_filters_no_match(client):
-    data = {
-        "categories": "nike red"  # No items should match this category
-    }
+    data = {"categories": "nike red"}  # No items should match this category
 
     response = client.post("/api/get_category_filters", json=data)
 
@@ -102,9 +102,7 @@ def test_get_category_filters_no_match(client):
 
 
 def test_get_category_filters_empty_category(client):
-    data = {
-        "categories": ""  # Empty category list, should return all items
-    }
+    data = {"categories": ""}  # Empty category list, should return all items
 
     response = client.post("/api/get_category_filters", json=data)
 

@@ -10,6 +10,7 @@ from app.models import User, Items, Watchlist
 from werkzeug.security import generate_password_hash
 from flask import session
 
+
 # Test Client Fixture
 @pytest.fixture
 def client():
@@ -40,6 +41,7 @@ def client():
             db.session.remove()
             db.drop_all()
 
+
 # Logged-in User Fixture
 @pytest.fixture
 def logged_in_user(client):
@@ -50,6 +52,7 @@ def logged_in_user(client):
     )
     return User.query.filter_by(Username="testuser").first()
 
+
 # Test Item Fixture
 @pytest.fixture
 def test_item(logged_in_user):
@@ -59,88 +62,95 @@ def test_item(logged_in_user):
         Seller_id=logged_in_user.User_id,
         Min_price=100,
         Current_bid=50,
-        Available_until=datetime.datetime.now() + datetime.timedelta(days=1),
+        Available_until=datetime.datetime.now(datetime.timezone.utc)
+        + datetime.timedelta(days=1),
         Description="Test",
         Verified=True,
-        Authentication_request=False
+        Authentication_request=False,
     )
     db.session.add(item)
     db.session.commit()
     return item
+
 
 def test_get_watchlist_not_logged_in(client):
     response = client.get("/api/get-watchlist")
     assert response.status_code == 401
     assert json.loads(response.data)["message"] == "No user logged in"
 
+
 def test_get_watchlist_empty(client, logged_in_user):
     response = client.get("/api/get-watchlist")
     assert response.status_code == 200
     assert json.loads(response.data)["message"] == "No items in watchlist"
 
+
 def test_add_watchlist_success(client, logged_in_user, test_item):
     response = client.post(
-        "/api/add-watchlist", 
-        json={"item_id": test_item.Item_id}, 
-        content_type="application/json"
+        "/api/add-watchlist",
+        json={"item_id": test_item.Item_id},
+        content_type="application/json",
     )
     assert response.status_code == 200
     assert json.loads(response.data)["message"] == "Item added to watchlist"
 
+
 def test_add_watchlist_already_exists(client, logged_in_user, test_item):
     # Add item to watchlist first
     client.post(
-        "/api/add-watchlist", 
-        json={"item_id": test_item.Item_id}, 
-        content_type="application/json"
+        "/api/add-watchlist",
+        json={"item_id": test_item.Item_id},
+        content_type="application/json",
     )
-    
+
     # Now try to add the same item again
     response = client.post(
-        "/api/add-watchlist", 
-        json={"item_id": test_item.Item_id}, 
-        content_type="application/json"
+        "/api/add-watchlist",
+        json={"item_id": test_item.Item_id},
+        content_type="application/json",
     )
     assert response.status_code == 405  # Changed to 409 Conflict
     assert json.loads(response.data)["message"] == "Item already in watchlist"
 
+
 def test_remove_watchlist_success(client, logged_in_user, test_item):
     # First add item to watchlist
     client.post(
-        "/api/add-watchlist", 
-        json={"item_id": test_item.Item_id}, 
-        content_type="application/json"
+        "/api/add-watchlist",
+        json={"item_id": test_item.Item_id},
+        content_type="application/json",
     )
-    
+
     # Now test removing it from the watchlist
     response = client.post(
-        "/api/remove-watchlist", 
-        json={"item_id": test_item.Item_id}, 
-        content_type="application/json"
+        "/api/remove-watchlist",
+        json={"item_id": test_item.Item_id},
+        content_type="application/json",
     )
     assert response.status_code == 200
     assert json.loads(response.data)["message"] == "Item removed from watchlist"
 
+
 def test_remove_watchlist_not_found(client, logged_in_user):
     response = client.post(
-        "/api/remove-watchlist", 
-        json={"item_id": 9999}, 
-        content_type="application/json"
+        "/api/remove-watchlist", json={"item_id": 9999}, content_type="application/json"
     )
     assert response.status_code == 404
     assert json.loads(response.data)["message"] == "Item not found in watchlist"
 
+
 def test_check_watchlist(client, logged_in_user, test_item):
     # Add item to watchlist first
     client.post(
-        "/api/add-watchlist", 
-        json={"item_id": test_item.Item_id}, 
-        content_type="application/json"
+        "/api/add-watchlist",
+        json={"item_id": test_item.Item_id},
+        content_type="application/json",
     )
-    
+
     response = client.get(f"/api/check-watchlist?Item_id={test_item.Item_id}")
     assert response.status_code == 200
     assert json.loads(response.data)["in_watchlist"] is True
+
 
 def test_check_watchlist_not_found(client, logged_in_user):
     response = client.get("/api/check-watchlist?Item_id=9999")

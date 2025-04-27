@@ -72,9 +72,9 @@ class Items(db.Model):
     Listing_name = db.Column(db.String(50), nullable=False)
     Seller_id = db.Column(db.Integer, db.ForeignKey("user.User_id"), nullable=False)
     Upload_datetime = db.Column(
-        db.DateTime, default=datetime.datetime.now(datetime.timezone.utc)
+        db.DateTime(timezone=True), default=datetime.datetime.now(datetime.timezone.utc)
     )
-    Available_until = db.Column(db.DateTime, nullable=False)
+    Available_until = db.Column(db.DateTime(timezone=True), nullable=False)
     Min_price = db.Column(db.Float, nullable=False)
     Current_bid = db.Column(db.Float, nullable=False)
     Description = db.Column(db.String(500), nullable=False)
@@ -133,7 +133,9 @@ class Bidding_history(db.Model):
     Successful_bid = db.Column(
         db.Boolean, nullable=False
     )  # true if this is the highest bid for item
-    Bid_datetime = db.Column(db.DateTime, default=datetime.datetime.now(datetime.timezone.utc))
+    Bid_datetime = db.Column(
+        db.DateTime(timezone=True), default=datetime.datetime.now(datetime.timezone.utc)
+    )
     Bid_price = db.Column(db.Float, nullable=False)
     Winning_bid = db.Column(
         db.Boolean, default=False
@@ -146,7 +148,7 @@ class Profit_structure(db.Model):
     Expert_split = db.Column(db.Float, nullable=False)
     Manager_split = db.Column(db.Float, nullable=False)
     Enforced_datetime = db.Column(
-        db.DateTime, default=datetime.datetime.now(datetime.timezone.utc)
+        db.DateTime(timezone=True), default=datetime.datetime.now(datetime.timezone.utc)
     )
 
 
@@ -182,9 +184,11 @@ class ChatMessages(db.Model):
     Sender_id = db.Column(db.Integer, db.ForeignKey("user.User_id"), nullable=False)
     Content = db.Column(db.Text, nullable=True)
     Image = db.Column(db.LargeBinary, nullable=True)
-    Timestamp = db.Column(db.DateTime, default=datetime.datetime.now(datetime.timezone.utc))
+    Timestamp = db.Column(
+        db.DateTime(timezone=True), default=datetime.datetime.now(datetime.timezone.utc)
+    )
     Read = db.Column(db.Boolean, nullable=False, default=False)
-    Read_timestamp = db.Column(db.DateTime, nullable=True)
+    Read_timestamp = db.Column(db.DateTime(timezone=True), nullable=True)
 
     # Relationships
     Sender = db.relationship("User", foreign_keys=[Sender_id], backref="sent_messages")

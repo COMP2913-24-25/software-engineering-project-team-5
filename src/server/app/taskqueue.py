@@ -174,7 +174,7 @@ def send_auction_notifications(item, winning_bid):
             )
 
     except Exception as e:
-        pass
+        raise Exception("Failed to send notifications")
 
 
 def send_email(recipient, subject, body):

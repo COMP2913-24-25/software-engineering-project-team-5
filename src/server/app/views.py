@@ -718,11 +718,14 @@ def get_bid_filtering():
             .all()
         )
 
+
         # print("BID", bid_table)
         for item_id, available_until, successful_bid, winning_bid in bid_table:
             # Condition to check if the bid has expired
-            if (
-                available_until < datetime.datetime.now(datetime.timezone.utc)
+            if available_until.replace(
+                tzinfo=datetime.timezone.utc
+            ) < datetime.datetime.now(
+                datetime.timezone.utc
             ):  # Check if the bid has expired, won is only possible after expired
                 if bid_status_selected:  # Ensure bid_status_selected is not None
                     if bid_status_selected == "won":
@@ -760,7 +763,8 @@ def get_category_filters():
         db.session.query(Items)
         .join(User, Items.Seller_id == User.User_id)
         .filter(
-            Items.Available_until > datetime.datetime.now(datetime.timezone.utc)),
+
+            Items.Available_until > datetime.datetime.now(datetime.timezone.utc),
             db.or_(
                 db.and_(
                     Items.Authentication_request == False,
@@ -867,7 +871,8 @@ def get_search_filter():
             db.session.query(Items)
             .join(User, Items.Seller_id == User.User_id)
             .filter(
-                Items.Available_until > datetime.datetime.now(datetime.timezone.utc)),
+
+                Items.Available_until > datetime.datetime.now(datetime.timezone.utc),
                 db.or_(
                     db.and_(
                         Items.Authentication_request == False,
@@ -1272,8 +1277,10 @@ def update_auth_request():
 
             # Updates information according to if the request was accepted or declined
             if data["action"] == "accept":
-                request_to_update.Available_until += (
-                    datetime.datetime.now(datetime.timezone.utc)) - request_to_update.Upload_datetime
+                request_to_update.Available_until += datetime.datetime.now(
+                    datetime.timezone.utc
+                ) - request_to_update.Upload_datetime.replace(
+                    tzinfo=datetime.timezone.utc
                 )
                 request_to_update.Verified = True
                 request_to_update.Authentication_request = False
@@ -1429,7 +1436,8 @@ def get_listings():
             db.session.query(Items, User.Username)
             .join(User, Items.Seller_id == User.User_id)
             .filter(
-                Items.Available_until > datetime.datetime.now(datetime.timezone.utc)),
+
+                Items.Available_until > datetime.datetime.now(datetime.timezone.utc),
                 db.or_(
                     db.and_(
                         Items.Authentication_request == False,
@@ -1499,7 +1507,8 @@ def get_seller_listings():
             .join(User, Items.Seller_id == User.User_id)
             .filter(
                 Items.Seller_id == current_user.User_id,
-                Items.Available_until > datetime.datetime.now(datetime.timezone.utc)),
+
+                Items.Available_until > datetime.datetime.now(datetime.timezone.utc),
                 db.or_(
                     db.and_(
                         Items.Authentication_request == False,
@@ -1600,7 +1609,6 @@ def get_sellerss_listings():
         return jsonify({"Error": "Failed to retrieve items"}), 401
 
 
-@cache.cached(timeout=30, key_prefix=lambda: f"user_bids_{current_user.User_id}")
 @app.route("/api/get-bids", methods=["GET"])
 def get_bids():
     """
@@ -1625,7 +1633,9 @@ def get_bids():
             )  # Join User table to get seller info
             .filter(
                 Bidding_history.Bidder_id == current_user.User_id,
-                Items.Available_until > datetime.datetime.now(datetime.timezone.utc)),  # Only valid bids
+
+                Items.Available_until
+                > datetime.datetime.now(datetime.timezone.utc),  # Only valid bids
             )
             .with_entities(
                 Bidding_history.Bid_id,
@@ -1703,9 +1713,6 @@ def get_bids():
         # Convert dictionary to list for JSON response
         current_bids = list(unique_bids.values())
         response = jsonify({"bids": current_bids})
-        response.headers["Cache-Control"] = (
-            "public, max-age=86400"  # Cache for 24 hours
-        )
         return response, 200
 
     else:
@@ -1740,7 +1747,9 @@ def get_history():
             )  # Outer join Images table to get item image
             .filter(
                 Bidding_history.Bidder_id == current_user.User_id,
-                Items.Available_until < datetime.datetime.now(datetime.timezone.utc)),  # Only expired bids
+
+                Items.Available_until
+                < datetime.datetime.now(datetime.timezone.utc),  # Only expired bids
             )
             .with_entities(
                 Bidding_history.Bid_id,
@@ -2131,7 +2140,9 @@ def get_sold():
                     )
                     .join(Bidding_history, Items.Item_id == Bidding_history.Item_id)
                     .filter(
-                        Items.Available_until < datetime.datetime.now(datetime.timezone.utc)),
+
+                        Items.Available_until
+                        < datetime.datetime.now(datetime.timezone.utc),
                         Bidding_history.Winning_bid == 1,
                     )
                     .with_entities(
