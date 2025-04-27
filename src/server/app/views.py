@@ -720,7 +720,9 @@ def get_bid_filtering():
         print("BID", bid_table)
         for item_id, available_until, successful_bid, winning_bid in bid_table:
             # Condition to check if the bid has expired
-            if available_until < datetime.datetime.now(
+            if available_until.replace(
+                tzinfo=datetime.timezone.utc
+            ) < datetime.datetime.now(
                 datetime.timezone.utc
             ):  # Check if the bid has expired, won is only possible after expired
                 if bid_status_selected:  # Ensure bid_status_selected is not None
@@ -1248,9 +1250,10 @@ def update_auth_request():
 
             # Updates information according to if the request was accepted or declined
             if data["action"] == "accept":
-                request_to_update.Available_until += (
-                    datetime.datetime.now(datetime.timezone.utc)
-                    - request_to_update.Upload_datetime
+                request_to_update.Available_until += datetime.datetime.now(
+                    datetime.timezone.utc
+                ) - request_to_update.Upload_datetime.replace(
+                    tzinfo=datetime.timezone.utc
                 )
                 request_to_update.Verified = True
                 request_to_update.Authentication_request = False
