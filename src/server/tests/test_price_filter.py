@@ -9,6 +9,7 @@ from app.models import User, Items, Bidding_history
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+
 # Test Setup - Fixtures
 @pytest.fixture
 def client():
@@ -18,7 +19,7 @@ def client():
     with app.test_client() as client:
         with app.app_context():
             db.create_all()
-            
+
             # Create test users
             test_user = User(
                 Username="testuser",
@@ -30,7 +31,7 @@ def client():
                 Level_of_access=1,
                 Is_expert=False,
             )
-            
+
             test_seller = User(
                 Username="seller",
                 Password=generate_password_hash("SellerPass123@"),
@@ -41,16 +42,17 @@ def client():
                 Level_of_access=1,
                 Is_expert=False,
             )
-            
+
             db.session.add(test_user)
             db.session.add(test_seller)
             db.session.commit()
-            
+
             # Create test items
             test_item = Items(
                 Listing_name="Vintage Watch",
                 Seller_id=test_seller.User_id,
-                Available_until=datetime.datetime.now() + datetime.timedelta(days=30),
+                Available_until=datetime.datetime.now(datetime.timezone.utc)
+                + datetime.timedelta(days=30),
                 Verified=True,
                 Authentication_request=False,
                 Authentication_request_approved=True,
@@ -60,11 +62,12 @@ def client():
             )
             db.session.add(test_item)
             db.session.commit()
-            
+
             yield client
-            
+
             db.session.remove()
             db.drop_all()
+
 
 @pytest.fixture
 def logged_in_user(client):
@@ -75,10 +78,11 @@ def logged_in_user(client):
     )
     return User.query.filter_by(Username="testuser").first()
 
+
 # Test Case for /api/get_filtered_listings
 def test_get_filtered_listings(client, logged_in_user):
     test_item = Items.query.first()
-    
+
     data = {
         "min_price": 100,
         "max_price": 300,
