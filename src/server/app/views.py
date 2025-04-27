@@ -911,11 +911,11 @@ def get_search_filter():
 
              # filter by item_tags, works for tags that have more than one token
             type_names = (
-                db.session.query(Types.Type_name, Items.Item_id)
-                .join(Middle_type, Middle_type.Item_id == Items.Item_id)
-                .join(Types, Types.Type_id == Middle_type.Type_id)
-                .filter(
-                Items.Available_until.replace(tzinfo=datetime.timezone.utc) > datetime.datetime.now(datetime.timezone.utc)),
+            db.session.query(Types.Type_name, Items.Item_id)
+            .join(Middle_type, Middle_type.Item_id == Items.Item_id)
+            .join(Types, Types.Type_id == Middle_type.Type_id)
+            .filter(
+                Items.Available_until.replace(tzinfo=datetime.timezone.utc) > datetime.datetime.now(datetime.timezone.utc),
                 db.or_(
                     db.and_(
                         Items.Authentication_request == False,
@@ -929,8 +929,9 @@ def get_search_filter():
                     ),
                 ),
             )
-                .all()
+            .all()
             )
+
             item_ids_unique = list(set(item_id for _, item_id in type_names)) 
             # print(item_ids_unique)
             for tag_name, item_id in type_names:
