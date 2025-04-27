@@ -1580,7 +1580,6 @@ def get_sellerss_listings():
         return jsonify({"Error": "Failed to retrieve items"}), 401
 
 
-@cache.cached(timeout=30, key_prefix=lambda: f"user_bids_{current_user.User_id}")
 @app.route("/api/get-bids", methods=["GET"])
 def get_bids():
     """
@@ -1684,9 +1683,6 @@ def get_bids():
         # Convert dictionary to list for JSON response
         current_bids = list(unique_bids.values())
         response = jsonify({"bids": current_bids})
-        response.headers["Cache-Control"] = (
-            "public, max-age=86400"  # Cache for 24 hours
-        )
         return response, 200
 
     else:
