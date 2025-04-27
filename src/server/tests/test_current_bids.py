@@ -77,8 +77,9 @@ def test_get_bids_success(client, logged_in_user):
     test_item = Items(
         Listing_name="Rolex Watch",
         Seller_id=2,
-        Upload_datetime=datetime.datetime.now(),
-        Available_until=datetime.datetime.now() + datetime.timedelta(days=7),
+        Upload_datetime=datetime.datetime.now(datetime.timezone.utc),
+        Available_until=datetime.datetime.now(datetime.timezone.utc)
+        + datetime.timedelta(days=7),
         Min_price=5000,
         Current_bid=5100,
         Description="Luxury Rolex Watch",
@@ -92,7 +93,7 @@ def test_get_bids_success(client, logged_in_user):
         Item_id=test_item.Item_id,
         Bidder_id=logged_in_user.User_id,
         Successful_bid=False,
-        Bid_datetime=datetime.datetime.now(),
+        Bid_datetime=datetime.datetime.now(datetime.timezone.utc),
         Bid_price=5200,
         Winning_bid=True,
     )

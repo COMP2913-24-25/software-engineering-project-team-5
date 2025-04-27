@@ -65,8 +65,10 @@ def test_get_history_with_bids(client, logged_in_user):
     test_item = Items(
         Listing_name="Vintage Watch",
         Seller_id=logged_in_user.User_id,
-        Upload_datetime=datetime.datetime.now() - datetime.timedelta(days=30),
-        Available_until=datetime.datetime.now() - datetime.timedelta(days=1),
+        Upload_datetime=datetime.datetime.now(datetime.timezone.utc)
+        - datetime.timedelta(days=30),
+        Available_until=datetime.datetime.now(datetime.timezone.utc)
+        - datetime.timedelta(days=1),
         Min_price=200,
         Current_bid=250,
         Description="A classic vintage watch",
@@ -80,7 +82,8 @@ def test_get_history_with_bids(client, logged_in_user):
         Item_id=test_item.Item_id,
         Bidder_id=logged_in_user.User_id,
         Successful_bid=True,
-        Bid_datetime=datetime.datetime.now() - datetime.timedelta(days=2),
+        Bid_datetime=datetime.datetime.now(datetime.timezone.utc)
+        - datetime.timedelta(days=2),
         Bid_price=250,
         Winning_bid=True,
     )
