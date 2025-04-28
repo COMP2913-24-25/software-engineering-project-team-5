@@ -915,7 +915,7 @@ def get_search_filter():
             .join(Middle_type, Middle_type.Item_id == Items.Item_id)
             .join(Types, Types.Type_id == Middle_type.Type_id)
             .filter(
-                Items.Available_until.replace(tzinfo=datetime.timezone.utc) > datetime.datetime.now(datetime.timezone.utc),
+                Items.Available_until > datetime.datetime.now(datetime.timezone.utc),
                 db.or_(
                     db.and_(
                         Items.Authentication_request == False,
