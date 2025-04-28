@@ -201,8 +201,8 @@ const AccountSummary = () => {
     };
 
     const is_expert = user?.level_of_access === 2;
-    //const is_sunday = new Date().getDay() === 0; // 0 is representing Sunday in this case
-    const is_sunday = true; // For testing purposes
+    const is_sunday = new Date().getDay() === 0; // 0 is representing Sunday in this case
+    //const is_sunday = true; // For testing purposes
 
     return (
         <div
