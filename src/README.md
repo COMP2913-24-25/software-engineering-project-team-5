@@ -143,17 +143,15 @@ You may get warnings when doing these installs. If there is a critial warning, t
 npm audit fix --force
 ```
 
-If you get warning that aren't critical, its fine to ignore them, and you can start the client with npm start as before. You can delete the nodes_module folder if you are getting issues and redo the install.
+If you get warning that aren't critical, its fine to ignore them, and you can start the client with npm run dev as before. You can delete the nodes_module folder if you are getting issues and redo the install.
 
 ## Additional Comments - IMPORTANT
 
 Read the App.js, login.jsx and views.py files to understand how react is being used with flask.
 
-CSRF Protection not enabled - things break when it is on, haven't figured out a fix.
-
 Further React information on the README in the client directory.
 
-In **package.json**, we have specified the proxy to be http://localhost:5000, to connect the front end to the Flask backend, but this will have to be changed once we deploy application (maybe lol, we will see after figuring out server hosting).
+In **package.json**, we have specified the proxy to be http://localhost:5000, to connect the front end to the Flask backend, but this will have to be changed once we deploy application (maybe, we will see after figuring out server hosting).
 
 ## Basic Commands (for reference)
 
@@ -175,4 +173,12 @@ To run the flask application:
 ```bash
 cd src/server
 flask run
+```
+
+To build the react application:
+
+```bash
+cd src/client
+npm run build
+npm run preview
 ```
