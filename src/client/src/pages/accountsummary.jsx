@@ -188,7 +188,7 @@ const AccountSummary = () => {
     };
 
     const get_week_start_date = () => {
-        const today = new Date("2025-03-23");
+        const today = new Date();
         const week_start_date = new Date(today);
         week_start_date.setDate(today.getDate() + 1);
         return week_start_date.toISOString().split("T")[0];
