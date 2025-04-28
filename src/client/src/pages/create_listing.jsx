@@ -216,11 +216,14 @@ const CreateListing = () => {
     return (
         <div className="relative min-h-screen bg-gray-100 px-[5%] md:px-[10%] py-8" role="main">
             {/* Page Header */}
-            <div className="text-center mb-8">
-                <h1 className="text-2xl font-semibold text-center text-gray-800 mb-4" id="page-title">
+            <div className="mb-8 text-center">
+                <h1
+                    className="mb-4 text-2xl font-semibold text-center text-gray-800"
+                    id="page-title"
+                >
                     Create a New Listing
                 </h1>
-                <p className="text-xl text-gray-500 mt-2" aria-describedby="page-title">
+                <p className="mt-2 text-xl text-gray-500" aria-describedby="page-title">
                     Fill out the details for your auction item
                 </p>
             </div>
@@ -229,19 +232,22 @@ const CreateListing = () => {
                 <form onSubmit={handle_submit} className="space-y-4" aria-labelledby="page-title">
                     {errors.general &&
                         errors.general.map((error, index) => (
-                            <div key={index} className="text-red-600 text-center mb-2" role="alert">
+                            <div key={index} className="mb-2 text-center text-red-600" role="alert">
                                 {error}
                             </div>
                         ))}
 
                     {/* Listing Name */}
                     <div>
-                        <label htmlFor="listing-name" className="block text-gray-700 text-xl font-medium mt-5">
+                        <label
+                            htmlFor="listing-name"
+                            className="block mt-5 text-xl font-medium text-gray-700"
+                        >
                             Listing Name
                         </label>
                         <input
                             id="listing-name"
-                            className="bg-white w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             type="text"
                             name="listing_name"
                             placeholder="Enter a name for your listing"
@@ -252,7 +258,7 @@ const CreateListing = () => {
                         />
                         {errors.listing_name &&
                             errors.listing_name.map((error, index) => (
-                                <p key={index} className="text-red-500 text-sm mt-1" role="alert">
+                                <p key={index} className="mt-1 text-sm text-red-500" role="alert">
                                     {error}
                                 </p>
                             ))}
@@ -260,12 +266,15 @@ const CreateListing = () => {
 
                     {/* Listing Description */}
                     <div>
-                        <label htmlFor="listing-description" className="block text-gray-700 text-xl font-medium mt-5">
+                        <label
+                            htmlFor="listing-description"
+                            className="block mt-5 text-xl font-medium text-gray-700"
+                        >
                             Description
                         </label>
                         <textarea
                             id="listing-description"
-                            className="bg-white w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             rows="4"
                             name="listing_description"
                             placeholder="Describe your item in detail"
@@ -276,7 +285,7 @@ const CreateListing = () => {
                         />
                         {errors.listing_description &&
                             errors.listing_description.map((error, index) => (
-                                <p key={index} className="text-red-500 text-sm mt-1" role="alert">
+                                <p key={index} className="mt-1 text-sm text-red-500" role="alert">
                                     {error}
                                 </p>
                             ))}
@@ -284,19 +293,26 @@ const CreateListing = () => {
 
                     {/* Minimum Price */}
                     <div>
-                        <label htmlFor="minimum-price" className="block text-gray-700 text-xl font-medium mt-5">
+                        <label
+                            htmlFor="minimum-price"
+                            className="block mt-5 text-xl font-medium text-gray-700"
+                        >
                             Starting Price
                         </label>
                         <div className="relative">
-                            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500" aria-hidden="true">
+                            <span
+                                className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500"
+                                aria-hidden="true"
+                            >
                                 £
                             </span>
                             <input
                                 id="minimum-price"
-                                className="bg-white w-full pl-8 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-4 py-2 pl-8 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 type="number"
                                 name="minimum_price"
                                 min="0"
+                                max="99999999"
                                 step="0.01"
                                 placeholder="0.00"
                                 value={formData.minimum_price}
@@ -306,19 +322,26 @@ const CreateListing = () => {
                             />
                             {errors.minimum_price &&
                                 errors.minimum_price.map((error, index) => (
-                                    <p key={index} className="text-red-500 text-sm mt-1" role="alert">
+                                    <p
+                                        key={index}
+                                        className="mt-1 text-sm text-red-500"
+                                        role="alert"
+                                    >
                                         {error}
                                     </p>
                                 ))}
                         </div>
                         <span className="text-gray-600">
-                            {Math.round(mFee * 100)}% Standard fee charged
+                            {Math.round(mFee * 100)}% Standard fee charged on winning bid
                         </span>
                     </div>
 
                     {/* Tag Selector */}
                     <div>
-                        <label className="block text-gray-700 text-xl font-medium mt-5" id="tag-selector-label">
+                        <label
+                            className="block mt-5 text-xl font-medium text-gray-700"
+                            id="tag-selector-label"
+                        >
                             Select Tags
                         </label>
                         <Tag_selector
@@ -331,12 +354,15 @@ const CreateListing = () => {
 
                     {/* Days Available */}
                     <div>
-                        <label htmlFor="days-available" className="block text-gray-700 text-xl font-medium mt-5">
+                        <label
+                            htmlFor="days-available"
+                            className="block mt-5 text-xl font-medium text-gray-700"
+                        >
                             Auction Duration (Days)
                         </label>
                         <input
                             id="days-available"
-                            className="bg-white w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             type="number"
                             name="days_available"
                             min="1"
@@ -350,7 +376,7 @@ const CreateListing = () => {
                         />
                         {errors.days_available &&
                             errors.days_available.map((error, index) => (
-                                <p key={index} className="text-red-500 text-sm mt-1" role="alert">
+                                <p key={index} className="mt-1 text-sm text-red-500" role="alert">
                                     {error}
                                 </p>
                             ))}
@@ -358,7 +384,10 @@ const CreateListing = () => {
 
                     {/* Authentication Request */}
                     <div className="pt-2">
-                        <label className="block text-gray-700 text-xl font-medium mt-5" id="auth-request-label">
+                        <label
+                            className="block mt-5 text-xl font-medium text-gray-700"
+                            id="auth-request-label"
+                        >
                             Authentication Request
                         </label>
                         <label className="flex items-center space-x-2">
@@ -367,7 +396,7 @@ const CreateListing = () => {
                                 name="authentication_request"
                                 checked={formData.authentication_request}
                                 onChange={handleChange}
-                                className="focus:ring-blue-500 h-4 w-4"
+                                className="w-4 h-4 focus:ring-blue-500"
                                 aria-labelledby="auth-request-label"
                             />
                             <span className="text-gray-600">
@@ -380,12 +409,15 @@ const CreateListing = () => {
 
                     {/* File Upload */}
                     <div className="pt-2">
-                        <label htmlFor="item-images" className="block text-gray-700 text-xl font-medium mt-5">
+                        <label
+                            htmlFor="item-images"
+                            className="block mt-5 text-xl font-medium text-gray-700"
+                        >
                             Item Images
                         </label>
                         <input
                             id="item-images"
-                            className="bg-white w-full py-2 px-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             type="file"
                             name="images"
                             accept="image/jpeg, image/png"
@@ -398,26 +430,29 @@ const CreateListing = () => {
                         {/* Display list of uploaded files */}
                         {formData.images && formData.images.length > 0 && (
                             <div className="mt-3" role="region" aria-live="polite">
-                                <p className="text-gray-700 mb-2">
+                                <p className="mb-2 text-gray-700">
                                     Uploaded files ({formData.images.length}):
                                 </p>
-                                <ul className="bg-gray-50 rounded-md p-3 border border-gray-200">
+                                <ul className="p-3 border border-gray-200 rounded-md bg-gray-50">
                                     {Array.from(formData.images).map((file, index) => (
                                         <li
                                             key={index}
                                             className="flex items-center justify-between py-1"
                                         >
                                             <div className="flex items-center text-gray-700">
-                                                <Image className="h-5 w-5 mr-2 text-blue-500" aria-hidden="true" />
-                                                <span className="truncate max-w-xs">
+                                                <Image
+                                                    className="w-5 h-5 mr-2 text-blue-500"
+                                                    aria-hidden="true"
+                                                />
+                                                <span className="max-w-xs truncate">
                                                     {file.name}
                                                 </span>
-                                                <span className="ml-2 text-gray-500 text-sm">
+                                                <span className="ml-2 text-sm text-gray-500">
                                                     ({(file.size / 1024).toFixed(1)} KB)
                                                 </span>
                                             </div>
                                             <button
-                                                className="ml-2 p-2 bg-red-500 text-white rounded right hover:bg-red-600 transition-colors"
+                                                className="p-2 ml-2 text-white transition-colors bg-red-500 rounded right hover:bg-red-600"
                                                 type="button"
                                                 onClick={() => handle_remove_image(index)}
                                                 aria-label={`Remove file ${file.name}`}
@@ -432,7 +467,7 @@ const CreateListing = () => {
 
                         {errors.images &&
                             errors.images.map((error, index) => (
-                                <p key={index} className="text-red-500 text-sm mt-1" role="alert">
+                                <p key={index} className="mt-1 text-sm text-red-500" role="alert">
                                     {error}
                                 </p>
                             ))}
@@ -442,7 +477,7 @@ const CreateListing = () => {
                     <div className="pt-4">
                         <button
                             type="submit"
-                            className="w-full py-3 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full py-3 font-semibold text-white transition-colors bg-blue-500 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                             Create Listing
                         </button>
