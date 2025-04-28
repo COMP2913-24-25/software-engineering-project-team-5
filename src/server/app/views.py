@@ -649,7 +649,7 @@ def update_user_details():
 
 @app.route("/api/update_level", methods=["POST"])
 def update_level():
-    print("REACHED update_level")
+    
     data = request.json
     user_ids = data.get("user_id", "")
     new_levels = data.get("level_of_access", "")
@@ -669,21 +669,22 @@ def update_level():
             return jsonify({"error": f"Invalid level_of_access value: {level}"}), 500
 
     try:
-
         for i in range(len(user_ids)):
             user = User.query.filter_by(User_id=user_ids[i]).first()
             # print(f"will update user_id {user_ids[i]} to level : {new_levels[i]}")
-
             if not user:
                 return jsonify({"error": "User no found"}), 404
 
-            user.Level_of_access = new_levels[i]
-            print(new_levels[i])
+            # update level of access
+            user.Level_of_access = new_levels[i] 
+            
+            # update is_expert according to access level
             if new_levels[i] == "2":
-                print("changed to expert")
+                # print("changed to expert")
                 user.Is_expert = 1
             else:
                 user.Is_expert = 0
+
             db.session.commit()
 
         return jsonify({"message": "Levels updated successfully"}), 200
@@ -694,13 +695,14 @@ def update_level():
 
 @app.route("/api/get_bid_filtering", methods=["POST"])
 def get_bid_filtering():
+
     data = request.json
-    print("IN BID FILTERIN")
     bid_status_selected = data.get("bid_status", "")
+
     listing_Ids = data.get("listing_Ids", [])
     listing_Ids = list(map(int, listing_Ids))
     filtered_listing_Ids = []
-    print(bid_status_selected)
+    # print(bid_status_selected)
     user_id = current_user.User_id
 
     for Id in listing_Ids:
@@ -715,9 +717,9 @@ def get_bid_filtering():
             .filter(Bidding_history.Bidder_id == user_id, Items.Item_id == Id)
             .all()
         )
-        # Items.Available_until < datetime.datetime.now(datetime.timezone.utc),  # Only expired bids
 
-        print("BID", bid_table)
+
+        # print("BID", bid_table)
         for item_id, available_until, successful_bid, winning_bid in bid_table:
             # Condition to check if the bid has expired
             if available_until.replace(
@@ -727,28 +729,26 @@ def get_bid_filtering():
             ):  # Check if the bid has expired, won is only possible after expired
                 if bid_status_selected:  # Ensure bid_status_selected is not None
                     if bid_status_selected == "won":
-                        print("in won")
                         if successful_bid == True and winning_bid == True:
-                            print(successful_bid, winning_bid)
                             filtered_listing_Ids.append(Id)
+
                     elif bid_status_selected == "payment_failed":
-                        print("in payment failed")
                         if successful_bid == True and winning_bid != True:
                             filtered_listing_Ids.append(Id)
+
                     elif bid_status_selected == "expired":
                         filtered_listing_Ids.append(Id)
+
                     if bid_status_selected == "out_bid":
-                        print("in out_bid, checking succesful_bid", successful_bid)
                         if successful_bid == False:
                             filtered_listing_Ids.append(Id)
             else:
-                # print("expired")
+                # out bid possible even when item is not expired
                 if bid_status_selected == "out_bid":
                     print("in out_bid, checking succesful_bid", successful_bid)
                     if successful_bid == False:
                         filtered_listing_Ids.append(Id)
 
-    print(filtered_listing_Ids)
     return jsonify(filtered_listing_Ids)
 
 
@@ -763,6 +763,7 @@ def get_category_filters():
         db.session.query(Items)
         .join(User, Items.Seller_id == User.User_id)
         .filter(
+
             Items.Available_until > datetime.datetime.now(datetime.timezone.utc),
             db.or_(
                 db.and_(
@@ -836,7 +837,6 @@ def _generate_response(items):
     response.headers["Cache-Control"] = "public, max-age=86400"  # Cache for 24 hours
     return response, 200
 
-
 @app.route("/api/get_search_filter", methods=["POST"])
 def get_search_filter():
     """
@@ -855,15 +855,14 @@ def get_search_filter():
     Returns:
         JSON: A list of filtered item details (based on the search query).
     """
-    # print("in search")
+
     data = request.json
     user = data.get("user", "")
     item = data.get("item", "")
     searchQuery = (data.get("searchQuery", "")).strip().lower()
-    print("SEARCH QUERY IN BACKEND", searchQuery)
-    # print("ITEM", item)
+    # print("SEARCH QUERY IN BACKEND", searchQuery)
     filtered_ids = []
-
+    search_tokens = []
     filtered_items = []
     filtered_users = []
 
@@ -872,6 +871,7 @@ def get_search_filter():
             db.session.query(Items)
             .join(User, Items.Seller_id == User.User_id)
             .filter(
+
                 Items.Available_until > datetime.datetime.now(datetime.timezone.utc),
                 db.or_(
                     db.and_(
@@ -888,40 +888,54 @@ def get_search_filter():
             )
             .all()
         )
-        # print("in item bool")
         if searchQuery == "":
             # Return all items
-            # print("Empty search Query")
             filtered_items = available_items
         else:
             # filter by item name, works with space seperated strings
-            # item_names_and_Ids = db.session.query(Items.Listing_name, Items.Item_id).all()
             item_names_and_Ids = [
                 (item.Listing_name, item.Item_id) for item in available_items
             ]
+            
             for name, item_id in item_names_and_Ids:
                 name = name.lower()
                 name_tokens = name.split()
                 search_tokens = searchQuery.split()
 
-                print(name_tokens)
                 for i in range(len(name_tokens) - len(search_tokens) + 1):
                     if all(
                         name_tokens[i + j].startswith(search_tokens[j])
                         for j in range(len(search_tokens))
                     ):
-                        print(f"name : {name_tokens} seach : {search_tokens}")
                         filtered_ids.append(item_id)
 
-            # filter by item_tags, works for tags that have more than one word
+             # filter by item_tags, works for tags that have more than one token
             type_names = (
-                db.session.query(Types.Type_name, Items.Item_id)
-                .join(Middle_type, Middle_type.Item_id == Items.Item_id)
-                .join(Types, Types.Type_id == Middle_type.Type_id)
-                .all()
+            db.session.query(Types.Type_name, Items.Item_id)
+            .join(Middle_type, Middle_type.Item_id == Items.Item_id)
+            .join(Types, Types.Type_id == Middle_type.Type_id)
+            .filter(
+                Items.Available_until > datetime.datetime.now(datetime.timezone.utc),
+                db.or_(
+                    db.and_(
+                        Items.Authentication_request == False,
+                        Items.Verified == True,
+                        Items.Authentication_request_approved == True,
+                    ),
+                    db.and_(
+                        Items.Authentication_request == False,
+                        Items.Verified == False,
+                        Items.Authentication_request_approved == None,
+                    ),
+                ),
+            )
+            .all()
             )
 
+            item_ids_unique = list(set(item_id for _, item_id in type_names)) 
+            # print(item_ids_unique)
             for tag_name, item_id in type_names:
+                tag_name = tag_name.lower()
                 tag_name_tokens = tag_name.split()
                 for i in range(len(tag_name_tokens) - len(search_tokens) + 1):
                     # print("Search tags",search_tokens)
@@ -932,14 +946,29 @@ def get_search_filter():
                         # ensure no duplicates of item_ids
                         if item_id not in filtered_ids:
                             filtered_ids.append(item_id)
+                            
+                
+            # search for multiple tags seperated by " ", tag 1 AND tag 2 AND ...
+            for item_id in item_ids_unique :
+                multiple_tags_count = 0
+                item_types = {type_name.lower() for type_name, id in type_names if id == item_id}
 
-            # print("Item Ids",filtered_ids)
+                for token in search_tokens:
+                    for type_name in item_types:
+                        # print(f"comparing search token {token} with type {type_name}")
+                        if type_name.startswith(token):
+                            multiple_tags_count += 1
+                
+                # print(multiple_tags_count)
+                if multiple_tags_count >= len(search_tokens):
+                    if item_id not in filtered_ids:
+                            filtered_ids.append(item_id)
+
             # get items from filtered Ids
+            # print(type_names)
             filtered_items = (
                 db.session.query(Items).filter(Items.Item_id.in_(filtered_ids)).all()
             )
-
-        print(filtered_items)
 
         # Turn into dict
         items_list = []
@@ -975,8 +1004,10 @@ def get_search_filter():
 
         return jsonify(items_list), 200
         # Ensure Items model has a to_dict() method
+        
+    # filter for users
     elif user:
-        # for now just returns all
+        # returns all if no search query
         if not searchQuery or searchQuery == " ":
             filtered_users = db.session.query(User).all()
             print(filtered_users)
@@ -989,22 +1020,24 @@ def get_search_filter():
             user_names_and_Ids = db.session.query(
                 User.First_name, User.Middle_name, User.Surname, User.User_id
             ).all()
+
             for first, middle, last, user_id in user_names_and_Ids:
                 if middle == "" or middle == None:
                     name_tokens = [first.lower(), middle, last.lower()]
                 else:
                     name_tokens = [first.lower(), middle.lower(), last.lower()]
 
-                    # print("NAME", name_tokens)
                 search_tokens = searchQuery.lower().split()
 
-                # if searchQuery has two tokens, it matches both in the same sequence to the name token
+                # if searchQuery has two tokens or more, it matches both in the same sequence to the name token
                 if len(search_tokens) > 1:
                     # print("SEARCH", search_tokens)
                     matched = False
                     if len(search_tokens) <= len(name_tokens):
-                        # if name_tokens is greater than two, it matches first search_token to first name,
+                        # if name_tokens >= two, it matches first search_token to first name,
                         # second to middle name, third to last
+                        
+                        # if name_tokens has a middle name
                         if name_tokens[1] != "" and name_tokens[1] != None:
                             for i in range(len(search_tokens)):
                                 if (
@@ -1013,30 +1046,31 @@ def get_search_filter():
                                     .startswith(search_tokens[i])
                                 ):
                                     matched = False
-                                    # print("NOT MATCHED : comparing name_toke", name_tokens[i], " with search query token ", search_tokens[i])
+                                    print("NOT MATCHED : comparing name_toke", name_tokens[i], " with search query token ", search_tokens[i])
                                     break
                                 else:
-                                    # print("MATCHED : comparing name_toke", name_tokens[i], " with search query token ", search_tokens[i])
+                                    print("MATCHED : comparing name_toke", name_tokens[i], " with search query token ", search_tokens[i])
                                     matched = True
+                            # if name has middle name but search query has first + last
+                            # this matches first name to seach quary token 1 and last name to search query token 2
+                            if len(search_tokens) == 2 and name_tokens[0] == search_tokens[0] and name_tokens[2].startswith(search_tokens[1]):
+                                matched = True
+                                
 
                         else:
-                            #  if name has no middle name, then second search token should match with last name not middle name
+                            # if name has no middle name, then second search token should match with last name or middle name
                             if name_tokens[0] == search_tokens[0]:
-                                # print("MATCHED : comparing name", name_tokens[0], " with search query token ", search_tokens[0])
                                 if name_tokens[2].startswith(search_tokens[1]):
-                                    # print("MATCHED : comparing name", name_tokens[2], " with search query token ", search_tokens[1])
                                     matched = True
                                 else:
                                     matched = False
-                                    # print("NOT MATCHED : comparing name_toke", name_tokens[2], " with search query token ", search_tokens[1])
                             else:
                                 matched = False
-                                # print("NOT MATCHED : comparing name_toke", name_tokens[0], " with search query token ", search_tokens[0])
 
                     if matched:
                         filtered_user_ids.append(user_id)
-                        # print("ID added", user_id)
 
+                # deals with single search query : basic keyword matching
                 elif len(search_tokens) == 1:
                     for i in range(len(name_tokens)):
                         if name_tokens[i] != None:
@@ -1048,8 +1082,6 @@ def get_search_filter():
             )
             # print(filtered_users)
 
-            # filtering by expert tags, not yet implemnetd in db
-            # if user.Is_expert : filter by tags
         users_list = []
         for user in filtered_users:
             middle_name = user.Middle_name
@@ -1072,9 +1104,6 @@ def get_search_filter():
 
         return jsonify(users_list), 200
 
-    # print([item_id for item_id, in db.session.query(Items.Item_id).all()])
-    # all_items = db.session.query(Items).all()
-    # return jsonify([item.to_dict() for item in all_items])
 
 
 @app.route("/api/get_filtered_listings", methods=["POST"])
@@ -1100,7 +1129,6 @@ def get_filtered_listings():
         listing_Ids = data.get("listing_Ids", [])
         listing_Ids = list(map(int, listing_Ids))
         filtered_listing_Ids = []
-        # print("DATAAAA", data)
         if min_price != "" and max_price != "":
             for Id in listing_Ids:
                 item = Items.query.filter_by(Item_id=Id).first()
@@ -1409,6 +1437,7 @@ def get_listings():
             db.session.query(Items, User.Username)
             .join(User, Items.Seller_id == User.User_id)
             .filter(
+
                 Items.Available_until > datetime.datetime.now(datetime.timezone.utc),
                 db.or_(
                     db.and_(
@@ -1479,6 +1508,7 @@ def get_seller_listings():
             .join(User, Items.Seller_id == User.User_id)
             .filter(
                 Items.Seller_id == current_user.User_id,
+
                 Items.Available_until > datetime.datetime.now(datetime.timezone.utc),
                 db.or_(
                     db.and_(
@@ -1604,6 +1634,7 @@ def get_bids():
             )  # Join User table to get seller info
             .filter(
                 Bidding_history.Bidder_id == current_user.User_id,
+
                 Items.Available_until
                 > datetime.datetime.now(datetime.timezone.utc),  # Only valid bids
             )
@@ -1717,6 +1748,7 @@ def get_history():
             )  # Outer join Images table to get item image
             .filter(
                 Bidding_history.Bidder_id == current_user.User_id,
+
                 Items.Available_until
                 < datetime.datetime.now(datetime.timezone.utc),  # Only expired bids
             )
@@ -2109,6 +2141,7 @@ def get_sold():
                     )
                     .join(Bidding_history, Items.Item_id == Bidding_history.Item_id)
                     .filter(
+
                         Items.Available_until
                         < datetime.datetime.now(datetime.timezone.utc),
                         Bidding_history.Winning_bid == 1,

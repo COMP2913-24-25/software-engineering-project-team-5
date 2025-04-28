@@ -7,7 +7,6 @@ import config from "../../../config";
 export default function CustomerTable() {
     const [data, set_Data] = useState("");
     const [selected_users, setselected_users] = useState([]);
-
     const { csrfToken } = useCSRF();
     const [new_levels, setnew_levels] = useState({});
     const [updated_level_list, set_updated_level_list] = useState({});
@@ -66,7 +65,7 @@ export default function CustomerTable() {
         set_updated_level_list(updatedList);
     };
 
-    const handleSave = async () => {
+    const handle_save = async () => {
         if (Object.keys(updated_level_list).length === 0) return;
 
         const user_id = [];
@@ -122,7 +121,7 @@ export default function CustomerTable() {
                     Search and manage customer details.
                 </p>
             </div>
-
+            
             <div className="mb-4 flex items-center justify-start gap-4">
                 <h3 className="text-lg font-semibold" id="search-users-heading">
                     Search for Users
@@ -134,6 +133,36 @@ export default function CustomerTable() {
                     aria-labelledby="search-users-heading"
                     aria-label="Search component to find users"
                 />
+                <div className="mt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
+                <div className="flex items-center gap-2">
+                    <span className="font-semibold">Change level for selected users:</span>
+                    <select
+                        className="border rounded p-1"
+                        value={bulk_level}
+                        onChange={handle_bulk_level_change}
+                    >
+                        <option value="">Select Level</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                    </select>
+                    <button
+                        onClick={apply_bulk_level}
+                        className="bg-blue-500 text-white px-4 py-1 rounded-lg hover:bg-blue-600 transition"
+                    >
+                        Confirm Bulk Change
+                    </button>
+                </div>
+            </div>
+            <div className="mt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
+                <button
+                    onClick={handle_save}
+                    className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition w-full sm:w-auto"
+                    aria-label="Save selected users and their access levels"
+                >
+                    Save
+                </button>
+            </div>
             </div>
 
             <div className="overflow-auto">
@@ -190,7 +219,7 @@ export default function CustomerTable() {
                                                     user_display.Level_of_access
                                                 }
                                                 onChange={(e) =>
-                                                    handleLevelChange(
+                                                    handle_level_change(
                                                         user_display.User_id,
                                                         e.target.value
                                                     )
@@ -214,36 +243,7 @@ export default function CustomerTable() {
                     </tbody>
                 </table>
             </div>
-            <div className="mt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
-                <div className="flex items-center gap-2">
-                    <span className="font-semibold">Change level for selected users:</span>
-                    <select
-                        className="border rounded p-1"
-                        value={bulk_level}
-                        onChange={handle_bulk_level_change}
-                    >
-                        <option value="">Select Level</option>
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                    </select>
-                    <button
-                        onClick={apply_bulk_level}
-                        className="bg-blue-500 text-white px-4 py-1 rounded-lg hover:bg-blue-600 transition"
-                    >
-                        Confirm Bulk Change
-                    </button>
-                </div>
-            </div>
-            <div className="mt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
-                <button
-                    onClick={handleSave}
-                    className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition w-full sm:w-auto"
-                    aria-label="Save selected users and their access levels"
-                >
-                    Save
-                </button>
-            </div>
+            
         </div>
     );
 }
